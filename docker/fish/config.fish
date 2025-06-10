@@ -4,6 +4,12 @@
 
 # 環境変数の設定（Docker環境用）
 set -gx WORKSPACE /workspace
+set -gx HOME /home/developer
+set -gx USER developer
+
+# npmのグローバルパッケージをユーザーディレクトリにインストール
+set -gx NPM_CONFIG_PREFIX $HOME/.npm
+set -gx PATH $NPM_CONFIG_PREFIX/bin $PATH
 
 # z (ディレクトリジャンプ) の設定
 set -g Z_CMD "z"

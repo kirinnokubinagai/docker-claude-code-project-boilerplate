@@ -26,11 +26,17 @@ RUN addgroup -g 1001 developer || true && \
     addgroup -S docker 2>/dev/null || true && \
     adduser developer docker
 
-# fish設定ディレクトリの作成
-RUN mkdir -p /home/developer/.config/fish/functions
+# developerユーザーの環境ディレクトリを作成
+RUN mkdir -p /home/developer/.config/fish/functions \
+    /home/developer/.npm \
+    /home/developer/.local/share \
+    /home/developer/.cache \
+    /home/developer/.anthropic \
+    && chown -R developer:developer /home/developer
 
 # zのインストール
-RUN curl -sS https://raw.githubusercontent.com/jethrokuan/z/master/z.fish > /home/developer/.config/fish/functions/z.fish
+RUN curl -sS https://raw.githubusercontent.com/jethrokuan/z/master/z.fish > /home/developer/.config/fish/functions/z.fish \
+    && chown developer:developer /home/developer/.config/fish/functions/z.fish
 
 # Claude Codeをインストール
 RUN npm install -g @anthropic-ai/claude-code

@@ -50,11 +50,19 @@ cat << 'WELCOME'
 
 WELCOME
 
+# 必要なディレクトリを作成（developerユーザー用）
+mkdir -p /home/developer/.npm /home/developer/.local /home/developer/.config /home/developer/.cache
+chown -R developer:developer /home/developer
+
+# 環境変数を設定
+export HOME=/home/developer
+export USER=developer
+
 # 引数があればそのコマンドを、なければfishシェルを起動
 if [ $# -eq 0 ]; then
     # デフォルト: fishシェル
-    exec su - developer -c "cd /workspace && exec fish"
+    exec su developer -c "cd /workspace && exec fish"
 else
     # 引数がある場合: そのコマンドを実行
-    exec su - developer -c "cd /workspace && exec $*"
+    exec su developer -c "cd /workspace && exec $*"
 fi
