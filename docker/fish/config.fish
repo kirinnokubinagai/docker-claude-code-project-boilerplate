@@ -76,7 +76,11 @@ function setup_mcp_servers
     
     # Context7
     echo "  追加中: Context7"
-    claude mcp add -s user context7 -e DEFAULT_MINIMUM_TOKENS="${DEFAULT_MINIMUM_TOKENS:-6000}" -- npx @upstash/context7-mcp
+    if test -n "$DEFAULT_MINIMUM_TOKENS"
+        claude mcp add -s user context7 -e DEFAULT_MINIMUM_TOKENS="$DEFAULT_MINIMUM_TOKENS" -- npx @upstash/context7-mcp
+    else
+        claude mcp add -s user context7 -e DEFAULT_MINIMUM_TOKENS="6000" -- npx @upstash/context7-mcp
+    end
 
     # Sentry
     echo " 追加中: Sentry"
@@ -109,7 +113,7 @@ function master
         echo "📍 現在のディレクトリ: "(pwd)
         echo "📂 /workspace の内容:"
         ls -la /workspace/
-    fi
+    end
 end
 
 # MCP確認関数
