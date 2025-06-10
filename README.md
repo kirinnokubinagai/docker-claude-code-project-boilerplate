@@ -94,8 +94,9 @@ check_mcp                    # MCP確認
 Ctrl-b 1-6                  # チーム切替
 tmux capture-pane -t "..." -p  # 進捗確認
 
-# OWASP ZAP確認
-curl http://localhost:8090   # ZAPデーモン確認
+# OWASP ZAP確認（コンテナ内から）
+curl http://zap:8090         # ZAPデーモン確認
+curl http://zap:8090/JSON/core/view/version/ | jq  # バージョン確認
 ls zap-reports/             # セキュリティレポート確認
 ```
 

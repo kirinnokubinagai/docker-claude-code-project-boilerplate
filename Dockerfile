@@ -15,7 +15,8 @@ RUN apk add --no-cache \
     coreutils \
     sudo \
     docker-cli \
-    docker-compose
+    docker-compose \
+    jq
 
 # developerユーザーを作成（既存のGID/UIDを考慮）
 RUN addgroup -g 1001 developer || true && \

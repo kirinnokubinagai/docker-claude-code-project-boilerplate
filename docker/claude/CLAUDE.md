@@ -401,32 +401,80 @@ npx snyk test
 
 # OWASP ZAPセキュリティテスト
 echo "🕷️ OWASP ZAPでセキュリティテスト中..."
+
+# ZAPコンテナ名を使用してアクセス
+ZAP_HOST="zap"
+ZAP_PORT="8090"
+ZAP_URL="http://${ZAP_HOST}:${ZAP_PORT}"
+
 # 開発環境が起動している場合のみ実行
-if curl -s http://localhost:3000 > /dev/null; then
-    # ZAPデーモンが起動しているか確認
-    if curl -s http://localhost:8090 > /dev/null; then
-        echo "✅ OWASP ZAPデーモンが稼働中"
+if curl -s http://host.docker.internal:3000 > /dev/null 2>&1 || curl -s http://localhost:3000 > /dev/null 2>&1; then
+    APP_URL="http://host.docker.internal:3000"
+    
+    # ZAPデーモンが起動しているか確認（コンテナ名で接続）
+    if curl -s "${ZAP_URL}" > /dev/null 2>&1; then
+        echo "✅ OWASP ZAPデーモンが稼働中 (${ZAP_URL})"
         
-        # ZAP API経由でスキャン実行
-        curl -X GET "http://localhost:8090/JSON/spider/action/scan/?url=http://localhost:3000&maxChildren=10&recurse=true"
-        sleep 10
+        # ZAPのステータス確認
+        echo "📊 ZAPステータス確認..."
+        curl -s "${ZAP_URL}/JSON/core/view/version/" | jq '.' || echo "ZAP接続確認中..."
         
-        # パッシブスキャン実行
-        curl -X GET "http://localhost:8090/JSON/pscan/action/enableAllScanners/"
+        # 新しいセッション開始
+        curl -s "${ZAP_URL}/JSON/core/action/newSession/?overwrite=true"
+        
+        # ターゲットURL設定
+        echo "🎯 ターゲット設定: ${APP_URL}"
+        curl -s "${ZAP_URL}/JSON/core/action/accessUrl/?url=${APP_URL}"
+        
+        # スパイダースキャン実行
+        echo "🕷️ スパイダースキャン開始..."
+        SCAN_ID=$(curl -s "${ZAP_URL}/JSON/spider/action/scan/?url=${APP_URL}&maxChildren=10&recurse=true" | jq -r '.scan')
+        
+        # スキャン完了待機
+        while [ "$(curl -s "${ZAP_URL}/JSON/spider/view/status/?scanId=${SCAN_ID}" | jq -r '.status')" != "100" ]; do
+            echo -n "."
+            sleep 2
+        done
+        echo " 完了！"
+        
+        # パッシブスキャン有効化
+        curl -s "${ZAP_URL}/JSON/pscan/action/enableAllScanners/"
         
         # アクティブスキャン実行
-        curl -X GET "http://localhost:8090/JSON/ascan/action/scan/?url=http://localhost:3000&recurse=true&inScopeOnly=false"
+        echo "🔍 アクティブスキャン開始..."
+        ASCAN_ID=$(curl -s "${ZAP_URL}/JSON/ascan/action/scan/?url=${APP_URL}&recurse=true&inScopeOnly=false" | jq -r '.scan')
+        
+        # アクティブスキャン進捗確認
+        while [ "$(curl -s "${ZAP_URL}/JSON/ascan/view/status/?scanId=${ASCAN_ID}" | jq -r '.status')" != "100" ]; do
+            PROGRESS=$(curl -s "${ZAP_URL}/JSON/ascan/view/status/?scanId=${ASCAN_ID}" | jq -r '.status')
+            echo "進捗: ${PROGRESS}%"
+            sleep 5
+        done
+        echo "✅ アクティブスキャン完了！"
         
         # レポート生成
-        curl -X GET "http://localhost:8090/OTHER/core/other/htmlreport/" > ./zap-reports/zap-report-$(date +%Y%m%d-%H%M%S).html
+        mkdir -p ./zap-reports
+        REPORT_FILE="./zap-reports/zap-report-$(date +%Y%m%d-%H%M%S).html"
+        curl -s "${ZAP_URL}/OTHER/core/other/htmlreport/" > "${REPORT_FILE}"
+        echo "📄 レポート生成: ${REPORT_FILE}"
+        
+        # アラートサマリー表示
+        echo "⚠️ 検出された脆弱性:"
+        curl -s "${ZAP_URL}/JSON/core/view/alertsSummary/" | jq '.alertsSummary'
     else
-        echo "⚠️ OWASP ZAPデーモンが起動していません。docker-compose up -d で起動してください。"
+        echo "⚠️ OWASP ZAPデーモンに接続できません。"
+        echo "以下を確認してください："
+        echo "1. docker-compose up -d でZAPコンテナが起動しているか"
+        echo "2. docker ps でzapコンテナが実行中か"
+        echo "3. docker logs zap-<project> でエラーがないか"
     fi
-    
-    # モックエンドポイントでの基本テスト
-    echo "📝 モックエンドポイントでセキュリティテスト..."
-    # /api/health, /api/test などの基本エンドポイントをテスト
+else
+    echo "⚠️ アプリケーションが起動していません。開発サーバーを起動してください。"
 fi
+
+# モックエンドポイントでの基本テスト
+echo "📝 モックエンドポイントでセキュリティテスト..."
+# /api/health, /api/test などの基本エンドポイントをテスト
 
 # パフォーマンス測定
 echo "⚡ パフォーマンス測定中..."
