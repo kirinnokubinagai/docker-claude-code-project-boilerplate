@@ -13,7 +13,9 @@ RUN apk add --no-cache \
     nodejs \
     npm \
     coreutils \
-    sudo
+    sudo \
+    docker-cli \
+    docker-compose
 
 # developerユーザーを作成（既存のGID/UIDを考慮）
 RUN addgroup -g 1001 developer || true && \
@@ -35,7 +37,16 @@ RUN npm install -g \
     @stripe/mcp \
     @line/line-bot-mcp-server \
     @supabase/mcp-server-supabase \
-    @playwright/mcp@latest
+    @playwright/mcp@latest \
+    @modelcontextprotocol/server-github \
+    @modelcontextprotocol/server-postgres \
+    @modelcontextprotocol/server-filesystem \
+    @modelcontextprotocol/server-slack \
+    @redocly/openapi-cli \
+    redoc-cli \
+    lighthouse \
+    snyk \
+    conventional-changelog-cli
 
 # Pythonベースのツールもインストール（--break-system-packagesフラグを使用）
 RUN pip3 install --break-system-packages uv

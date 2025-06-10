@@ -22,6 +22,12 @@ cd my-project
 
 # .env設定（必須）
 ANTHROPIC_API_KEY=your_key
+
+# オプション（追加MCP用）
+GITHUB_TOKEN=your_github_token
+POSTGRES_CONNECTION_STRING=your_pg_url
+SLACK_BOT_TOKEN=your_slack_token
+SENTRY_DSN=your_sentry_dsn
 ```
 
 ### 2. 起動
@@ -62,11 +68,11 @@ ECサイトを作って
 
 | チーム | 専門分野 | 主要MCP |
 |--------|----------|---------|
-| Frontend | UI/UX実装 | Context7, Playwright |
-| Backend | API開発 | Supabase, Stripe |
-| Database | DB設計 | Supabase, Obsidian |
-| DevOps | インフラ | Playwright, LINE Bot |
-| QA | 品質保証 | Playwright, Context7 |
+| Frontend | UI/UX実装 | Context7, Playwright, Filesystem |
+| Backend | API開発 | Supabase, Stripe, Postgres |
+| Database | DB設計 | Supabase, Obsidian, Postgres |
+| DevOps | インフラ | Playwright, LINE Bot, GitHub |
+| QA | 品質保証 | Playwright, Context7, OWASP ZAP |
 
 ## 📊 納品物の特徴
 

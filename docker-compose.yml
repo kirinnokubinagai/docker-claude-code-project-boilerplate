@@ -55,14 +55,34 @@ services:
 
       # Context7設定
       - DEFAULT_MINIMUM_TOKENS=${DEFAULT_MINIMUM_TOKENS:-6000}
+      
+      # 追加MCP設定（オプション）
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - POSTGRES_CONNECTION_STRING=${POSTGRES_CONNECTION_STRING}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      
+      # セキュリティ監視設定
+      - SENTRY_DSN=${SENTRY_DSN}
 
     working_dir: /workspace
     stdin_open: true
     tty: true
     restart: unless-stopped
 
+    # Dockerソケットマウント（OWASP ZAP実行用）
+    volumes_from:
+      - docker-socket
+
     # Playwright用: ホストネットワーク使用でlocalhost直接アクセス
     network_mode: host
+
+  # Dockerソケット共有サービス（OWASP ZAP実行用）
+  docker-socket:
+    image: alpine
+    container_name: docker-socket-${PROJECT_NAME:-default}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
 
 volumes:
   fish_history:

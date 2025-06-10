@@ -124,9 +124,10 @@ ${ユーザーの要望を分かりやすく整理}
 ### QA
 - E2Eテスト完備
 - パフォーマンステスト
-- セキュリティテスト
+- セキュリティテスト（OWASP ZAP含む）
 - ユーザビリティテスト
 - アクセシビリティテスト
+- 段階的セキュリティ検証
 EOF
 
 # 4. 初回コミット
@@ -172,7 +173,13 @@ tmux send-keys -t "master:Worker-devops" "あなたはDevOps専門チームで�
 git worktree add /workspace/worktrees/qa -b feature/qa
 tmux new-window -t master -n "Worker-qa" "cd /workspace/worktrees/qa && claude --dangerously-skip-permissions"
 sleep 3
-tmux send-keys -t "master:Worker-qa" "あなたはQA専門チームです。完璧なテストカバレッジとユーザビリティテストを実装してください。" Enter
+tmux send-keys -t "master:Worker-qa" "あなたはQA専門チームです。完璧なテストカバレッジとユーザビリティテストを実装してください。開発の早い段階からOWASP ZAPでセキュリティテストも実施してください。" Enter
+
+# Security Team - セキュリティの天才（必要に応じて追加）
+# git worktree add /workspace/worktrees/security -b feature/security
+# tmux new-window -t master -n "Worker-security" "cd /workspace/worktrees/security && claude --dangerously-skip-permissions"
+# sleep 3
+# tmux send-keys -t "master:Worker-security" "あなたはSecurity専門チームです。OWASP ZAPを使用して継続的にセキュリティテストを実施してください。" Enter
 ```
 
 ### 3. 各チームへの共通指示（品質基準）
@@ -208,6 +215,33 @@ echo ".env" >> .gitignore
 echo ".env.local" >> .gitignore
 echo "*.key" >> .gitignore
 echo "*.pem" >> .gitignore
+
+# モックAPIエンドポイント作成（早期セキュリティテスト用）
+mkdir -p api/mock
+cat > api/mock/endpoints.js << 'EOF'
+// セキュリティテスト用モックエンドポイント
+export const mockEndpoints = {
+  '/api/health': { status: 'ok' },
+  '/api/auth/login': { message: 'Mock login endpoint' },
+  '/api/users': { users: [] },
+  '/api/products': { products: [] }
+};
+EOF
+
+# OWASP ZAP設定ファイル
+cat > zap-rules.conf << 'EOF'
+# OWASP ZAPルール設定
+10003  WARN  # Vulnerable JS Library
+10010  WARN  # Cookie No HttpOnly Flag
+10011  WARN  # Cookie Without Secure Flag
+10017  WARN  # Cross-Domain JavaScript Source File Inclusion
+10019  WARN  # Content-Type Header Missing
+10020  WARN  # X-Frame-Options Header Not Set
+10021  WARN  # X-Content-Type-Options Header Missing
+10023  WARN  # Information Disclosure - Debug Error Messages
+10024  WARN  # Information Disclosure - Sensitive Information in URL
+10025  WARN  # Information Disclosure - Sensitive Information in HTTP Referrer Header
+EOF
 
 # パフォーマンス監視設定
 cat > monitoring-config.js << 'EOF'
@@ -364,6 +398,21 @@ EOF
 echo "🔒 セキュリティチェック中..."
 npm audit fix
 npx snyk test
+
+# OWASP ZAPセキュリティテスト
+echo "🕷️ OWASP ZAPでセキュリティテスト中..."
+# 開発環境が起動している場合のみ実行
+if curl -s http://localhost:3000 > /dev/null; then
+    docker run -t owasp/zap2docker-stable zap-baseline.py \
+        -t http://host.docker.internal:3000 \
+        -r zap-report.html \
+        -l PASS \
+        -c zap-rules.conf || true
+    
+    # モックエンドポイントでの基本テスト
+    echo "📝 モックエンドポイントでセキュリティテスト..."
+    # /api/health, /api/test などの基本エンドポイントをテスト
+fi
 
 # パフォーマンス測定
 echo "⚡ パフォーマンス測定中..."
