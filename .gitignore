@@ -46,3 +46,7 @@ Thumbs.db
 # バックアップファイル
 *.bak
 *~
+
+# OWASP ZAPレポート
+zap-reports/
+*.html

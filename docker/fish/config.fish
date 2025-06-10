@@ -81,16 +81,6 @@ function setup_mcp_servers
         claude mcp add -s user postgres -e POSTGRES_CONNECTION_STRING="$POSTGRES_CONNECTION_STRING" -- npx @modelcontextprotocol/server-postgres
     end
     
-    # Filesystem（ファイル操作高速化）
-    echo "  追加中: Filesystem"
-    claude mcp add -s user filesystem -e ALLOWED_DIRECTORIES="/workspace" -- npx @modelcontextprotocol/server-filesystem
-    
-    # Slack（オプション - チーム通知用）
-    if test -n "$SLACK_BOT_TOKEN"
-        echo "  追加中: Slack"
-        claude mcp add -s user slack -e SLACK_BOT_TOKEN="$SLACK_BOT_TOKEN" -- npx @modelcontextprotocol/server-slack
-    end
-    
     echo "✅ MCPサーバー設定完了"
     echo ""
     

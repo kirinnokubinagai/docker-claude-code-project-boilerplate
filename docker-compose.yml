@@ -84,6 +84,24 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: ["sh", "-c", "while true; do sleep 3600; done"]
 
+  # OWASP ZAPサービス
+  zap:
+    image: owasp/zap2docker-stable
+    container_name: zap-${PROJECT_NAME:-default}
+    network_mode: host
+    volumes:
+      - ./zap-reports:/zap/reports
+      - ./zap-rules.conf:/zap/zap-rules.conf:ro
+    command: zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=true
+    environment:
+      - ZAP_PORT=8090
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   fish_history:
     external: true

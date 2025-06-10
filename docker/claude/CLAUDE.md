@@ -403,11 +403,25 @@ npx snyk test
 echo "🕷️ OWASP ZAPでセキュリティテスト中..."
 # 開発環境が起動している場合のみ実行
 if curl -s http://localhost:3000 > /dev/null; then
-    docker run -t owasp/zap2docker-stable zap-baseline.py \
-        -t http://host.docker.internal:3000 \
-        -r zap-report.html \
-        -l PASS \
-        -c zap-rules.conf || true
+    # ZAPデーモンが起動しているか確認
+    if curl -s http://localhost:8090 > /dev/null; then
+        echo "✅ OWASP ZAPデーモンが稼働中"
+        
+        # ZAP API経由でスキャン実行
+        curl -X GET "http://localhost:8090/JSON/spider/action/scan/?url=http://localhost:3000&maxChildren=10&recurse=true"
+        sleep 10
+        
+        # パッシブスキャン実行
+        curl -X GET "http://localhost:8090/JSON/pscan/action/enableAllScanners/"
+        
+        # アクティブスキャン実行
+        curl -X GET "http://localhost:8090/JSON/ascan/action/scan/?url=http://localhost:3000&recurse=true&inScopeOnly=false"
+        
+        # レポート生成
+        curl -X GET "http://localhost:8090/OTHER/core/other/htmlreport/" > ./zap-reports/zap-report-$(date +%Y%m%d-%H%M%S).html
+    else
+        echo "⚠️ OWASP ZAPデーモンが起動していません。docker-compose up -d で起動してください。"
+    fi
     
     # モックエンドポイントでの基本テスト
     echo "📝 モックエンドポイントでセキュリティテスト..."

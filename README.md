@@ -32,9 +32,9 @@ SENTRY_DSN=your_sentry_dsn
 
 ### 2. 起動
 ```bash
-docker-compose up -d
+docker-compose up -d  # OWASP ZAPも自動起動
 docker-compose exec claude-code fish
-master  # 親Claude起動
+master  # 親Claude起動（初回はMCP自動設定）
 ```
 
 ### 3. 要件を伝える
@@ -93,6 +93,10 @@ ECサイトを作って
 check_mcp                    # MCP確認
 Ctrl-b 1-6                  # チーム切替
 tmux capture-pane -t "..." -p  # 進捗確認
+
+# OWASP ZAP確認
+curl http://localhost:8090   # ZAPデーモン確認
+ls zap-reports/             # セキュリティレポート確認
 ```
 
 ---
