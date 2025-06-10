@@ -56,10 +56,16 @@ RUN echo "set -g default-shell /usr/bin/fish" > /home/developer/.tmux.conf && \
 # ホームディレクトリの権限を設定
 RUN chown -R developer:developer /home/developer
 
+# envsubstツールを追加（環境変数展開用）
+RUN apk add --no-cache gettext
+
+# entrypointスクリプトをコピー
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 # 作業ディレクトリを設定
 WORKDIR /workspace
 
-# developerユーザーに切り替え
-USER developer
-
+# entrypointを設定（rootで実行してからdeveloperに切り替える）
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["fish"]

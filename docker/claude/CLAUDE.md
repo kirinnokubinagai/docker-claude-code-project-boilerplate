@@ -1,6 +1,34 @@
-# Claude Code Company - プロジェクト設定（Full MCP版）
+# Claude Code Company - プロジェクト設定（Full MCP + 自動オーケストレーション版）
 
 このファイルはClaude Codeが自動的に参照し、tmux環境での親子プロセス管理と**全MCPサーバー統合**によってプロジェクトのワークフローに従って作業を行うための指示書です。
+
+## 🚀 自動起動時の初期設定
+
+Docker環境が起動すると、以下が自動的に設定されます：
+
+1. **MCPサーバーの自動設定（docker-entrypoint.sh）**
+   - 全MCPサーバーがClaude Codeに自動登録
+   - 環境変数に基づいてMCP設定ファイルが生成
+   - `/home/developer/.config/claude/mcp_servers.json`に保存
+
+2. **オーケストレーションシステムの準備**
+   ```bash
+   # Docker起動後、以下のコマンドを実行してください
+   
+   # tmux環境を起動
+   company
+   
+   # 各部門にClaude Code起動
+   roles
+   
+   # オーケストレーター初期化
+   /workspace/claude-orchestrator.sh init
+   ```
+
+3. **親プロセス（Manager）として動作**
+   - あなたは親プロセスとして、要件定義の分析とタスク配布を担当
+   - 子プロセスへの指示は自動化スクリプトを使用
+   - MCPサーバーはすべて利用可能（自動設定済み）
 
 ## MCP統合組織構造
 
@@ -51,7 +79,34 @@
   - LINE Bot: デプロイ通知、アラート
   - Obsidian: インフラドキュメント
 
-## 必須ワークフロー（MCP統合版）
+## 必須ワークフロー（MCP統合 + 自動オーケストレーション版）
+
+### 0. 🤖 自動化された親子プロセスシステムの使用（推奨）
+
+新しいプロジェクトを開始する際の推奨フロー：
+
+1. **環境準備（初回のみ）**
+   ```bash
+   # Docker起動後に実行
+   company                              # tmux環境作成
+   roles                               # 各部門にClaude Code起動
+   /workspace/claude-orchestrator.sh init  # worktree準備
+   ```
+
+2. **要件分析とタスク自動配布**
+   ```bash
+   # 親プロセスが要件を分析して自動的にタスクを配布
+   /workspace/claude-orchestrator.sh analyze 'プロジェクトの要件'
+   
+   # 例
+   /workspace/claude-orchestrator.sh analyze 'タスク管理アプリを作成。ユーザー認証、タスクCRUD、リマインダー機能、Stripe課金を含む'
+   ```
+
+3. **進捗モニタリング**
+   ```bash
+   source /workspace/parent-child-comm.sh
+   monitor_progress
+   ```
 
 ### 1. 要件定義フェーズ（親プロセス主導）
 
@@ -68,18 +123,19 @@
    - Obsidianで要件定義ドキュメント作成
    - CLI/CI/CDでリリース可能な構成選定
 
-3. **タスク分散（全MCPアクセス権限で）**
+3. **タスク分散（自動化または手動）**
    ```bash
-   # 各部門に専用MCPツールセット付きタスクを分散
-   tmux send-keys -t %27 "あなたはFrontend部門です。担当MCP: Playwright, Obsidian, Context7, Stripe。[具体的なタスク内容]。完了時は tmux send-keys -t %22 '[Frontend] タスク完了: [内容]' Enter で報告。" Enter
+   # 自動化（推奨）
+   /workspace/claude-orchestrator.sh analyze '要件内容'
    
-   tmux send-keys -t %28 "あなたはBackend部門です。担当MCP: Supabase, Stripe, Context7, LINE Bot。[具体的なタスク内容]。完了時は tmux send-keys -t %22 '[Backend] タスク完了: [内容]' Enter で報告。" Enter
+   # 手動の場合
+   tmux send-keys -t %27 "あなたはFrontend部門です。担当MCP: Playwright, Obsidian, Context7, Stripe。[具体的なタスク内容]。完了時は tmux send-keys -t %22 '[Frontend] タスク完了: [内容]' Enter で報告。" Enter
    ```
 
 4. **初期設定（Supabase MCP使用）**
    - Supabase MCPでプロジェクト作成
    - git init、git commit
-   - git worktreeによる細分化
+   - git worktreeによる細分化（自動化済み）
 
 ### 2. 開発環境構築フェーズ（DevOps部門主導）
 
@@ -225,7 +281,40 @@ tmux send-keys -t %22 '[Backend] エラー: Stripe Webhook処理で500エラー 
 
 ## MCP統合管理コマンド
 
-### 基本コマンド（親プロセス用）
+### 🎯 オーケストレーションコマンド（親プロセス用）
+
+#### 要件分析とタスク自動配布
+```bash
+# 要件を分析して自動的にタスクを配布
+/workspace/claude-orchestrator.sh analyze '要件内容'
+
+# 例：ECサイト構築
+/workspace/claude-orchestrator.sh analyze 'ECサイトを作成。ユーザー認証、商品管理、Stripe決済を含む'
+```
+
+#### クイックタスク配布
+```bash
+# よくある機能を素早く配布
+/workspace/claude-orchestrator.sh quick auth    # 認証機能
+/workspace/claude-orchestrator.sh quick payment  # 決済機能
+/workspace/claude-orchestrator.sh quick crud     # CRUD機能
+```
+
+#### 通信ヘルパーを使った直接指示
+```bash
+# ヘルパー読み込み
+source /workspace/parent-child-comm.sh
+
+# 特定部門への指示
+parent_to_child frontend "ダッシュボード画面を作成"
+parent_to_child backend "REST APIを実装"
+parent_to_child all "最新コードをpullしてください"
+
+# 進捗モニタリング
+monitor_progress
+```
+
+### 基本コマンド（手動操作用）
 ```bash
 # 全部門MCP状況確認
 for pane in %27 %28 %29 %30 %31; do

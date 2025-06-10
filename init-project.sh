@@ -92,6 +92,10 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     echo "📋 必要なファイルをコピー中..."
     cp Dockerfile "$FULL_PROJECT_PATH/"
     cp docker-compose.yml "$FULL_PROJECT_PATH/"
+    cp docker-entrypoint.sh "$FULL_PROJECT_PATH/"
+    cp claude-orchestrator.sh "$FULL_PROJECT_PATH/"
+    cp parent-child-comm.sh "$FULL_PROJECT_PATH/"
+    cp ORCHESTRATOR_README.md "$FULL_PROJECT_PATH/"
     cp -r docker "$FULL_PROJECT_PATH/"
     if [ -f ".env.example" ]; then
         cp .env.example "$FULL_PROJECT_PATH/"
@@ -100,7 +104,6 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
         cp .env "$FULL_PROJECT_PATH/"
     fi
     cp .gitignore "$FULL_PROJECT_PATH/"
-    cp -r docker/ "$FULL_PROJECT_PATH/"
     
     # プロジェクトディレクトリに移動
     cd "$FULL_PROJECT_PATH"

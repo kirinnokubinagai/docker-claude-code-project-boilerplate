@@ -1,12 +1,13 @@
 # Claude Code Docker Projects
 
-🎭 **Playwright E2Eテスト専用** + 🖥️ **ホスト側開発** のハイブリッド環境
+🎭 **Playwright E2Eテスト専用** + 🖥️ **ホスト側開発** + 🤖 **自動オーケストレーション** のハイブリッド環境
 
 ## 🎯 コンセプト
 
 - **開発**: ホスト（Mac）側で通常通り `npm run dev`
 - **テスト**: コンテナ内でPlaywright E2Eテスト
 - **AI支援**: Claude Code + 全MCP統合でコード生成・テスト作成
+- **自動化**: 親子プロセスによる自動タスク配布システム
 
 ## 🚀 使い方（超シンプル）
 
@@ -99,7 +100,9 @@ my-project/
 └── docs/                 # ドキュメント
 ```
 
-## 🔧 利用可能なMCPサーバー
+## 🔧 利用可能なMCPサーバー（自動設定済み）
+
+Docker起動時に以下のMCPサーバーが自動的にClaude Codeに追加されます：
 
 - **Supabase** - データベース、認証
 - **Playwright** - E2Eテスト、ブラウザ自動化
@@ -129,8 +132,13 @@ assign frontend "タスク"   # 部門にタスク割り当て
 status                     # 全部門状況確認
 clear_workers             # 全作業者リセット
 
+# 🆕 自動オーケストレーション
+/workspace/claude-orchestrator.sh init         # 初期化
+/workspace/claude-orchestrator.sh analyze '要件' # 要件分析＆自動配布
+/workspace/claude-orchestrator.sh quick auth    # クイック機能実装
+
 # Docker
-docker-compose up -d      # 起動
+docker-compose up -d      # 起動（MCPサーバー自動設定）
 docker-compose down       # 停止
 docker-compose logs -f    # ログ確認
 ```
