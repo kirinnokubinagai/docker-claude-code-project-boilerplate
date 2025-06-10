@@ -31,7 +31,11 @@ SLACK_BOT_TOKEN=your_slack_token
 # 基本起動（5チーム並列）
 
 docker-compose up -d
-docker-compose exec claude-code fish  # developerユーザーとして自動的にログイン
+
+# developerユーザーとしてログイン（2つの方法）
+docker-compose exec claude-code developer-fish  # 推奨：確実にdeveloperユーザー
+# または
+docker-compose exec claude-code su - developer -c fish
 
 # MCP設定確認
 check_mcp

@@ -63,7 +63,6 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
-    command: fish
 
     # カスタムネットワーク使用（コンテナ間通信用）
     networks:

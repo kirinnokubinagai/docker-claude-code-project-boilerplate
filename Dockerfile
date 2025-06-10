@@ -88,7 +88,8 @@ RUN apk add --no-cache gettext
 
 # entrypointスクリプトをコピー
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+COPY docker/developer-entrypoint.sh /usr/local/bin/developer-fish
+RUN chmod +x /docker-entrypoint.sh /usr/local/bin/developer-fish
 
 # 作業ディレクトリを設定
 WORKDIR /workspace
