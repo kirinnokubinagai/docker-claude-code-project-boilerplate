@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Master Claude Teams - リファクタリング版
-# 5つのチームを並列管理するシステム
+# Master Claude Teams - 5つのチームを並列管理するシステム
+# 旧master-claude.shの機能も統合
 
 set -e
 

@@ -32,10 +32,10 @@ SLACK_BOT_TOKEN=your_slack_token
 # 基本起動（5チーム並列）
 ./master-claude-teams.sh
 
-# または従来の起動方法
+# または別の起動方法
 docker-compose up -d
 docker-compose exec claude-code fish
-sh master-claude.sh
+./master-claude-teams.sh
 ```
 
 ### 3. 要件を伝える

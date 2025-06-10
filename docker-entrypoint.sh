@@ -6,8 +6,8 @@
 set -e
 
 # Master Claudeスクリプトの実行権限
-if [ -f "/workspace/master-claude.sh" ]; then
-    chmod +x /workspace/master-claude.sh
+if [ -f "/workspace/master-claude-teams.sh" ]; then
+    chmod +x /workspace/master-claude-teams.sh
 fi
 
 # 初期化メッセージ

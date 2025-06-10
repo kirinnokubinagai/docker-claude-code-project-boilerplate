@@ -89,7 +89,7 @@ function master
         setup_mcp_servers
     end
     
-    /workspace/master-claude.sh
+    /workspace/master-claude-teams.sh
 end
 
 # MCP確認関数
