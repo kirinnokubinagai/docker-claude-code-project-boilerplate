@@ -38,20 +38,12 @@ RUN mkdir -p /home/developer/.config/fish/functions \
 RUN curl -sS https://raw.githubusercontent.com/jethrokuan/z/master/z.fish > /home/developer/.config/fish/functions/z.fish \
     && chown developer:developer /home/developer/.config/fish/functions/z.fish
 
-# Claude Codeをインストール
+# Claude Codeをインストール（これは必要）
 RUN npm install -g @anthropic-ai/claude-code
 
-# 全MCPサーバーをグローバルインストール
+# MCPサーバーはnpxで実行時に取得するため、グローバルインストール不要
+# 必要に応じて使用される開発ツールのみインストール
 RUN npm install -g \
-    @upstash/context7-mcp \
-    @stripe/mcp \
-    @line/line-bot-mcp-server \
-    @supabase/mcp-server-supabase \
-    @playwright/mcp@latest \
-    @modelcontextprotocol/server-github \
-    @modelcontextprotocol/server-postgres \
-    @modelcontextprotocol/server-filesystem \
-    @modelcontextprotocol/server-slack \
     @redocly/openapi-cli \
     redoc-cli \
     lighthouse \
