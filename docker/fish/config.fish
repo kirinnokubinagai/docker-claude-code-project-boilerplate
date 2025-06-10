@@ -91,7 +91,7 @@ end
 
 # Master Claude 起動関数
 function master
-    echo "🎯 Master Claude System v2.0 を起動します..."
+    echo "🎯 Master Claude Teams System を起動します..."
     
     # 環境変数の設定
     set -gx WORKSPACE /workspace
@@ -101,7 +101,15 @@ function master
         setup_mcp_servers
     end
     
-    /workspace/master-claude-teams.sh
+    # スクリプトが存在することを確認
+    if test -f /workspace/master-claude-teams.sh
+        bash /workspace/master-claude-teams.sh
+    else
+        echo "❌ master-claude-teams.sh が見つかりません"
+        echo "📍 現在のディレクトリ: "(pwd)
+        echo "📂 /workspace の内容:"
+        ls -la /workspace/
+    fi
 end
 
 # MCP確認関数
@@ -138,12 +146,17 @@ alias gp='git push'
 alias gl='git log --oneline'
 
 # 起動時メッセージ
-echo "🚀 Master Claude System v2.0"
-echo "コマンド: 'master' で親Claude起動 | 'check_mcp' でMCP確認"
+echo "🚀 Master Claude Teams System"
+echo "📍 ユーザー: "(whoami)" | ホーム: $HOME"
+echo ""
+echo "📋 使用可能なコマンド:"
+echo "  master     - 5チーム並列システムを起動"
+echo "  check_mcp  - MCPサーバーの状態確認"
 echo ""
 
 # 初回起動時の自動セットアップ
 if not test -f ~/.mcp_setup_done
-    echo "⚠️  初回起動を検出しました。MCPサーバーの設定が必要です。"
-    echo "👉 'master' コマンドを実行すると自動的に設定されます。"
+    echo "⚠️  初回起動を検出しました。"
+    echo "👉 'master' コマンドを実行すると、MCPサーバーが自動設定されます。"
+    echo ""
 fi
