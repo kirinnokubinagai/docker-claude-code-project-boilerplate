@@ -60,7 +60,7 @@ function setup_mcp_servers
     # Obsidian
     if test -d "/obsidian-vault"
         echo "  追加中: Obsidian"
-        claude mcp add -s user obsidian -e OBSIDIAN_VAULT_PATH="/obsidian-vault" -- python -m mcp_obsidian
+        claude mcp add -s user obsidian -e OBSIDIAN_VAULT_PATH="/obsidian-vault" -- uvx mcp-obsidian
     else
         echo "  ⚠️  Obsidian: /obsidian-vault ディレクトリが見つかりません"
     end

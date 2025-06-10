@@ -34,13 +34,11 @@ RUN npm install -g \
     @upstash/context7-mcp \
     @stripe/mcp \
     @line/line-bot-mcp-server \
-    obsidian-mcp \
     @supabase/mcp-server-supabase \
     @playwright/mcp@latest
 
 # Pythonベースのツールもインストール（--break-system-packagesフラグを使用）
 RUN pip3 install --break-system-packages uv
-RUN pip3 install --break-system-packages mcp-obsidian
 
 # tmux設定
 RUN echo "set -g default-shell /usr/bin/fish" > /home/developer/.tmux.conf && \
