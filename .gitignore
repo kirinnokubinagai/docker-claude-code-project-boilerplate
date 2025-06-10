@@ -43,6 +43,9 @@ Thumbs.db
 # claude
 .claude
 
+# tmux設定（docker/内のものを使用）
+.tmux.conf
+
 # バックアップファイル
 *.bak
 *~
