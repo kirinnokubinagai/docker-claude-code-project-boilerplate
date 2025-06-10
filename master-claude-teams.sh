@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/claude-teams-lib.sh"
 source "$SCRIPT_DIR/lib/team-configs.sh"
 source "$SCRIPT_DIR/lib/team-communication.sh"
-source "$SCRIPT_DIR/lib/documentation-system.sh"
+source "$SCRIPT_DIR/lib/auto-documentation.sh"
 source "$SCRIPT_DIR/config/teams.conf"
 
 # クリーンアップ関数

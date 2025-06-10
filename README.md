@@ -1,9 +1,13 @@
-# Master Claude System
+# Master Claude Teams System
 
-🎯 **最新技術** × 🧠 **5つの天才AI** × 🇯🇵 **日本市場最適化**
+🎯 **最新技術** × 🧠 **5つの天才AI** × 🤝 **チーム間自動コラボ** × 📚 **自動ドキュメント化**
 
 ## 🌟 システムの特徴
-claudeが複数プロセスでシステムを構築していくシステム
+
+- **5つのClaude Codeが並列作業** - フロントエンド、バックエンド、DB、DevOps、Master
+- **チーム間リアルタイム通信** - 困った時に自動で相談しながら作業継続
+- **自動ドキュメント化** - Obsidian + Playwright でスクリーンショット付きマニュアル自動生成
+- **非同期タスク処理** - 作業を止めずに並列でコラボレーション
 
 ## 🚀 使い方（3ステップ）
 
@@ -21,17 +25,17 @@ ANTHROPIC_API_KEY=your_key
 GITHUB_TOKEN=your_github_token
 POSTGRES_CONNECTION_STRING=your_pg_url
 SLACK_BOT_TOKEN=your_slack_token
-
-# エラー監視（Sentry）- MCP経由で自動設定
-# Sentry MCPが自動的に設定されます
-# 各チームがmcp__sentry__で始まるツールを使用してエラー監視を行います
 ```
 
 ### 2. 起動
 ```bash
-docker-compose up -d  # OWASP ZAPも自動起動
+# 基本起動（5チーム並列）
+./master-claude-teams.sh
+
+# または従来の起動方法
+docker-compose up -d
 docker-compose exec claude-code fish
-sh master-claude.sh  # 親Claude起動（初回はMCP自動設定）
+sh master-claude.sh
 ```
 
 ### 3. 要件を伝える
@@ -39,18 +43,73 @@ sh master-claude.sh  # 親Claude起動（初回はMCP自動設定）
 ECサイトを作って
 ```
 
-これだけ！あとは全自動。
+これだけ！あとは5チームが自動で協調しながら開発します。
 
 ## 🤖 自動実行される内容
 
-1. **最新技術調査** → Context7で最新バージョン確認
-2. **要件定義作成** → ビジネス目標・SEO戦略・セキュリティ要件含む
-3. **5チーム起動** → 専門分野ごとに並列作業
-4. **品質管理** → 15分ごとにチェック＆調整
-5. **エラー自動復旧** → 問題発生時も自動で対処
-6. **ドキュメント生成** → API仕様書・マニュアル自動作成
-7. **セキュリティスキャン** → 脆弱性チェック＆修正
-8. **成果物統合** → 最高品質で納品
+### 開発フロー
+1. **Master が要件定義** → 各チームにタスク分散
+2. **5チーム並列開発** → 独立して作業開始
+3. **自動チーム間通信** → 困った時に相談、作業は継続
+4. **リアルタイム進捗記録** → Obsidianに自動記録
+5. **実装完了時の自動化**:
+   - Playwrightで画面キャプチャ
+   - スクリーンショット付きドキュメント生成
+   - Obsidianにマニュアル自動保存
+6. **品質管理** → 15分ごとにチェック＆調整
+7. **最終統合** → 全チームの成果物を統合
+
+### チーム間通信の例
+```bash
+# Frontend → Backend: API仕様確認
+send_team_message "frontend" "backend" "REQUEST" "認証APIの仕様を教えて"
+
+# Backend → Database: パフォーマンス相談
+send_team_message "backend" "database" "HELP" "クエリ最適化をお願いします"
+
+# DevOps → 全体: デプロイ通知
+broadcast_to_teams "devops" "NOTIFY" "本番デプロイを開始します"
+```
+
+## 🏢 5つの専門チーム
+
+| チーム   | 専門分野       | 主要MCP                                    | チーム間通信機能     |
+| -------- | -------------- | ------------------------------------------ | -------------------- |
+| Master   | 全体設計・調整 | 全MCP統括、要件定義                        | 全チーム統括         |
+| Frontend | UI/UX実装      | Context7, Obsidian, Playwright, LINE Bot  | ↔️ Backend, Database |
+| Backend  | API開発        | Supabase, Obsidian, Postgres, LINE Bot    | ↔️ Frontend, Database |
+| Database | DB設計         | Supabase, Obsidian, Postgres, LINE Bot    | ↔️ Backend, DevOps   |
+| DevOps   | インフラ       | Playwright, Obsidian, LINE Bot, Sentry    | ↔️ 全チーム通知      |
+
+## 📚 自動ドキュメント化機能
+
+### 開発中の自動記録
+- **進捗の自動記録**: 各チームの作業がリアルタイムでObsidianに記録
+- **実装詳細の記録**: 重要な実装内容を自動でドキュメント化
+- **チーム間通信ログ**: 相談内容と解決過程を記録
+
+### 完成後の自動マニュアル生成
+- **スクリーンショット自動撮影**: Playwrightで全画面キャプチャ
+- **ビジュアルマニュアル**: 画像付きの使い方ガイド自動生成
+- **技術ドキュメント**: API仕様書、DB設計書を自動作成
+- **プロジェクト総括**: 成果物と技術的ハイライトをまとめ
+
+### Obsidian構造
+```
+Projects/[プロジェクト名]/
+├── README.md          # プロジェクト概要
+├── docs/              # 実装ドキュメント
+│   ├── 機能名_実装.md
+│   └── 機能名_ビジュアルガイド.md
+├── progress/          # 日次進捗
+│   ├── 20241211_開発進捗.md
+│   └── 20241211_チーム活動ログ.md
+├── manual/            # ユーザーマニュアル
+│   └── プロジェクト名_完全マニュアル.md
+└── screenshots/       # 自動撮影画像
+    ├── login_screen.png
+    └── dashboard.png
+```
 
 ## 💎 開発品質基準
 
@@ -60,43 +119,80 @@ ECサイトを作って
 - 🔄 **関数分割** - コメント不要な明確な設計
 - 🌏 **日本人向け** - 分かりやすい実装
 - ⚡ **最新技術** - 常に最新版を使用
-
-## 🏢 5つの専門チーム
-
-| チーム   | 専門分野  | 主要MCP                                                     |
-| -------- | --------- | ----------------------------------------------------------- |
-| Frontend | UI/UX実装 | Context7, Obsidian, Playwright, Sentry, LINE Bot            |
-| Backend  | API開発   | Supabase, Obsidian, Stripe, Postgres, Sentry, LINE Bot      |
-| Database | DB設計    | Supabase, Obsidian, Postgres, Sentry, LINE Bot              |
-| DevOps   | インフラ  | Supabaseｍ, Playwright, Obsidian, LINE Bot, Sentry          |
-| QA       | 品質保証  | Playwright, Obsidian, Context7, OWASP ZAP, Sentry, LINE Bot |
+- 🤝 **チーム協調** - 困った時は他チームに相談
+- 📸 **ビジュアル記録** - 実装完了時にスクリーンショット撮影
 
 ## 📊 納品物の特徴
 
 - ✅ **最新技術スタック** - 常に最先端
+- ✅ **チーム協調開発** - 5チームの専門知識を融合
 - ✅ **SEO完璧対応** - 検索上位＆AI検索対応
 - ✅ **日本市場最適化** - 文化に合わせた設計
-- ✅ **収益化機能** - マネタイズ戦略実装済
 - ✅ **完全テスト済** - バグゼロ保証
 - ✅ **セキュリティ万全** - OWASP Top 10対策
 - ✅ **アクセシビリティ** - WCAG 2.1 AA準拠
-- ✅ **ドキュメント完備** - 保守も安心
-- ✅ **国際化対応** - グローバル展開可能
-- ✅ **監視体制** - Sentry MCPによるエラー追跡＆性能監視
+- ✅ **ドキュメント完備** - スクリーンショット付きマニュアル
+- ✅ **自動監視体制** - エラー追跡＆性能監視
+- ✅ **開発プロセス記録** - 全作業がObsidianに自動記録
 
 ## 💡 便利コマンド
 
+### システム管理
 ```bash
-check_mcp                    # MCP確認
-Ctrl-b 1-6                  # チーム切替
-tmux capture-pane -t "..." -p  # 進捗確認
-
-# OWASP ZAP確認（コンテナ内から）
-curl http://zap:8090         # ZAPデーモン確認
-curl http://zap:8090/JSON/core/view/version/ | jq  # バージョン確認
-ls zap-reports/             # セキュリティレポート確認
+./master-claude-teams.sh        # 5チーム並列システム起動
+check_mcp                       # MCP接続確認
 ```
+
+### tmux操作
+```bash
+Ctrl-b q                        # ペイン番号表示
+Ctrl-b 0-4                      # チーム切替（0:Master, 1:Frontend...）
+tmux capture-pane -t "claude-teams:Teams.1" -p  # Frontend出力確認
+```
+
+### チーム間通信
+```bash
+# 個別チームへメッセージ送信
+send_team_message "frontend" "backend" "REQUEST" "API仕様確認"
+
+# 全チームへ通知
+broadcast_to_teams "master" "NOTIFY" "要件変更のお知らせ"
+
+# メッセージ確認
+check_team_messages "frontend"
+```
+
+### ドキュメント生成
+```bash
+# 進捗記録
+record_implementation_progress "frontend" "ログイン画面" "completed" "認証機能実装完了"
+
+# スクリーンショット付きドキュメント
+document_feature_with_screenshots "frontend" "ログイン画面" "http://localhost:3000/login" "ユーザー認証機能"
+
+# 包括的マニュアル生成
+generate_comprehensive_manual "ECサイト"
+```
+
+## 🛠️ システム要件
+
+### 必須
+- **Claude Code CLI** - 最新版
+- **tmux** - セッション管理
+- **Git** - バージョン管理
+- **Node.js 20+** - 開発環境
+
+### MCP要件
+- **Obsidian MCP** - ドキュメント自動生成
+- **Playwright MCP** - スクリーンショット撮影
+- **Context7 MCP** - 最新技術情報
+- **Supabase MCP** - データベース管理
+- **LINE Bot MCP** - 通知機能
+
+### オプション
+- **GitHub MCP** - リポジトリ管理
+- **Sentry MCP** - エラー監視
 
 ---
 
-**要件を伝えるだけで、最高品質のプロダクトを自動開発。**
+**要件を伝えるだけで、5つのAIチームが協調して最高品質のプロダクトを自動開発。全プロセスが自動でドキュメント化される革新的な開発システムです。**

@@ -2,6 +2,13 @@
 
 # 自動ドキュメント化ライブラリ（Obsidian MCP & Playwright MCP使用）
 
+# 初期化（設定はteams.confから読み込み）
+init_documentation_system() {
+    local screenshot_dir="$WORKSPACE/screenshots"
+    ensure_directory "$screenshot_dir"
+    log_success "ドキュメントシステムを初期化しました"
+}
+
 # プロジェクト初期化時のドキュメント作成
 create_project_documentation() {
     local project_name="$1"

@@ -198,6 +198,91 @@ broadcast_to_teams() {
     done
 }
 
+# チーム監視機能（旧team-monitor.shから統合）
+
+# バックグラウンドでメッセージ監視を開始
+start_message_monitor() {
+    local team_name="$1"
+    
+    while true; do
+        # メッセージをチェック
+        if msg=$(check_team_messages "$team_name" 2>/dev/null); then
+            if [ -n "$msg" ]; then
+                # 新着メッセージを処理
+                echo ""
+                echo "📨 [受信] $msg"
+                echo ""
+                
+                # メッセージタイプに応じて自動応答
+                if echo "$msg" | grep -q "HELP"; then
+                    echo "🤝 ヘルプ要請を受信しました。対応を検討します。"
+                elif echo "$msg" | grep -q "REQUEST"; then
+                    echo "📋 タスク依頼を受信しました。現在のタスク完了後に対応します。"
+                elif echo "$msg" | grep -q "UPDATE"; then
+                    echo "ℹ️ 進捗更新を確認しました。"
+                fi
+            fi
+        fi
+        
+        sleep "$MESSAGE_CHECK_INTERVAL"
+    done
+}
+
+# タスクキューを処理
+process_task_queue() {
+    local team_name="$1"
+    local task_dir="$MESSAGE_QUEUE_DIR/tasks"
+    
+    while true; do
+        for task_file in "$task_dir"/${team_name}_*.task 2>/dev/null; do
+            [ -f "$task_file" ] || continue
+            
+            local task_content=$(cat "$task_file")
+            local task=$(echo "$task_content" | jq -r '.task')
+            
+            echo ""
+            echo "🔄 [非同期タスク] $task を処理中..."
+            
+            # 処理済みにマーク
+            mv "$task_file" "$MESSAGE_QUEUE_DIR/processed/"
+        done
+        
+        sleep 5
+    done
+}
+
+# 定期的な状態報告
+periodic_status_update() {
+    local team_name="$1"
+    
+    while true; do
+        # 設定された間隔で状態を更新
+        sleep "$STATUS_UPDATE_INTERVAL"
+        
+        monitor_team_status "$team_name"
+        
+        # Masterに進捗報告
+        send_team_message "$team_name" "master" "UPDATE" "定期報告: 正常に作業中" "low"
+    done
+}
+
+# チーム監視システム起動
+start_team_monitoring() {
+    local team_name="$1"
+    
+    log_info "[$team_name] メッセージ監視システムを起動しました"
+    log_info "- メッセージチェック間隔: ${MESSAGE_CHECK_INTERVAL}秒"
+    log_info "- 非同期タスク処理: 有効"
+    log_info "- 定期状態報告: $((STATUS_UPDATE_INTERVAL / 60))分ごと"
+    
+    # バックグラウンドでモニターを起動
+    start_message_monitor "$team_name" &
+    process_task_queue "$team_name" &
+    periodic_status_update "$team_name" &
+    
+    log_success "[$team_name] 監視システムが正常に起動しました"
+}
+
 # チーム状態の監視
 monitor_team_status() {
     local team="$1"
