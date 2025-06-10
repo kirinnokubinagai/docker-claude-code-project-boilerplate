@@ -114,14 +114,52 @@ end
 
 # MCP確認関数
 function check_mcp
-    echo "📊 利用可能なMCPサーバー:"
-    claude mcp list
+    echo "📊 利用可能なMCPサーバーを確認中..."
+    
+    # Claude CLIが利用可能か確認
+    if not command -v claude >/dev/null 2>&1
+        echo "❌ Claude CLIがインストールされていません"
+        echo "📦 npm install -g @anthropic-ai/claude-code でインストールしてください"
+        return 1
+    end
+    
+    # MCPリストを表示
+    if claude mcp list 2>/dev/null
+        echo "✅ MCPサーバーの確認が完了しました"
+    else
+        echo "⚠️  MCPサーバーがまだ設定されていません"
+        echo "💡 'master' コマンドを実行すると自動的に設定されます"
+    end
 end
 
 # MCP手動セットアップ関数
 function setup_mcp_manual
     setup_mcp_servers
 end
+
+# ヘルプ表示関数
+function help_claude
+    echo "🚀 Master Claude Teams System - ヘルプ"
+    echo ""
+    echo "📋 主要コマンド:"
+    echo "  master         - 5チーム並列システムを起動"
+    echo "  check_mcp      - MCPサーバーの状態確認"
+    echo "  setup_mcp_manual - MCPサーバーを手動設定"
+    echo "  help_claude    - このヘルプを表示"
+    echo ""
+    echo "🔧 エイリアス:"
+    echo "  cc             - claude --dangerously-skip-permissions"
+    echo "  ll, la, l      - ファイル一覧表示"
+    echo "  dc, dcu, dcd   - docker-compose操作"
+    echo "  gs, ga, gc, gp - Git操作"
+    echo ""
+    echo "💡 Tips:"
+    echo "  初回起動時は 'master' を実行してMCPを設定してください"
+    echo "  tmuxの操作は docs/tmux-cheatsheet.md を参照"
+end
+
+# ショートカット
+alias help='help_claude'
 
 # 基本設定
 set -g fish_greeting ""
@@ -152,6 +190,7 @@ echo ""
 echo "📋 使用可能なコマンド:"
 echo "  master     - 5チーム並列システムを起動"
 echo "  check_mcp  - MCPサーバーの状態確認"
+echo "  help       - 全コマンドとヘルプを表示"
 echo ""
 
 # 初回起動時の自動セットアップ
