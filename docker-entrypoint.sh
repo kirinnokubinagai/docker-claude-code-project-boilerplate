@@ -13,6 +13,12 @@ if [ -f "/workspace/master-claude-teams.sh" ]; then
     chmod +x /workspace/master-claude-teams.sh
 fi
 
+# tmux設定ファイルをコピー
+if [ -f "/workspace/docker/.tmux.conf" ]; then
+    cp /workspace/docker/.tmux.conf /home/developer/.tmux.conf
+    chown developer:developer /home/developer/.tmux.conf
+fi
+
 # 初期化メッセージ
 cat << 'WELCOME'
 🚀 Master Claude System v2.0

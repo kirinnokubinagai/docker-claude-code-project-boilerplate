@@ -67,6 +67,9 @@ create_tmux_layout() {
     # セッション作成（Masterペイン = ペイン0）
     tmux new-session -d -s "$SESSION_NAME" -n "Teams" -c "$WORKSPACE"
     
+    # マウスサポートを有効化（クリックでペイン選択、スクロール可能）
+    tmux set-option -t "$SESSION_NAME" -g mouse on
+    
     # 右側エリア作成（横幅の2/3、Frontendペイン = ペイン1）
     tmux split-window -h -p 67 -c "$(get_pane_dir 1)"
     
