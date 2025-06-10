@@ -1,13 +1,13 @@
-# Claude Code Docker Projects
+# Master Claude System
 
-🎭 **Playwright E2Eテスト専用** + 🖥️ **ホスト側開発** + 🤖 **自動オーケストレーション** のハイブリッド環境
+🤖 **動的親子プロセス管理** + 🎭 **Playwright E2Eテスト** + 🔧 **全MCP統合** の開発環境
 
 ## 🎯 コンセプト
 
-- **開発**: ホスト（Mac）側で通常通り `npm run dev`
-- **テスト**: コンテナ内でPlaywright E2Eテスト
-- **AI支援**: Claude Code + 全MCP統合でコード生成・テスト作成
-- **自動化**: 親子プロセスによる自動タスク配布システム
+- **動的管理**: 親Claude Codeが要件に応じて子プロセスを動的に作成・管理
+- **MCP統合**: 全MCPサーバー（Supabase, Playwright, Obsidian, Stripe, LINE Bot, Context7）自動設定
+- **並列開発**: tmux + git worktreeで複数の子プロセスが独立して並列作業
+- **対話的**: 親子間でリアルタイムに通信しながら開発
 
 ## 🚀 使い方（超シンプル）
 
@@ -33,51 +33,66 @@ docker-compose up -d
 docker-compose exec claude-code fish
 ```
 
-### Claude Codeに丸投げ
+### Master Claudeシステムを起動
 ```bash
-cc "○○を作ってテストして"
+# 親Claude Codeとして起動
+master
+
+# または直接実行
+/workspace/master-claude.sh
 ```
 
-## 🎯 環境分離のメリット
+## 💡 動的親子プロセスシステム
 
-### Docker環境（Claude Code作業）
-- Claude Code + Playwright + 全MCP統合
-- 一時的な作業・テスト実行
-- **Git管理対象外**
+### 親Claude（Master）の役割
+- 要件分析とタスク分割
+- 子プロセスの動的作成・管理
+- 進捗モニタリングと統合
+- 全MCPサーバーへのアクセス
 
-### ホスト環境（開発作業）
-- `/workspace`にマウント
-- 実際のアプリケーション開発
-- **Git管理対象**（これが重要！）
+### 子プロセスの動的作成例
+```bash
+# Frontend担当を作成
+git worktree add /workspace/worktrees/frontend -b feature/frontend
+tmux new-window -t master -n "Worker-frontend" "cd /workspace/worktrees/frontend && claude --dangerously-skip-permissions"
+tmux send-keys -t "master:Worker-frontend" "Frontend担当：Next.js 15でUIを実装してください" Enter
+
+# Backend担当を作成
+git worktree add /workspace/worktrees/backend -b feature/backend
+tmux new-window -t master -n "Worker-backend" "cd /workspace/worktrees/backend && claude --dangerously-skip-permissions"
+tmux send-keys -t "master:Worker-backend" "Backend担当：Supabase APIを実装してください" Enter
+```
 
 ## 💡 典型的な開発フロー
 
-### ステップ1: ホスト側でアプリ開発
+### ステップ1: Master Claudeで要件分析
 ```bash
-# Mac側で通常の開発
-npx create-next-app@latest my-app
-cd my-app
-npm run dev  # localhost:3000で起動
+# Master Claudeを起動
+master
+
+# 要件を伝える
+"ECサイトを作成してください。商品管理、カート、Stripe決済を含む"
 ```
 
-### ステップ2: コンテナ内でPlaywright E2E
+### ステップ2: 親が子プロセスを動的作成
+親Claude（あなた）が自動的に：
+- Frontend担当（UI/UX）
+- Backend担当（API）
+- Database担当（DB設計）
+- QA担当（テスト）
+を必要に応じて作成
+
+### ステップ3: 並列開発と統合
 ```bash
-# claude-codeコンテナ内で
-docker-compose exec claude-code fish
+# 進捗確認
+tmux list-windows -t master
 
-# Claude Codeでテスト作成
-cc "localhost:3000のNext.jsアプリにPlaywright E2Eテストを作成。
-ログイン機能、商品一覧、カート機能をテスト。"
+# 子プロセスの出力確認
+tmux capture-pane -t "master:Worker-frontend" -p | tail -20
 
-# テスト実行
-npx playwright test
-```
-
-### ステップ3: 開発とテストの反復
-```bash
-# Mac側: コード修正
-# コンテナ内: テスト実行
-# 繰り返し...
+# 成果物の統合
+git merge feature/frontend
+git merge feature/backend
 ```
 
 ## 📁 ディレクトリ構造
@@ -85,19 +100,20 @@ npx playwright test
 ```
 my-project/
 ├── .env                    # 環境変数（API Key等）
-├── .env.example           # 環境変数テンプレート
-├── docker-compose.yml    # Docker設定（環境変数で動的制御）
-├── Dockerfile             # コンテナ設定
-├── init-project.sh       # プロジェクト初期化スクリプト
+├── docker-compose.yml      # Docker設定（MCP自動設定付き）
+├── docker-entrypoint.sh    # MCPサーバー自動設定
+├── master-claude.sh        # Master Claudeシステム起動
 ├── docker/
-│   └── claude/
-│       └── CLAUDE.md     # Claude Codeワークフロー設定
+│   ├── claude/
+│   │   └── CLAUDE.md       # 動的親子プロセス管理設定
 │   └── fish/
-│       └── config.fish   # Fish shell設定（tmux + MCP統合）
-├── screenshots/          # スクリーンショット出力
-├── logs/                 # ログファイル
-├── temp/                 # 一時ファイル
-└── docs/                 # ドキュメント
+│       └── config.fish     # Fish shell設定（master関数付き）
+├── worktrees/              # Git worktree（子プロセス作業場所）
+│   ├── frontend/           # Frontend担当の作業ディレクトリ
+│   ├── backend/            # Backend担当の作業ディレクトリ
+│   └── database/           # Database担当の作業ディレクトリ
+├── logs/                   # ログファイル
+└── docs/                   # ドキュメント
 ```
 
 ## 🔧 利用可能なMCPサーバー（自動設定済み）
@@ -111,31 +127,29 @@ Docker起動時に以下のMCPサーバーが自動的にClaude Codeに追加さ
 - **LINE Bot** - 通知システム
 - **Context7** - 最新ライブラリ情報
 
-## 🎯 tmux組織構造
+## 🎯 Master Claude動的管理システム
 
-| 部門 | 役割 | 担当MCP |
-|------|------|---------|
-| **Manager** (親) | 全体統括、タスク分散 | 全MCP |
-| **Frontend** | UI/UX開発 | Playwright, Context7, Stripe |
-| **Backend** | API開発 | Supabase, Stripe, LINE Bot |
-| **Database** | DB設計 | Supabase, Obsidian |
-| **DevOps** | インフラ | Supabase, Playwright, LINE Bot |
-| **QA** | テスト | Playwright, LINE Bot, Context7 |
+| ウィンドウ | 役割 | 状態 |
+|-----------|------|------|
+| **Master** | 親プロセス（指揮者） | 常時起動 |
+| **Worker-frontend** | Frontend開発 | 必要時に作成 |
+| **Worker-backend** | Backend開発 | 必要時に作成 |
+| **Worker-database** | DB設計 | 必要時に作成 |
+| **Worker-qa** | テスト作成 | 必要時に作成 |
+| **Worker-***  | その他専門タスク | 動的に追加/削除 |
 
 ## 💡 基本コマンド
 
 ```bash
-# tmux環境
-company                    # 組織構造作成
-roles                      # 各部門に役割割り当て
-assign frontend "タスク"   # 部門にタスク割り当て
-status                     # 全部門状況確認
-clear_workers             # 全作業者リセット
+# Master Claudeシステム
+master                     # 親Claude起動（推奨）
+/workspace/master-claude.sh # 直接起動
 
-# 🆕 自動オーケストレーション
-/workspace/claude-orchestrator.sh init         # 初期化
-/workspace/claude-orchestrator.sh analyze '要件' # 要件分析＆自動配布
-/workspace/claude-orchestrator.sh quick auth    # クイック機能実装
+# 親Claude内で使うコマンド
+tmux new-window -t master -n "Worker-[名前]" "cd /workspace && claude --dangerously-skip-permissions"
+tmux send-keys -t "master:Worker-[名前]" "[メッセージ]" Enter
+tmux list-windows -t master
+tmux capture-pane -t "master:Worker-[名前]" -p | tail -20
 
 # Docker
 docker-compose up -d      # 起動（MCPサーバー自動設定）
@@ -143,20 +157,25 @@ docker-compose down       # 停止
 docker-compose logs -f    # ログ確認
 ```
 
-## 📝 複数プロジェクト作成例
+## 📝 実践例: ECサイト開発
 
 ```bash
-# ECサイトプロジェクト
-cp -r claude-code-docker-projects ecommerce-site
-cd ecommerce-site
-./init-project.sh ecommerce 3001 8081
+# 1. Master Claude起動
+master
 
-# ブログプロジェクト  
-cp -r claude-code-docker-projects blog-system
-cd blog-system
-./init-project.sh blog 3002 8082
+# 2. 親Claudeで要件を伝える
+"ECサイトを作成。商品管理、カート、Stripe決済、管理画面を含む"
 
-# 両方同時起動可能（異なるポート番号なので競合しない）
+# 3. 親Claudeが自動的に：
+#    - Frontend担当作成 → UIコンポーネント開発
+#    - Backend担当作成 → API実装
+#    - Database担当作成 → テーブル設計
+#    - QA担当作成 → E2Eテスト
+
+# 4. 開発進行中の管理
+#    - 各子プロセスの進捗確認
+#    - 必要に応じて追加指示
+#    - 成果物の統合
 ```
 
 ## ⚙️ 環境変数設定

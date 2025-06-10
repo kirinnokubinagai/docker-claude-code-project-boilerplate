@@ -1,374 +1,223 @@
-# Claude Code Company - プロジェクト設定（Full MCP + 自動オーケストレーション版）
+# Master Claude System - 動的親子プロセス管理
 
-このファイルはClaude Codeが自動的に参照し、tmux環境での親子プロセス管理と**全MCPサーバー統合**によってプロジェクトのワークフローに従って作業を行うための指示書です。
+このファイルはClaude Codeが自動的に参照し、親プロセスとして子プロセスを動的に作成・管理する方法を定義します。
 
-## 🚀 自動起動時の初期設定
+## 🎯 システム概要
 
-Docker環境が起動すると、以下が自動的に設定されます：
+**Master Claude System v2.0**は、親Claude（あなた）が要件に応じて子プロセスを動的に作成し、対話的に管理するシステムです。
 
-1. **MCPサーバーの自動設定（docker-entrypoint.sh）**
-   - 全MCPサーバーがClaude Codeに自動登録
-   - 環境変数に基づいてMCP設定ファイルが生成
-   - `/home/developer/.config/claude/mcp_servers.json`に保存
+### 特徴
+- **動的作成**: 必要な時に必要なだけ子プロセスを作成
+- **対話的管理**: 親子間でリアルタイムに通信
+- **独立作業**: 各子プロセスがworktreeで独立して作業
+- **MCP統合**: 各子プロセスが専門のMCPサーバーを活用
 
-2. **オーケストレーションシステムの準備**
+## 🚀 起動時の動作
+
+Docker環境が起動したら、以下の手順で動作してください：
+
+### 1. 初回起動時
+```bash
+# Master Claudeシステムを起動
+/workspace/master-claude.sh
+```
+
+これにより：
+- tmuxセッション「master」が作成されます
+- あなたは「Master」ウィンドウで親プロセスとして起動します
+- `/workspace/master-commands.md`にコマンドリファレンスが作成されます
+
+### 2. 要件分析フェーズ
+
+ユーザーから要件を受け取ったら：
+
+1. **要件を分析**
+   - 必要な機能を特定
+   - 必要な子プロセスの数と役割を決定
+   - 使用するMCPサーバーを選定
+
+2. **プロジェクト初期化**
    ```bash
-   # Docker起動後、以下のコマンドを実行してください
-   
-   # tmux環境を起動
-   company
-   
-   # 各部門にClaude Code起動
-   roles
-   
-   # オーケストレーター初期化
-   /workspace/claude-orchestrator.sh init
+   git init
+   echo "# プロジェクト名" > README.md
+   git add README.md
+   git commit -m "Initial commit"
    ```
 
-3. **親プロセス（Manager）として動作**
-   - あなたは親プロセスとして、要件定義の分析とタスク配布を担当
-   - 子プロセスへの指示は自動化スクリプトを使用
-   - MCPサーバーはすべて利用可能（自動設定済み）
+### 3. 子プロセスの動的作成
 
-## MCP統合組織構造
+要件に基づいて必要な子プロセスを作成：
 
-### 利用可能MCPサーバー（全プロセス共通）
-1. **Supabase MCP** - データベース、認証、プロジェクト管理
-2. **Playwright MCP** - ブラウザ自動化、E2Eテスト、スクリーンショット
-3. **Obsidian MCP** - ドキュメント管理、ナレッジベース、セマンティック検索
-4. **Stripe MCP** - 決済処理、サブスクリプション、顧客管理
-5. **LINE Bot MCP** - メッセージ送信、通知、Flexメッセージ
-6. **Context7 MCP** - 最新ライブラリドキュメント、API仕様
-
-### 親プロセス（Manager）
-- **役割**: プロジェクト全体統括、要件定義、進捗管理、品質管理
-- **pane**: Main pane（通常pane 0）
-- **責任**: 戦略決定、タスク分散、最終チェック、報告受領
-- **利用MCP**: 全MCPサーバーにアクセス可能
-
-### 子プロセス（Workers）- 各部門専用MCP付き
-
-#### **Frontend部門** (pane 1)
-- **担当**: UI/UX開発、コンポーネント作成、フロントエンドテスト
-- **専用MCP**: 
-  - Playwright: E2Eテスト、ブラウザ自動化
-  - Obsidian: UIドキュメント、デザインシステム
-  - Context7: React/Vue/Next.js最新情報
-  - Stripe: 決済UI実装
-
-#### **Backend部門** (pane 2)
-- **担当**: API開発、サーバーサイドロジック、認証システム
-- **専用MCP**:
-  - Supabase: データベース操作、認証API
-  - Stripe: 決済処理、Webhook処理
-  - Context7: Node.js/Python/Go最新情報
-  - LINE Bot: 通知システム
-
-#### **Database部門** (pane 3)
-- **担当**: DB設計、マイグレーション、データ管理、最適化
-- **専用MCP**:
-  - Supabase: PostgreSQL操作、マイグレーション
-  - Obsidian: DB設計ドキュメント、ER図
-  - LINE Bot: 通知システム
-
-#### **DevOps部門** (pane 4)
-- **担当**: CI/CD、デプロイ、インフラ管理、監視
-- **専用MCP**:
-  - Supabase: プロジェクト管理、環境設定
-  - Playwright: 統合テスト、パフォーマンステスト
-  - LINE Bot: デプロイ通知、アラート
-  - Obsidian: インフラドキュメント
-
-## 必須ワークフロー（MCP統合 + 自動オーケストレーション版）
-
-### 0. 🤖 自動化された親子プロセスシステムの使用（推奨）
-
-新しいプロジェクトを開始する際の推奨フロー：
-
-1. **環境準備（初回のみ）**
-   ```bash
-   # Docker起動後に実行
-   company                              # tmux環境作成
-   roles                               # 各部門にClaude Code起動
-   /workspace/claude-orchestrator.sh init  # worktree準備
-   ```
-
-2. **要件分析とタスク自動配布**
-   ```bash
-   # 親プロセスが要件を分析して自動的にタスクを配布
-   /workspace/claude-orchestrator.sh analyze 'プロジェクトの要件'
-   
-   # 例
-   /workspace/claude-orchestrator.sh analyze 'タスク管理アプリを作成。ユーザー認証、タスクCRUD、リマインダー機能、Stripe課金を含む'
-   ```
-
-3. **進捗モニタリング**
-   ```bash
-   source /workspace/parent-child-comm.sh
-   monitor_progress
-   ```
-
-### 1. 要件定義フェーズ（親プロセス主導）
-
-親プロセスが新しいプロジェクトや機能の説明を受けたら：
-
-1. **技術調査（Context7 MCP使用）**
-   ```bash
-   # プロンプトに必ず追加
-   "最新の技術トレンドを調査してください。use context7"
-   ```
-
-2. **要件整理（Obsidian MCP使用）**
-   - Context7で最新ライブラリ確認
-   - Obsidianで要件定義ドキュメント作成
-   - CLI/CI/CDでリリース可能な構成選定
-
-3. **タスク分散（自動化または手動）**
-   ```bash
-   # 自動化（推奨）
-   /workspace/claude-orchestrator.sh analyze '要件内容'
-   
-   # 手動の場合
-   tmux send-keys -t %27 "あなたはFrontend部門です。担当MCP: Playwright, Obsidian, Context7, Stripe。[具体的なタスク内容]。完了時は tmux send-keys -t %22 '[Frontend] タスク完了: [内容]' Enter で報告。" Enter
-   ```
-
-4. **初期設定（Supabase MCP使用）**
-   - Supabase MCPでプロジェクト作成
-   - git init、git commit
-   - git worktreeによる細分化（自動化済み）
-
-### 2. 開発環境構築フェーズ（DevOps部門主導）
-
-DevOps部門が以下を実行：
-- **Supabase MCP**: プロジェクト・データベース設定
-- **Playwright MCP**: テスト環境確認
-- **LINE Bot MCP**: 構築完了通知
-- **Obsidian MCP**: 環境構築ドキュメント作成
-
-### 3. 実装フェーズ（各部門並列実行）
-
-#### Frontend部門の実装例
 ```bash
-# Context7で最新情報取得
-"Next.js 15のapp router、Server Actionsを使った認証システム実装方法。use context7"
+# Frontend担当を作成
+git worktree add /workspace/worktrees/frontend -b feature/frontend
+tmux new-window -t master -n "Worker-frontend" "cd /workspace/worktrees/frontend && claude --dangerously-skip-permissions"
+sleep 3
+tmux send-keys -t "master:Worker-frontend" "あなたはFrontend担当です。以下のタスクを実行してください：[具体的なタスク]" Enter
 
-# Playwrightでテスト
-"作成したコンポーネントのE2Eテストを実装"
-
-# Obsidianでドキュメント化
-"コンポーネント仕様をObsidianに記録"
-
-# Stripe決済UI
-"Stripe Elementsを使った決済フォーム実装"
+# Backend担当を作成
+git worktree add /workspace/worktrees/backend -b feature/backend
+tmux new-window -t master -n "Worker-backend" "cd /workspace/worktrees/backend && claude --dangerously-skip-permissions"
+sleep 3
+tmux send-keys -t "master:Worker-backend" "あなたはBackend担当です。以下のタスクを実行してください：[具体的なタスク]" Enter
 ```
 
-#### Backend部門の実装例
+### 4. タスク管理と通信
+
+#### 子プロセスへの指示
 ```bash
-# Supabaseで認証API
-"Supabase Authを使った認証システム構築"
-
-# StripeでWebhook処理
-"Stripe Webhookハンドラー実装"
-
-# Context7で最新情報
-"Node.js Express最新のベストプラクティス。use context7"
-
-# LINE Bot通知
-"決済完了時のLINE通知システム"
+tmux send-keys -t "master:Worker-frontend" "Next.js 15でログイン画面を作成してください。use context7で最新情報を確認。" Enter
 ```
 
-#### Database部門の実装例
+#### 進捗確認
 ```bash
-# Supabaseでテーブル設計
-"ユーザー、商品、注文のリレーショナル設計"
+# 特定の子プロセスの出力確認
+tmux capture-pane -t "master:Worker-frontend" -p | tail -20
 
-# マイグレーション実行
-"Supabase Migration実行・管理"
-
-# Obsidianで設計書
-"ER図とDB仕様書をObsidianで作成"
+# 全子プロセスの状態確認
+for w in $(tmux list-windows -t master -F "#{window_name}" | grep "Worker-"); do
+    echo "=== $w ==="
+    tmux capture-pane -t "master:$w" -p | tail -5
+done
 ```
 
-#### DevOps部門の実装例
+#### 子プロセスからの報告を促す
 ```bash
-# Supabaseプロジェクト管理
-"開発・ステージング・本番環境設定"
-
-# Playwright統合テスト
-"CI/CDパイプラインでのE2Eテスト自動実行"
-
-# LINE Bot通知
-"デプロイ成功・失敗通知システム"
-
-# Obsidianでインフラ文書
-"デプロイ手順・トラブルシューティング文書"
+tmux send-keys -t "master:Worker-frontend" "完了したら以下のコマンドで報告してください：" Enter
+tmux send-keys -t "master:Worker-frontend" "tmux send-keys -t 'master:Master' '[Frontend] 完了: ログイン画面作成' Enter" Enter
 ```
 
-#### QA部門の実装例
+## 📋 実践的なワークフロー
+
 ```bash
-# Playwrightテスト自動化
-"全機能の回帰テスト自動化"
+# 1. 要件受領後、プロジェクト初期化
+git init && git add . && git commit -m "Initial commit"
 
-# Context7でテスト情報
-"Jest/Playwrightベストプラクティス。use context7"
+# 2. 必要な子プロセスを順次作成
+# Frontend (UI/UX)
+git worktree add /workspace/worktrees/frontend -b feature/frontend
+tmux new-window -t master -n "Worker-frontend" "cd /workspace/worktrees/frontend && claude --dangerously-skip-permissions"
+sleep 3
+tmux send-keys -t "master:Worker-frontend" "Frontend担当：Next.js 15でECサイトのUI実装。MCP: Playwright, Context7, Stripe" Enter
 
-# LINE Bot結果通知
-"テスト結果の自動通知"
+# Backend (API)
+git worktree add /workspace/worktrees/backend -b feature/backend
+tmux new-window -t master -n "Worker-backend" "cd /workspace/worktrees/backend && claude --dangerously-skip-permissions"
+sleep 3
+tmux send-keys -t "master:Worker-backend" "Backend担当：Supabase APIとStripe決済実装。MCP: Supabase, Stripe, LINE Bot" Enter
 
-# Obsidianでテスト文書
-"テストケース・バグレポート管理"
-```
+# Database (設計)
+git worktree add /workspace/worktrees/database -b feature/database
+tmux new-window -t master -n "Worker-database" "cd /workspace/worktrees/database && claude --dangerously-skip-permissions"
+sleep 3
+tmux send-keys -t "master:Worker-database" "Database担当：商品・ユーザー・注文テーブル設計。MCP: Supabase, Obsidian" Enter
 
-### 4. 品質管理フェーズ（QA部門＋親プロセス）
-
-各タスクの実装時は必ず以下を実行：
-- **Playwright MCP**: 機能テスト実施
-- **LINE Bot MCP**: テスト結果通知
-- **Obsidian MCP**: バグレポート・修正履歴管理
-- **Context7 MCP**: 最新のテスト手法確認
-
-### 5. ドキュメント作成フェーズ（Frontend部門＋全部門）
-
-タスク完了後：
-- **Playwright MCP**: スクリーンショット撮影
-- **Obsidian MCP**: 画像付きドキュメント作成
-- **Context7 MCP**: 最新ドキュメント手法確認
-- **LINE Bot MCP**: ドキュメント完成通知
-
-### 6. 進捗報告システム
-
-#### 子プロセスから親プロセスへの報告形式
-```bash
-# 標準報告フォーマット（MCP使用状況含む）
-tmux send-keys -t %22 '[部門名] ステータス: 内容 (使用MCP: tool1,tool2)' Enter
-
-# 例
-tmux send-keys -t %22 '[Frontend] 完了: ログイン画面作成 (使用MCP: Context7,Playwright,Obsidian)' Enter
-tmux send-keys -t %22 '[Backend] エラー: Stripe Webhook処理で500エラー (使用MCP: Stripe,Context7)' Enter
-```
-
-## 開発原則（全部門共通）
-
-### MCPサーバー活用ルール
-1. **Context7**: 最新情報が必要な場合は必ず`use context7`を付加
-2. **Playwright**: テストコード作成・実行時は必須
-3. **Obsidian**: ドキュメント作成・検索時は必須
-4. **Stripe**: 決済関連実装時は必須
-5. **LINE Bot**: 通知・アラート実装時は必須
-6. **Supabase**: データベース・認証操作時は必須
-
-### コーディング（全部門共通）
-あなたは天才エンジニアです。以下を厳守してください：
-- **Context7 MCP**: 最新の技術トレンドを必ず調査（`use context7`）
-- **Supabase MCP**: データベース操作は全てSupabase経由
-- **Playwright MCP**: 作成したコードは必ずテスト実装
-- バグゼロを前提とした高品質なコード
-- 全ての関数にJSDocコメント記載
-- 日本人に分かりやすい言葉で説明
-
-### デザイン（Frontend部門）
-- **Context7 MCP**: 最新UIフレームワーク調査
-- **Obsidian MCP**: デザインシステム文書化
-- **Playwright MCP**: UIテスト自動化
-- モダンで直感的なUI/UX
-- アクセシビリティ考慮
-
-### 決済システム（Backend部門）
-- **Stripe MCP**: 決済処理実装
-- **Supabase MCP**: 決済データ管理
-- **LINE Bot MCP**: 決済完了通知
-- セキュリティ最優先
-
-## MCP統合管理コマンド
-
-### 🎯 オーケストレーションコマンド（親プロセス用）
-
-#### 要件分析とタスク自動配布
-```bash
-# 要件を分析して自動的にタスクを配布
-/workspace/claude-orchestrator.sh analyze '要件内容'
-
-# 例：ECサイト構築
-/workspace/claude-orchestrator.sh analyze 'ECサイトを作成。ユーザー認証、商品管理、Stripe決済を含む'
-```
-
-#### クイックタスク配布
-```bash
-# よくある機能を素早く配布
-/workspace/claude-orchestrator.sh quick auth    # 認証機能
-/workspace/claude-orchestrator.sh quick payment  # 決済機能
-/workspace/claude-orchestrator.sh quick crud     # CRUD機能
-```
-
-#### 通信ヘルパーを使った直接指示
-```bash
-# ヘルパー読み込み
-source /workspace/parent-child-comm.sh
-
-# 特定部門への指示
-parent_to_child frontend "ダッシュボード画面を作成"
-parent_to_child backend "REST APIを実装"
-parent_to_child all "最新コードをpullしてください"
-
-# 進捗モニタリング
-monitor_progress
-```
-
-### 基本コマンド（手動操作用）
-```bash
-# 全部門MCP状況確認
-for pane in %27 %28 %29 %30 %31; do
-  echo "=== $pane MCP Status ==="
-  tmux capture-pane -t $pane -p | tail -5
+# 3. 並行作業の管理
+# 定期的に進捗確認
+for w in Worker-frontend Worker-backend Worker-database; do
+    echo "確認: $w"
+    tmux capture-pane -t "master:$w" -p | tail -10
 done
 
-# 全部門一斉クリア
-tmux send-keys -t %27 "/clear" Enter & \
-tmux send-keys -t %28 "/clear" Enter & \
-tmux send-keys -t %29 "/clear" Enter & \
-tmux send-keys -t %30 "/clear" Enter & \
-tmux send-keys -t %31 "/clear" Enter & \
-wait
-
-# MCP統合タスク配布
-tmux send-keys -t %27 "Frontend: [タスク内容] 担当MCP: Playwright,Context7,Obsidian,Stripe" Enter & \
-tmux send-keys -t %28 "Backend: [タスク内容] 担当MCP: Supabase,Stripe,Context7,LINE Bot" Enter & \
-tmux send-keys -t %29 "Database: [タスク内容] 担当MCP: Supabase,Obsidian" Enter & \
-tmux send-keys -t %30 "DevOps: [タスク内容] 担当MCP: Supabase,Playwright,LINE Bot,Obsidian" Enter & \
-tmux send-keys -t %31 "QA: [タスク内容] 担当MCP: Playwright,Obsidian,LINE Bot,Context7" Enter & \
-wait
+# 4. 統合とテスト
+# QA担当を追加
+tmux new-window -t master -n "Worker-qa" "cd /workspace && claude --dangerously-skip-permissions"
+tmux send-keys -t "master:Worker-qa" "QA担当：全機能のE2Eテスト作成。MCP: Playwright, Context7" Enter
 ```
 
-## Git Worktree 命名規則
+## 🔧 MCPサーバー活用戦略
+
+各子プロセスに特化したMCPサーバーを割り当て：
+
+| 子プロセス | 主要MCP                        | 用途                               |
+| ---------- | ------------------------------ | ---------------------------------- |
+| Frontend   | Playwright, Context7, Obsidian | UI開発、最新技術調査、ドキュメント |
+| Backend    | Supabase, Stripe, LINE Bot     | API、決済、通知                    |
+| Database   | Supabase, Obsidian             | DB設計、ドキュメント               |
+| DevOps     | Supabase, Playwright, LINE Bot | 環境構築、CI/CD、通知              |
+| QA         | Playwright, Context7, Obsidian | テスト自動化、最新手法、レポート   |
+
+## 💡 ベストプラクティス
+
+### 1. 段階的な子プロセス作成
+- 最初から全部作らない
+- 必要に応じて追加
+- 完了したら終了
+
+### 2. 明確なタスク定義
+```bash
+tmux send-keys -t "master:Worker-frontend" "タスク: ログイン画面作成" Enter
+tmux send-keys -t "master:Worker-frontend" "要件: メールとパスワード、ソーシャルログイン対応" Enter
+tmux send-keys -t "master:Worker-frontend" "技術: Next.js 15 App Router, Supabase Auth" Enter
+tmux send-keys -t "master:Worker-frontend" "完了条件: Playwrightテスト付き" Enter
 ```
-worktrees/
-├── feature/[機能名]
-├── mcp-integration/[MCP名]
-├── frontend-mcp/[Frontend+MCP作業]
-├── backend-mcp/[Backend+MCP作業]
-├── database-mcp/[Database+MCP作業]
-├── devops-mcp/[DevOps+MCP作業]
-└── qa-mcp/[QA+MCP作業]
+
+### 3. 定期的な統合
+```bash
+# 各worktreeの変更を確認
+for dir in /workspace/worktrees/*; do
+    echo "=== $(basename $dir) ==="
+    cd $dir && git status
+done
+
+# メインブランチに統合
+cd /workspace
+git merge feature/frontend
+git merge feature/backend
 ```
 
-## 重要な注意事項
+### 4. 動的なリソース管理
+```bash
+# 不要になった子プロセスは終了
+tmux kill-window -t "master:Worker-frontend"
 
-### MCP統合ルール
-- **全プロセスで全MCPアクセス可能**: 必要に応じて部門外MCPも使用可
-- **Context7は必須**: 最新情報が必要な場合は必ず`use context7`
-- **テストは必須**: Playwright MCPでテスト自動化
-- **ドキュメント化必須**: Obsidian MCPで記録
-- **通知システム**: LINE Bot MCPで進捗・エラー通知
+# worktreeもクリーンアップ
+git worktree remove /workspace/worktrees/frontend
+```
 
-### プロセス管理
-- **テストが通過するまで絶対にコミットしない**
-- **各フェーズを省略せず必ず実行する**
-- **MCPサーバーとの連携を最大限活用**
+## 🚨 トラブルシューティング
 
-### 報連相ルール
-- **子プロセスは必ず親プロセスに報告**
-- **使用MCPツールを報告に含める**
-- **エラー発生時は即座に報告**
-- **不明な点があれば実装前に親プロセスに確認**
+### 子プロセスが応答しない
+```bash
+# プロセスの状態確認
+tmux list-windows -t master
 
-この組織構造により、**全MCPサーバーを活用した効率的な並列開発と品質管理**を実現します。
+# 強制終了して再作成
+tmux kill-window -t "master:Worker-frontend"
+# 再度作成...
+```
+
+### worktreeエラー
+```bash
+# worktree一覧確認
+git worktree list
+
+# 壊れたworktreeを修復
+git worktree prune
+```
+
+## 📊 モニタリングコマンド
+
+```bash
+# リアルタイムモニタリング（親プロセスで実行）
+watch -n 2 'for w in $(tmux list-windows -t master -F "#{window_name}" | grep "Worker-"); do echo "=== $w ==="; tmux capture-pane -t "master:$w" -p | tail -3; echo; done'
+
+# 全体の進捗レポート生成
+for w in $(tmux list-windows -t master -F "#{window_name}" | grep "Worker-"); do
+    echo "## $w"
+    echo '```'
+    tmux capture-pane -t "master:$w" -p | grep -E "(完了|エラー|進行中)" | tail -5
+    echo '```'
+    echo
+done > progress-report.md
+```
+
+## 🎯 重要な原則
+
+1. **親は指揮者**: 全体を把握し、適切に指示を出す
+2. **子は専門家**: 与えられたタスクに集中
+3. **動的管理**: 必要な時に作成、不要になったら削除
+4. **非同期実行**: 子プロセスは並列で独立して作業
+5. **定期的な統合**: 各子の成果を適切にマージ
+
+この動的システムにより、プロジェクトの規模や複雑さに応じて柔軟に対応できます。

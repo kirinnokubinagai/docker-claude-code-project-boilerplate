@@ -23,7 +23,7 @@ end
 # Claude Code Company用のエイリアス
 alias cc='claude --dangerously-skip-permissions'
 
-# ==== MCP統合版 Claude Code Company ====
+# ==== Master Claude System v2.0 ====
 
 # 利用可能なMCP情報
 set -g MCP_SERVICES "supabase" "playwright" "obsidian" "stripe" "linebot" "context7"
@@ -34,6 +34,12 @@ set -g MCP_DESCRIPTIONS \
     "stripe:決済処理、サブスクリプション、顧客管理" \
     "linebot:メッセージ送信、通知、Flexメッセージ" \
     "context7:最新ライブラリドキュメント、API仕様"
+
+# Master Claude 起動関数
+function master
+    echo "🎯 Master Claude System v2.0 を起動します..."
+    /workspace/master-claude.sh
+end
 
 # MCP接続確認関数
 function check_mcp_services
