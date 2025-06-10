@@ -5,6 +5,9 @@
 
 set -e
 
+# 環境変数の設定
+export WORKSPACE="/workspace"
+
 # Master Claudeスクリプトの実行権限
 if [ -f "/workspace/master-claude-teams.sh" ]; then
     chmod +x /workspace/master-claude-teams.sh

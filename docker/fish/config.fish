@@ -2,6 +2,9 @@
 # Master Claude System Fish設定
 # ==============================================
 
+# 環境変数の設定（Docker環境用）
+set -gx WORKSPACE /workspace
+
 # z (ディレクトリジャンプ) の設定
 set -g Z_CMD "z"
 set -g Z_DATA "$HOME/.z"
@@ -83,6 +86,9 @@ end
 # Master Claude 起動関数
 function master
     echo "🎯 Master Claude System v2.0 を起動します..."
+    
+    # 環境変数の設定
+    set -gx WORKSPACE /workspace
     
     # 初回起動時のみMCPサーバーを設定
     if not test -f ~/.mcp_setup_done
