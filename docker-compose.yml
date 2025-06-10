@@ -1,0 +1,80 @@
+version: "3.8"
+
+name: claude-code-${PROJECT_NAME:-default}
+
+services:
+  # Claude Code Company 環境
+  claude-code:
+    build: .
+    container_name: claude-code-${PROJECT_NAME:-default}
+    volumes:
+      # プロジェクトファイル
+      - .:/workspace
+      - ./docker/claude/CLAUDE.md:/workspace/CLAUDE.md
+
+      # Claude Code設定
+      - ~/.anthropic:/home/developer/.anthropic
+
+      # Fish設定
+      - ./docker/fish/config.fish:/home/developer/.config/fish/config.fish
+
+      # データ永続化（プロジェクト別）
+      - fish_history:/home/developer/.local/share/fish
+      - z_data:/home/developer
+      - tmux_data:/home/developer/.tmux
+
+      # MCP関連設定
+      - ~/.obsidian:/home/developer/.obsidian
+      - ~/Documents/Obsidian:/obsidian-vault
+
+      # スクリーンショット出力
+      - ./screenshots:/workspace/screenshots
+
+    environment:
+      # 必須環境変数
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+      # Supabase MCP設定
+      - SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN}
+
+      # Stripe MCP設定
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+
+      # LINE Bot MCP設定
+      - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
+      - DESTINATION_USER_ID=${DESTINATION_USER_ID}
+
+      # Obsidian MCP設定
+      - OBSIDIAN_API_KEY=${OBSIDIAN_API_KEY}
+      - OBSIDIAN_HOST=${OBSIDIAN_HOST:-localhost:27124}
+
+      # Playwright設定
+      - PLAYWRIGHT_HEADLESS=${PLAYWRIGHT_HEADLESS:-true}
+      - PLAYWRIGHT_TIMEOUT=${PLAYWRIGHT_TIMEOUT:-30000}
+
+      # Context7設定
+      - DEFAULT_MINIMUM_TOKENS=${DEFAULT_MINIMUM_TOKENS:-6000}
+
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+    # Playwright用: ホストネットワーク使用でlocalhost直接アクセス
+    network_mode: host
+
+volumes:
+  fish_history:
+    external: true
+    name: ${PROJECT_NAME:-default}_fish_history
+  z_data:
+    external: true
+    name: ${PROJECT_NAME:-default}_z_data
+  tmux_data:
+    external: true
+    name: ${PROJECT_NAME:-default}_tmux_data
+
+networks:
+  default:
+    driver: bridge
