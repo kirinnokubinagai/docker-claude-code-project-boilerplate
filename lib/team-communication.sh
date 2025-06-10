@@ -92,8 +92,10 @@ check_team_messages() {
     
     # 優先度順にメッセージを処理
     for priority in high normal low; do
-        for msg_file in "$inbox_dir"/${priority}_*.msg 2>/dev/null; do
-            [ -f "$msg_file" ] || continue
+        # lsを使って安全にファイル一覧を取得
+        if ls "$inbox_dir"/${priority}_*.msg >/dev/null 2>&1; then
+            for msg_file in "$inbox_dir"/${priority}_*.msg; do
+                [ -f "$msg_file" ] || continue
             
             # メッセージを読み込み（jq代替）
             local message=$(cat "$msg_file")
@@ -101,13 +103,14 @@ check_team_messages() {
             local type=$(echo "$message" | sed -n 's/.*"type": *"\([^"]*\)".*/\1/p')
             local content=$(echo "$message" | sed -n 's/.*"content": *"\([^"]*\)".*/\1/p')
             
-            # 処理済みディレクトリに移動
-            mv "$msg_file" "$MESSAGE_QUEUE_DIR/processed/"
-            
-            # メッセージを返す
-            echo "[$from] $type: $content"
-            return 0  # 1件だけ返す（非同期処理のため）
-        done
+                # 処理済みディレクトリに移動
+                mv "$msg_file" "$MESSAGE_QUEUE_DIR/processed/"
+                
+                # メッセージを返す
+                echo "[$from] $type: $content"
+                return 0  # 1件だけ返す（非同期処理のため）
+            done
+        fi
     done
     
     return 1  # メッセージなし
@@ -238,18 +241,21 @@ process_task_queue() {
     local task_dir="$MESSAGE_QUEUE_DIR/tasks"
     
     while true; do
-        for task_file in "$task_dir"/${team_name}_*.task 2>/dev/null; do
-            [ -f "$task_file" ] || continue
+        # lsを使って安全にファイル一覧を取得
+        if ls "$task_dir"/${team_name}_*.task >/dev/null 2>&1; then
+            for task_file in "$task_dir"/${team_name}_*.task; do
+                [ -f "$task_file" ] || continue
             
-            local task_content=$(cat "$task_file")
-            local task=$(echo "$task_content" | sed -n 's/.*"task": *"\([^"]*\)".*/\1/p')
-            
-            echo ""
-            echo "🔄 [非同期タスク] $task を処理中..."
-            
-            # 処理済みにマーク
-            mv "$task_file" "$MESSAGE_QUEUE_DIR/processed/"
-        done
+                local task_content=$(cat "$task_file")
+                local task=$(echo "$task_content" | sed -n 's/.*"task": *"\([^"]*\)".*/\1/p')
+                
+                echo ""
+                echo "🔄 [非同期タスク] $task を処理中..."
+                
+                # 処理済みにマーク
+                mv "$task_file" "$MESSAGE_QUEUE_DIR/processed/"
+            done
+        fi
         
         sleep 5
     done
