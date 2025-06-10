@@ -29,6 +29,9 @@ services:
 
       # スクリーンショット出力
       - ./screenshots:/workspace/screenshots
+      
+      # Dockerソケットマウント（Docker内Docker実行用）
+      - /var/run/docker.sock:/var/run/docker.sock
 
     environment:
       # 必須環境変数
@@ -68,10 +71,6 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
-
-    # Dockerソケットマウント（Docker内Docker実行用）
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
 
     # カスタムネットワーク使用（コンテナ間通信用）
     networks:
