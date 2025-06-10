@@ -134,8 +134,8 @@ launch_all_teams() {
     local -a initial_messages=(
         "私はMaster Architectです。全体設計と各チームの調整を行います。他の4チームと連携してプロジェクトを進めます。要件を教えてください。"
         "私はFrontend Teamです。UI/UX開発を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
-        "私はDatabase Teamです。DB設計と最適化を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
         "私はBackend Teamです。API開発を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
+        "私はDatabase Teamです。DB設計と最適化を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
         "私はDevOps Teamです。インフラとCI/CDを担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
     )
     
