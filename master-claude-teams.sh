@@ -11,6 +11,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ライブラリと設定をロード
 source "$SCRIPT_DIR/lib/claude-teams-lib.sh"
 source "$SCRIPT_DIR/lib/team-configs.sh"
+source "$SCRIPT_DIR/lib/team-communication.sh"
+source "$SCRIPT_DIR/lib/documentation-system.sh"
 source "$SCRIPT_DIR/config/teams.conf"
 
 # クリーンアップ関数
@@ -107,10 +109,10 @@ launch_all_teams() {
     # 初期メッセージを送信
     local -a initial_messages=(
         "私はMaster Architectです。全体設計と各チームの調整を行います。他の4チームと連携してプロジェクトを進めます。要件を教えてください。"
-        "私はFrontend Teamです。UI/UX開発を担当します。CLAUDE.mdの設定に従って作業します。"
-        "私はDatabase Teamです。DB設計と最適化を担当します。CLAUDE.mdの設定に従って作業します。"
-        "私はBackend Teamです。API開発を担当します。CLAUDE.mdの設定に従って作業します。"
-        "私はDevOps Teamです。インフラとCI/CDを担当します。CLAUDE.mdの設定に従って作業します。"
+        "私はFrontend Teamです。UI/UX開発を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
+        "私はDatabase Teamです。DB設計と最適化を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
+        "私はBackend Teamです。API開発を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
+        "私はDevOps Teamです。インフラとCI/CDを担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
     )
     
     for i in {0..4}; do
@@ -136,6 +138,12 @@ main() {
     
     # Git初期化
     init_git_repo "$WORKSPACE" || exit 1
+    
+    # メッセージキューの初期化
+    init_message_queue
+    
+    # ドキュメントシステムの初期化
+    init_documentation_system
     
     # 既存セッションのクリーンアップ
     kill_tmux_session "$SESSION_NAME"

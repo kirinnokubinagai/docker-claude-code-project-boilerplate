@@ -63,13 +63,13 @@ ECサイトを作って
 
 ## 🏢 5つの専門チーム
 
-| チーム   | 専門分野  | 主要MCP                                  |
-| -------- | --------- | ---------------------------------------- |
-| Frontend | UI/UX実装 | Context7, Playwright, Sentry, Filesystem |
-| Backend  | API開発   | Supabase, Stripe, Postgres, Sentry       |
-| Database | DB設計    | Supabase, Obsidian, Postgres, Sentry     |
-| DevOps   | インフラ  | Playwright, LINE Bot, GitHub, Sentry     |
-| QA       | 品質保証  | Playwright, Context7, OWASP ZAP, Sentry  |
+| チーム   | 専門分野  | 主要MCP                                                     |
+| -------- | --------- | ----------------------------------------------------------- |
+| Frontend | UI/UX実装 | Context7, Obsidian, Playwright, Sentry, LINE Bot            |
+| Backend  | API開発   | Supabase, Obsidian, Stripe, Postgres, Sentry, LINE Bot      |
+| Database | DB設計    | Supabase, Obsidian, Postgres, Sentry, LINE Bot              |
+| DevOps   | インフラ  | Supabaseｍ, Playwright, Obsidian, LINE Bot, Sentry          |
+| QA       | 品質保証  | Playwright, Obsidian, Context7, OWASP ZAP, Sentry, LINE Bot |
 
 ## 📊 納品物の特徴
 
