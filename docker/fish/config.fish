@@ -198,4 +198,4 @@ if not test -f ~/.mcp_setup_done
     echo "⚠️  初回起動を検出しました。"
     echo "👉 'master' コマンドを実行すると、MCPサーバーが自動設定されます。"
     echo ""
-fi
+end
