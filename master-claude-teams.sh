@@ -31,13 +31,14 @@ setup_worktrees() {
     }
     
     # 既存のworktreeをクリーンアップ
-    for team in "${!TEAM_BRANCHES[@]}"; do
-        cleanup_worktree "$WORKSPACE" "$team" "${TEAM_BRANCHES[$team]}"
+    for team in frontend backend database devops; do
+        local branch=$(get_team_branch "$team")
+        cleanup_worktree "$WORKSPACE" "$team" "$branch"
     done
     
     # 新しいworktreeを作成
-    for team in "${!TEAM_BRANCHES[@]}"; do
-        local branch="${TEAM_BRANCHES[$team]}"
+    for team in frontend backend database devops; do
+        local branch=$(get_team_branch "$team")
         log_info "worktree作成: $team -> $branch"
         git worktree add "$WORKTREES_DIR/$team" -b "$branch" || {
             log_error "worktreeの作成に失敗しました: $team"
@@ -56,17 +57,17 @@ create_tmux_layout() {
     tmux new-session -d -s "$SESSION_NAME" -n "Teams" -c "$WORKSPACE"
     
     # レイアウト作成: 左1/3にマスター、右2/3を4分割
-    tmux split-window -h -p 67 -c "${PANE_DIRS[1]}"
+    tmux split-window -h -p 67 -c "$(get_pane_dir 1)"
     tmux select-pane -t 1
-    tmux split-window -v -p 50 -c "${PANE_DIRS[3]}"
+    tmux split-window -v -p 50 -c "$(get_pane_dir 3)"
     tmux select-pane -t 1
-    tmux split-window -h -p 50 -c "${PANE_DIRS[2]}"
+    tmux split-window -h -p 50 -c "$(get_pane_dir 2)"
     tmux select-pane -t 3
-    tmux split-window -h -p 50 -c "${PANE_DIRS[4]}"
+    tmux split-window -h -p 50 -c "$(get_pane_dir 4)"
     
     # ペイン名を設定
     for i in {0..4}; do
-        tmux select-pane -t $i -T "${PANE_NAMES[$i]}"
+        tmux select-pane -t $i -T "$(get_pane_name $i)"
     done
     
     log_success "tmuxレイアウトを作成しました"

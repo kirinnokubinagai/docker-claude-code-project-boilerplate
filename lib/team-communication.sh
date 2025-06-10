@@ -5,14 +5,18 @@
 # メッセージキューディレクトリ
 MESSAGE_QUEUE_DIR="$WORKSPACE/.team-messages"
 
-# 通信プロトコル定義
-declare -A MESSAGE_TYPES=(
-    ["REQUEST"]="依頼"
-    ["RESPONSE"]="返答"
-    ["NOTIFY"]="通知"
-    ["HELP"]="ヘルプ要請"
-    ["UPDATE"]="進捗更新"
-)
+# 通信プロトコル定義（互換性のため関数ベース）
+get_message_type() {
+    local type="$1"
+    case "$type" in
+        "REQUEST") echo "依頼" ;;
+        "RESPONSE") echo "返答" ;;
+        "NOTIFY") echo "通知" ;;
+        "HELP") echo "ヘルプ要請" ;;
+        "UPDATE") echo "進捗更新" ;;
+        *) echo "$type" ;;
+    esac
+}
 
 # メッセージキューの初期化
 init_message_queue() {
@@ -55,7 +59,7 @@ send_team_message() {
 }
 EOF
     
-    log_info "[$from_team → $to_team] ${MESSAGE_TYPES[$message_type]}: $content"
+    log_info "[$from_team → $to_team] $(get_message_type "$message_type"): $content"
     
     # 受信側のペインに通知
     local to_pane=$(get_team_pane "$to_team")
@@ -91,11 +95,11 @@ check_team_messages() {
         for msg_file in "$inbox_dir"/${priority}_*.msg 2>/dev/null; do
             [ -f "$msg_file" ] || continue
             
-            # メッセージを読み込み
+            # メッセージを読み込み（jq代替）
             local message=$(cat "$msg_file")
-            local from=$(echo "$message" | jq -r '.from')
-            local type=$(echo "$message" | jq -r '.type')
-            local content=$(echo "$message" | jq -r '.content')
+            local from=$(echo "$message" | sed -n 's/.*"from": *"\([^"]*\)".*/\1/p')
+            local type=$(echo "$message" | sed -n 's/.*"type": *"\([^"]*\)".*/\1/p')
+            local content=$(echo "$message" | sed -n 's/.*"content": *"\([^"]*\)".*/\1/p')
             
             # 処理済みディレクトリに移動
             mv "$msg_file" "$MESSAGE_QUEUE_DIR/processed/"
@@ -238,7 +242,7 @@ process_task_queue() {
             [ -f "$task_file" ] || continue
             
             local task_content=$(cat "$task_file")
-            local task=$(echo "$task_content" | jq -r '.task')
+            local task=$(echo "$task_content" | sed -n 's/.*"task": *"\([^"]*\)".*/\1/p')
             
             echo ""
             echo "🔄 [非同期タスク] $task を処理中..."
