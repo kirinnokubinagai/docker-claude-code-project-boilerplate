@@ -68,18 +68,10 @@ function setup_mcp_servers
     # Context7
     echo "  追加中: Context7"
     claude mcp add -s user context7 -e DEFAULT_MINIMUM_TOKENS="${DEFAULT_MINIMUM_TOKENS:-6000}" -- npx @upstash/context7-mcp
-    
-    # GitHub（オプション - 既にgit-ingestなどがある場合はスキップ可）
-    if test -n "$GITHUB_TOKEN"
-        echo "  追加中: GitHub"
-        claude mcp add -s user github -e GITHUB_TOKEN="$GITHUB_TOKEN" -- npx @modelcontextprotocol/server-github
-    end
-    
-    # Postgres（オプション）
-    if test -n "$POSTGRES_CONNECTION_STRING"
-        echo "  追加中: Postgres"
-        claude mcp add -s user postgres -e POSTGRES_CONNECTION_STRING="$POSTGRES_CONNECTION_STRING" -- npx @modelcontextprotocol/server-postgres
-    end
+
+    # Sentry
+    echo " 追加中: Sentry"
+    claude mcp add -s user sentry -- npx mcp-remote@latest https://mcp.sentry.dev/sse
     
     echo "✅ MCPサーバー設定完了"
     echo ""

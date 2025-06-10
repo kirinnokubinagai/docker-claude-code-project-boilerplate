@@ -29,7 +29,7 @@ services:
 
       # スクリーンショット出力
       - ./screenshots:/workspace/screenshots
-      
+
       # Dockerソケットマウント（Docker内Docker実行用）
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -58,12 +58,7 @@ services:
 
       # Context7設定
       - DEFAULT_MINIMUM_TOKENS=${DEFAULT_MINIMUM_TOKENS:-6000}
-      
-      # 追加MCP設定（オプション）
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - POSTGRES_CONNECTION_STRING=${POSTGRES_CONNECTION_STRING}
-      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
-      
+
       # セキュリティ監視設定
       - SENTRY_DSN=${SENTRY_DSN}
 

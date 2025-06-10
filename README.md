@@ -3,13 +3,7 @@
 🎯 **最新技術** × 🧠 **5つの天才AI** × 🇯🇵 **日本市場最適化**
 
 ## 🌟 システムの特徴
-
-親Claudeが持つ**5つの天才的能力**：
-- 💻 **天才エンジニア** - 常に最新技術を使用、完璧なコード品質
-- 🎨 **天才デザイナー** - ミニマルで日本人に優しいUI/UX
-- 🧠 **行動心理学の天才** - ユーザー行動を予測し最適化
-- 🔍 **SEOの天才** - 検索上位＆AI検索対応
-- 💼 **ビジネスの天才** - 完璧なマネタイズ戦略
+claudeが複数プロセスでシステムを構築していくシステム
 
 ## 🚀 使い方（3ステップ）
 
@@ -27,7 +21,10 @@ ANTHROPIC_API_KEY=your_key
 GITHUB_TOKEN=your_github_token
 POSTGRES_CONNECTION_STRING=your_pg_url
 SLACK_BOT_TOKEN=your_slack_token
-SENTRY_DSN=your_sentry_dsn
+
+# エラー監視（Sentry）- MCP経由で自動設定
+# Sentry MCPが自動的に設定されます
+# 各チームがmcp__sentry__で始まるツールを使用してエラー監視を行います
 ```
 
 ### 2. 起動
@@ -66,13 +63,13 @@ ECサイトを作って
 
 ## 🏢 5つの専門チーム
 
-| チーム | 専門分野 | 主要MCP |
-|--------|----------|---------|
-| Frontend | UI/UX実装 | Context7, Playwright, Filesystem |
-| Backend | API開発 | Supabase, Stripe, Postgres |
-| Database | DB設計 | Supabase, Obsidian, Postgres |
-| DevOps | インフラ | Playwright, LINE Bot, GitHub |
-| QA | 品質保証 | Playwright, Context7, OWASP ZAP |
+| チーム   | 専門分野  | 主要MCP                                    |
+| -------- | --------- | ------------------------------------------ |
+| Frontend | UI/UX実装 | Context7, Playwright, Sentry, Filesystem   |
+| Backend  | API開発   | Supabase, Stripe, Postgres, Sentry         |
+| Database | DB設計    | Supabase, Obsidian, Postgres, Sentry       |
+| DevOps   | インフラ  | Playwright, LINE Bot, GitHub, Sentry       |
+| QA       | 品質保証  | Playwright, Context7, OWASP ZAP, Sentry    |
 
 ## 📊 納品物の特徴
 
@@ -85,7 +82,7 @@ ECサイトを作って
 - ✅ **アクセシビリティ** - WCAG 2.1 AA準拠
 - ✅ **ドキュメント完備** - 保守も安心
 - ✅ **国際化対応** - グローバル展開可能
-- ✅ **監視体制** - エラー追跡＆性能監視
+- ✅ **監視体制** - Sentry MCPによるエラー追跡＆性能監視
 
 ## 💡 便利コマンド
 

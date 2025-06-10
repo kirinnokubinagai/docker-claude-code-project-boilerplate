@@ -99,6 +99,7 @@ ${ユーザーの要望を分かりやすく整理}
 - アクセシビリティ対応（WCAG準拠）
 - パフォーマンス最適化
 - i18n/国際化対応
+- Sentry MCPでフロントエンドエラー監視
 
 ### Backend
 - 最新APIアーキテクチャ
@@ -106,6 +107,7 @@ ${ユーザーの要望を分かりやすく整理}
 - スケーラビリティ確保
 - マネタイズ機能
 - エラーハンドリング
+- Sentry MCPでAPIエラー・パフォーマンス監視
 
 ### Database
 - 最適なスキーマ設計
@@ -113,6 +115,7 @@ ${ユーザーの要望を分かりやすく整理}
 - バックアップ戦略
 - パフォーマンスチューニング
 - データ暗号化
+- Sentry MCPでクエリパフォーマンス追跡
 
 ### DevOps
 - 最新CI/CDパイプライン
@@ -120,6 +123,7 @@ ${ユーザーの要望を分かりやすく整理}
 - モニタリング設定
 - セキュリティ対策
 - ドキュメント自動生成
+- Sentry MCPでデプロイメント追跡
 
 ### QA
 - E2Eテスト完備
@@ -128,6 +132,7 @@ ${ユーザーの要望を分かりやすく整理}
 - ユーザビリティテスト
 - アクセシビリティテスト
 - 段階的セキュリティ検証
+- Sentry MCPでテストエラー追跡
 EOF
 
 # 4. 初回コミット
@@ -150,30 +155,35 @@ git worktree add /workspace/worktrees/frontend -b feature/frontend
 tmux new-window -t master -n "Worker-frontend" "cd /workspace/worktrees/frontend && claude --dangerously-skip-permissions"
 sleep 3
 tmux send-keys -t "master:Worker-frontend" "あなたはFrontend専門チームです。最新のフレームワークで、日本人に優しい洗練されたUIを実装してください。Context7で最新情報を確認しながら進めてください。" Enter
+tmux send-keys -t "master:Worker-frontend" "Sentry MCPが利用可能です。エラー監視のために mcp__sentry__ で始まるツールを使用してください。" Enter
 
 # Backend Team - APIの天才
 git worktree add /workspace/worktrees/backend -b feature/backend
 tmux new-window -t master -n "Worker-backend" "cd /workspace/worktrees/backend && claude --dangerously-skip-permissions"
 sleep 3
 tmux send-keys -t "master:Worker-backend" "あなたはBackend専門チームです。最新のアーキテクチャで、セキュアでスケーラブルなAPIを実装してください。マネタイズ機能も含めてください。" Enter
+tmux send-keys -t "master:Worker-backend" "Sentry MCPでエラー監視を実装してください。APIエラーは必ずSentryに送信すること。" Enter
 
 # Database Team - データ設計の天才
 git worktree add /workspace/worktrees/database -b feature/database
 tmux new-window -t master -n "Worker-database" "cd /workspace/worktrees/database && claude --dangerously-skip-permissions"
 sleep 3
 tmux send-keys -t "master:Worker-database" "あなたはDatabase専門チームです。パフォーマンスを最大化する最適なスキーマ設計を行ってください。" Enter
+tmux send-keys -t "master:Worker-database" "データベースエラーはSentry MCPで監視してください。クエリパフォーマンスも追跡すること。" Enter
 
 # DevOps Team - インフラの天才
 git worktree add /workspace/worktrees/devops -b feature/devops
 tmux new-window -t master -n "Worker-devops" "cd /workspace/worktrees/devops && claude --dangerously-skip-permissions"
 sleep 3
 tmux send-keys -t "master:Worker-devops" "あなたはDevOps専門チームです。最新のCI/CDとセキュリティベストプラクティスを実装してください。" Enter
+tmux send-keys -t "master:Worker-devops" "Sentry MCPを使用してデプロイメント追跡とインフラエラー監視を設定してください。" Enter
 
 # QA Team - 品質保証の天才
 git worktree add /workspace/worktrees/qa -b feature/qa
 tmux new-window -t master -n "Worker-qa" "cd /workspace/worktrees/qa && claude --dangerously-skip-permissions"
 sleep 3
 tmux send-keys -t "master:Worker-qa" "あなたはQA専門チームです。完璧なテストカバレッジとユーザビリティテストを実装してください。開発の早い段階からOWASP ZAPでセキュリティテストも実施してください。" Enter
+tmux send-keys -t "master:Worker-qa" "テスト実行時のエラーはSentry MCPで追跡し、品質レポートに含めてください。" Enter
 
 # Security Team - セキュリティの天才（必要に応じて追加）
 # git worktree add /workspace/worktrees/security -b feature/security
@@ -195,6 +205,7 @@ tmux send-keys -t "master:Worker-qa" "あなたはQA専門チームです。完�
 "6. セキュリティベストプラクティス遵守"
 "7. アクセシビリティ対応（WCAG 2.1 AA）"
 "8. 国際化対応（i18n）の準備"
+"9. Sentry MCPでエラー監視とパフォーマンス追跡"
 ```
 
 ### 4. 初期セットアップと環境構築
@@ -245,16 +256,42 @@ EOF
 
 # パフォーマンス監視設定
 cat > monitoring-config.js << 'EOF'
-// Sentry設定
-import * as Sentry from "@sentry/node";
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV,
-  tracesSampleRate: 1.0,
-});
+// Sentry MCP使用例
+// 注意: Sentry MCPが自動設定されているため、手動初期化は不要です
+// mcp__sentry__ で始まるツールを使用してください
+
+// エラーキャプチャの例（MCP経由）
+// 各チームでSentry MCPツールを使用してエラーを報告
+// 例: mcp__sentry__capture_exception でエラーをキャプチャ
+
+// パフォーマンス監視の例（MCP経由）
+// mcp__sentry__start_transaction でトランザクション開始
+// mcp__sentry__finish_transaction で終了
+
+// デプロイメント追跡（MCP経由）
+// mcp__sentry__create_release でリリース作成
+// mcp__sentry__finalize_release でリリース完了
 
 // Google Analytics / Plausible設定
 // 実装詳細...
+EOF
+
+# エラーハンドリング設定
+cat > error-handler.js << 'EOF'
+// グローバルエラーハンドラー
+// Sentry MCPを使用してエラーを報告
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Sentry MCPでエラーをキャプチャ（各チームで実装）
+  // mcp__sentry__capture_exception を使用
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Sentry MCPでエラーをキャプチャ（各チームで実装）
+  // mcp__sentry__capture_exception を使用
+});
 EOF
 
 # 国際化設定
@@ -519,8 +556,8 @@ echo "🎉 プロジェクト完成！最高品質の成果物ができました
 # 分析ツール設定
 echo "📊 分析ツール設定中..."
 # Google Analytics / Plausible
-# Sentry エラートラッキング
-# New Relic パフォーマンス監視
+# Sentry MCP経由でエラートラッキング（既に設定済み）
+# パフォーマンス監視はSentry MCPで実装
 ```
 
 ## 🏗️ 自動生成される成果物
@@ -531,6 +568,7 @@ echo "📊 分析ツール設定中..."
 - 🔧 **技術仕様書** - アーキテクチャ詳細
 - 📊 **パフォーマンスレポート** - Lighthouse結果
 - 🔒 **セキュリティレポート** - 脆弱性スキャン結果
+- 🚨 **エラー監視レポート** - Sentry MCPによる品質分析
 
 ### 品質保証
 - ✅ **テストカバレッジ** - 90%以上
