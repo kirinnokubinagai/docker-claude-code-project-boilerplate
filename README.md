@@ -1,98 +1,86 @@
 # Master Claude System
 
-親Claudeが5つの子Claude（Frontend/Backend/Database/DevOps/QA）を自動管理するシステム
+🎯 **最新技術** × 🧠 **5つの天才AI** × 🇯🇵 **日本市場最適化**
 
-## 🚀 使い方
+## 🌟 システムの特徴
+
+親Claudeが持つ**5つの天才的能力**：
+- 💻 **天才エンジニア** - 常に最新技術を使用、完璧なコード品質
+- 🎨 **天才デザイナー** - ミニマルで日本人に優しいUI/UX
+- 🧠 **行動心理学の天才** - ユーザー行動を予測し最適化
+- 🔍 **SEOの天才** - 検索上位＆AI検索対応
+- 💼 **ビジネスの天才** - 完璧なマネタイズ戦略
+
+## 🚀 使い方（3ステップ）
 
 ### 1. セットアップ
 ```bash
-# プロジェクト作成
 git clone [repository-url] master-claude
 cd master-claude
 ./init-project.sh my-project
 cd my-project
 
-# 環境変数設定（.env）
+# .env設定（必須）
 ANTHROPIC_API_KEY=your_key
-# オプション（必要なものだけ）
-LINE_CHANNEL_ACCESS_TOKEN=xxx
-SUPABASE_ACCESS_TOKEN=xxx
-STRIPE_SECRET_KEY=xxx
 ```
 
 ### 2. 起動
 ```bash
 docker-compose up -d
 docker-compose exec claude-code fish
-master  # 親Claude起動（初回はMCP自動設定）
+master  # 親Claude起動
 ```
 
-### 3. 開発開始
-親Claudeに要件を伝えるだけ：
+### 3. 要件を伝える
 ```
 ECサイトを作って
 ```
 
-## 🤖 自動で行われること
+これだけ！あとは全自動。
 
-1. **要件定義作成** → `requirements.md`に整理
-2. **5つのチーム起動** → Frontend/Backend/Database/DevOps/QA
-3. **タスク自動配分** → 各チームが並列作業
-4. **進捗管理** → 15分ごとに確認・調整
-5. **成果物統合** → 完成したらマージ
+## 🤖 自動実行される内容
 
-## 📁 構成
+1. **最新技術調査** → Context7で最新バージョン確認
+2. **要件定義作成** → ビジネス目標・SEO戦略含む
+3. **5チーム起動** → 専門分野ごとに並列作業
+4. **品質管理** → 15分ごとにチェック＆調整
+5. **成果物統合** → 最高品質で納品
 
-```
-my-project/
-├── requirements.md         # 自動生成される要件定義
-├── worktrees/             # 各チームの作業場所
-│   ├── frontend/          # UI/UX担当
-│   ├── backend/           # API担当
-│   ├── database/          # DB設計担当
-│   ├── devops/            # 環境構築担当
-│   └── qa/                # テスト担当
-└── docker/claude/CLAUDE.md # 親Claudeの動作定義
-```
+## 💎 開発品質基準
 
-## 💡 コマンド
+全チーム共通のルール：
+- 📝 **JSDoc必須** - 全関数に詳細ドキュメント
+- 🚀 **早期リターン** - else/elseif禁止
+- 🔄 **関数分割** - コメント不要な明確な設計
+- 🌏 **日本人向け** - 分かりやすい実装
+- ⚡ **最新技術** - 常に最新版を使用
 
-```bash
-# MCP確認
-check_mcp
+## 🏢 5つの専門チーム
 
-# tmuxウィンドウ操作
-Ctrl-b 1-6  # Master, Frontend, Backend, Database, DevOps, QA
-Ctrl-b w    # ウィンドウ一覧
+| チーム | 専門分野 | 主要MCP |
+|--------|----------|---------|
+| Frontend | UI/UX実装 | Context7, Playwright |
+| Backend | API開発 | Supabase, Stripe |
+| Database | DB設計 | Supabase, Obsidian |
+| DevOps | インフラ | Playwright, LINE Bot |
+| QA | 品質保証 | Playwright, Context7 |
 
-# 進捗確認（親Claudeが自動実行）
-tmux capture-pane -t "master:Worker-frontend" -p | tail -20
-```
+## 📊 納品物の特徴
 
-## 🔧 MCPサーバー
+- ✅ **最新技術スタック** - 常に最先端
+- ✅ **SEO完璧対応** - 検索上位確実
+- ✅ **日本市場最適化** - 文化に合わせた設計
+- ✅ **収益化機能** - マネタイズ戦略実装済
+- ✅ **完全テスト済** - バグゼロ保証
 
-初回起動時に自動設定：
-- **Supabase** - DB/認証/Edge Functions
-- **Playwright** - ブラウザ自動化/E2Eテスト
-- **Obsidian** - ドキュメント管理
-- **Stripe** - 決済処理
-- **LINE Bot** - 通知
-- **Context7** - 最新技術情報
-
-## ⚠️ トラブルシューティング
+## 💡 便利コマンド
 
 ```bash
-# MCP再設定
-rm ~/.mcp_setup_done && master
-
-# tmux再接続
-tmux attach -t master
-
-# 手動MCP追加例
-claude mcp add -s user line-bot \
-  -e CHANNEL_ACCESS_TOKEN="$LINE_CHANNEL_ACCESS_TOKEN" \
-  -e DESTINATION_USER_ID="$DESTINATION_USER_ID" \
-  -- npx @line/line-bot-mcp-server
+check_mcp                    # MCP確認
+Ctrl-b 1-6                  # チーム切替
+tmux capture-pane -t "..." -p  # 進捗確認
 ```
 
-以上！要件を伝えれば、親Claudeが全て自動で進めます。
+---
+
+**要件を伝えるだけで、最高品質のプロダクトを自動開発。**
