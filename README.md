@@ -31,12 +31,13 @@ SLACK_BOT_TOKEN=your_slack_token
 # 基本起動（5チーム並列）
 
 docker-compose up -d
-docker-compose exec claude-code fish
+docker-compose exec claude-code fish  # developerユーザーとして自動的にログイン
 
-# Cloude Codeの設定を追加
-cloude code
+# MCP設定確認
+check_mcp
 
-./master-claude-teams.sh
+# 5チーム並列システム起動
+master  # または ./master-claude-teams.sh
 ```
 
 ### 3. 要件を伝える

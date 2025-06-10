@@ -50,5 +50,11 @@ cat << 'WELCOME'
 
 WELCOME
 
-# developerユーザーとしてfishシェルを起動
-exec su - developer -c "cd /workspace && exec fish"
+# 引数があればそのコマンドを、なければfishシェルを起動
+if [ $# -eq 0 ]; then
+    # デフォルト: fishシェル
+    exec su - developer -c "cd /workspace && exec fish"
+else
+    # 引数がある場合: そのコマンドを実行
+    exec su - developer -c "cd /workspace && exec $*"
+fi

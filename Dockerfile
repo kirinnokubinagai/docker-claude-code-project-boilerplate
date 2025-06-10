@@ -97,4 +97,4 @@ WORKDIR /workspace
 
 # entrypointを設定（rootで実行してからdeveloperに切り替える）
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["fish"]
+# デフォルトコマンドは設定しない（docker-entrypoint.shで制御）
