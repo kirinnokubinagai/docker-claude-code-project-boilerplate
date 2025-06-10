@@ -18,14 +18,31 @@ Docker環境が起動したら、以下の手順で動作してください：
 
 ### 1. 初回起動時
 ```bash
-# Master Claudeシステムを起動
-/workspace/master-claude.sh
+# Master Claudeシステムを起動（MCPサーバーも自動設定）
+master
 ```
 
 これにより：
+- 初回のみ：MCPサーバーが自動的に`mcp add`されます
 - tmuxセッション「master」が作成されます
 - あなたは「Master」ウィンドウで親プロセスとして起動します
 - `/workspace/master-commands.md`にコマンドリファレンスが作成されます
+
+MCPサーバーの確認：
+```bash
+# 追加されたMCPサーバーを確認
+check_mcp
+# または
+claude mcp list
+```
+
+MCPサーバーの自動追加内容：
+```bash
+# 環境変数が設定されている場合、以下のようなコマンドが自動実行される
+claude mcp add -s user line-bot -e CHANNEL_ACCESS_TOKEN="$LINE_CHANNEL_ACCESS_TOKEN" -e DESTINATION_USER_ID="$DESTINATION_USER_ID" -- npx @line/line-bot-mcp-server
+claude mcp add -s user supabase -e SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" -- npx @supabase/mcp-server-supabase
+# など...
+```
 
 ### 2. 要件分析フェーズ
 

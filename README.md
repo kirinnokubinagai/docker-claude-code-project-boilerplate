@@ -116,9 +116,9 @@ my-project/
 └── docs/                   # ドキュメント
 ```
 
-## 🔧 利用可能なMCPサーバー（自動設定済み）
+## 🔧 利用可能なMCPサーバー
 
-Docker起動時に以下のMCPサーバーが自動的にClaude Codeに追加されます：
+初回`master`コマンド実行時に以下のMCPサーバーが自動的に追加されます：
 
 - **Supabase** - データベース、認証
 - **Playwright** - E2Eテスト、ブラウザ自動化
@@ -187,10 +187,29 @@ ANTHROPIC_API_KEY=your_key_here
 
 MCPサーバー使用時（オプション）：
 ```bash
+# Supabase
 SUPABASE_ACCESS_TOKEN=your_token
+
+# Stripe
 STRIPE_SECRET_KEY=your_key
-# など（.env.exampleを参照）
+STRIPE_PUBLISHABLE_KEY=your_key
+
+# LINE Bot
+LINE_CHANNEL_ACCESS_TOKEN=your_channel_access_token
+DESTINATION_USER_ID=your_user_id
+
+# Obsidian（Vaultディレクトリはマウント済み）
+# docker-compose.ymlで設定
+
+# Playwright
+PLAYWRIGHT_HEADLESS=true
+PLAYWRIGHT_TIMEOUT=30000
+
+# Context7
+DEFAULT_MINIMUM_TOKENS=6000
 ```
+
+環境変数を設定すると、`master`コマンド初回実行時に自動的にMCPサーバーが追加されます。
 
 ## 🔍 トラブルシューティング
 
