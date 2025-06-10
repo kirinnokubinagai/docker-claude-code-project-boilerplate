@@ -31,7 +31,7 @@ SLACK_BOT_TOKEN=your_slack_token
 ```bash
 docker-compose up -d  # OWASP ZAPも自動起動
 docker-compose exec claude-code fish
-master  # 親Claude起動（初回はMCP自動設定）
+sh master-claude.sh  # 親Claude起動（初回はMCP自動設定）
 ```
 
 ### 3. 要件を伝える
@@ -63,13 +63,13 @@ ECサイトを作って
 
 ## 🏢 5つの専門チーム
 
-| チーム   | 専門分野  | 主要MCP                                    |
-| -------- | --------- | ------------------------------------------ |
-| Frontend | UI/UX実装 | Context7, Playwright, Sentry, Filesystem   |
-| Backend  | API開発   | Supabase, Stripe, Postgres, Sentry         |
-| Database | DB設計    | Supabase, Obsidian, Postgres, Sentry       |
-| DevOps   | インフラ  | Playwright, LINE Bot, GitHub, Sentry       |
-| QA       | 品質保証  | Playwright, Context7, OWASP ZAP, Sentry    |
+| チーム   | 専門分野  | 主要MCP                                  |
+| -------- | --------- | ---------------------------------------- |
+| Frontend | UI/UX実装 | Context7, Playwright, Sentry, Filesystem |
+| Backend  | API開発   | Supabase, Stripe, Postgres, Sentry       |
+| Database | DB設計    | Supabase, Obsidian, Postgres, Sentry     |
+| DevOps   | インフラ  | Playwright, LINE Bot, GitHub, Sentry     |
+| QA       | 品質保証  | Playwright, Context7, OWASP ZAP, Sentry  |
 
 ## 📊 納品物の特徴
 
