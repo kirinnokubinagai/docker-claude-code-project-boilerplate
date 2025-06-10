@@ -11,21 +11,21 @@ export PURPLE='\033[0;35m'
 export CYAN='\033[0;36m'
 export NC='\033[0m'
 
-# ロギング関数
+# ロギング関数（-e オプション互換性対応）
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    printf "${BLUE}[INFO]${NC} %s\n" "$1"
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    printf "${YELLOW}[WARNING]${NC} %s\n" "$1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    printf "${RED}[ERROR]${NC} %s\n" "$1"
 }
 
 # バナー表示
@@ -33,10 +33,10 @@ show_banner() {
     local title="$1"
     local subtitle="$2"
     
-    echo -e "${PURPLE}╔════════════════════════════════════════╗${NC}"
-    echo -e "${PURPLE}║$(printf "%40s" "$title")║${NC}"
-    echo -e "${PURPLE}║$(printf "%40s" "$subtitle")║${NC}"
-    echo -e "${PURPLE}╚════════════════════════════════════════╝${NC}"
+    printf "${PURPLE}╔════════════════════════════════════════╗${NC}\n"
+    printf "${PURPLE}║%40s║${NC}\n" "$title"
+    printf "${PURPLE}║%40s║${NC}\n" "$subtitle"
+    printf "${PURPLE}╚════════════════════════════════════════╝${NC}\n"
     echo ""
 }
 
