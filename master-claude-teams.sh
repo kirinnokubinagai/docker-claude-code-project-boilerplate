@@ -64,22 +64,26 @@ setup_worktrees() {
 create_tmux_layout() {
     log_info "tmuxセッションを構築中..."
     
-    # セッション作成
+    # セッション作成（Masterペイン）
     tmux new-session -d -s "$SESSION_NAME" -n "Teams" -c "$WORKSPACE"
     
-    # レイアウト作成: 左1/3にマスター、右2/3を4分割
+    # 右側エリア作成（横幅の2/3）
     tmux split-window -h -p 67 -c "$(get_pane_dir 1)"
+    
+    # 右側を縦に3分割してFrontend, Backend, Database, DevOpsの4つに
     tmux select-pane -t 1
-    tmux split-window -v -p 50 -c "$(get_pane_dir 3)"
+    tmux split-window -v -p 75 -c "$(get_pane_dir 2)"  # Backend
     tmux select-pane -t 1
-    tmux split-window -h -p 50 -c "$(get_pane_dir 2)"
-    tmux select-pane -t 3
-    tmux split-window -h -p 50 -c "$(get_pane_dir 4)"
+    tmux split-window -v -p 67 -c "$(get_pane_dir 3)"  # Database  
+    tmux select-pane -t 1
+    tmux split-window -v -p 50 -c "$(get_pane_dir 4)"  # DevOps
     
     # ペイン名を設定
-    for i in {0..4}; do
-        tmux select-pane -t $i -T "$(get_pane_name $i)"
-    done
+    tmux select-pane -t 0 -T "$(get_pane_name 0)"  # Master
+    tmux select-pane -t 1 -T "$(get_pane_name 1)"  # Frontend
+    tmux select-pane -t 2 -T "$(get_pane_name 2)"  # Backend
+    tmux select-pane -t 3 -T "$(get_pane_name 3)"  # Database
+    tmux select-pane -t 4 -T "$(get_pane_name 4)"  # DevOps
     
     log_success "tmuxレイアウトを作成しました"
 }
