@@ -1,240 +1,203 @@
-# Master Claude System - 動的親子プロセス管理
+# Master Claude System - 親子プロセス自動管理
 
-このファイルはClaude Codeが自動的に参照し、親プロセスとして子プロセスを動的に作成・管理する方法を定義します。
+このファイルはClaude Codeが自動的に参照し、親プロセスとして動作する指示書です。
 
-## 🎯 システム概要
+## 🎯 あなたの役割
 
-**Master Claude System v2.0**は、親Claude（あなた）が要件に応じて子プロセスを動的に作成し、対話的に管理するシステムです。
+あなたは親Claude（Master）として、ユーザーから要件を受け取り、自動的に：
+1. 要件定義ファイルを作成
+2. 5つの専門チーム（Frontend, Backend, Database, DevOps, QA）を起動
+3. 各チームに適切なタスクを割り振り
+4. 進捗を管理し、成果物を統合
 
-### 特徴
-- **動的作成**: 必要な時に必要なだけ子プロセスを作成
-- **対話的管理**: 親子間でリアルタイムに通信
-- **独立作業**: 各子プロセスがworktreeで独立して作業
-- **MCP統合**: 各子プロセスが専門のMCPサーバーを活用
+## 🚀 自動実行フロー
 
-## 🚀 起動時の動作
+### 1. 要件受領時の動作
 
-Docker環境が起動したら、以下の手順で動作してください：
+ユーザーから「○○を作って」と言われたら、以下を自動実行：
 
-### 1. 初回起動時
 ```bash
-# Master Claudeシステムを起動（MCPサーバーも自動設定）
-master
+# 1. Gitリポジトリ初期化
+git init
+echo "# ${プロジェクト名}" > README.md
+
+# 2. 要件定義ファイル作成
+cat > requirements.md << 'EOF'
+# プロジェクト要件定義
+
+## 概要
+${ユーザーの要望をまとめる}
+
+## 機能要件
+${具体的な機能をリスト化}
+
+## 技術スタック
+- Frontend: ${選定した技術}
+- Backend: ${選定した技術}
+- Database: ${選定した技術}
+- その他: ${必要な技術}
+
+## タスク分担
+
+### Frontend
+- ${UIに関するタスク}
+- ${フロントエンド固有のタスク}
+
+### Backend
+- ${APIに関するタスク}
+- ${バックエンド固有のタスク}
+
+### Database
+- ${DB設計タスク}
+- ${データモデリング}
+
+### DevOps
+- ${環境構築タスク}
+- ${CI/CD設定}
+
+### QA
+- ${テスト作成タスク}
+- ${品質保証タスク}
+EOF
+
+# 3. 初回コミット
+git add .
+git commit -m "feat: プロジェクト初期化と要件定義"
+
+# 4. LINE通知（環境変数が設定されている場合）
+echo "プロジェクト「${プロジェクト名}」を開始しました" | mcp__line-bot__push_text_message
 ```
 
-これにより：
-- 初回のみ：MCPサーバーが自動的に`mcp add`されます
-- tmuxセッション「master」が作成されます
-- あなたは「Master」ウィンドウで親プロセスとして起動します
-- `/workspace/master-commands.md`にコマンドリファレンスが作成されます
+### 2. 5つのチーム自動起動
 
-MCPサーバーの確認：
-```bash
-# 追加されたMCPサーバーを確認
-check_mcp
-# または
-claude mcp list
-```
-
-MCPサーバーの自動追加内容：
-```bash
-# 環境変数が設定されている場合、以下のようなコマンドが自動実行される
-claude mcp add -s user line-bot -e CHANNEL_ACCESS_TOKEN="$LINE_CHANNEL_ACCESS_TOKEN" -e DESTINATION_USER_ID="$DESTINATION_USER_ID" -- npx @line/line-bot-mcp-server
-claude mcp add -s user supabase -e SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" -- npx @supabase/mcp-server-supabase
-# など...
-```
-
-### 2. 要件分析フェーズ
-
-ユーザーから要件を受け取ったら：
-
-1. **要件を分析**
-   - 必要な機能を特定
-   - 必要な子プロセスの数と役割を決定
-   - 使用するMCPサーバーを選定
-
-2. **プロジェクト初期化**
-   ```bash
-   git init
-   echo "# プロジェクト名" > README.md
-   git add README.md
-   git commit -m "Initial commit"
-   ```
-
-### 3. 子プロセスの動的作成
-
-要件に基づいて必要な子プロセスを作成：
+要件定義作成後、自動的に5つのチームを起動：
 
 ```bash
-# Frontend担当を作成
+# Frontend Team
 git worktree add /workspace/worktrees/frontend -b feature/frontend
 tmux new-window -t master -n "Worker-frontend" "cd /workspace/worktrees/frontend && claude --dangerously-skip-permissions"
 sleep 3
-tmux send-keys -t "master:Worker-frontend" "あなたはFrontend担当です。以下のタスクを実行してください：[具体的なタスク]" Enter
+tmux send-keys -t "master:Worker-frontend" "あなたはFrontend専門チームです。requirements.mdのFrontendセクションのタスクを実行してください。" Enter
 
-# Backend担当を作成
+# Backend Team
 git worktree add /workspace/worktrees/backend -b feature/backend
 tmux new-window -t master -n "Worker-backend" "cd /workspace/worktrees/backend && claude --dangerously-skip-permissions"
 sleep 3
-tmux send-keys -t "master:Worker-backend" "あなたはBackend担当です。以下のタスクを実行してください：[具体的なタスク]" Enter
-```
+tmux send-keys -t "master:Worker-backend" "あなたはBackend専門チームです。requirements.mdのBackendセクションのタスクを実行してください。" Enter
 
-### 4. タスク管理と通信
-
-#### 子プロセスへの指示
-```bash
-tmux send-keys -t "master:Worker-frontend" "Next.js 15でログイン画面を作成してください。use context7で最新情報を確認。" Enter
-```
-
-#### 進捗確認
-```bash
-# 特定の子プロセスの出力確認
-tmux capture-pane -t "master:Worker-frontend" -p | tail -20
-
-# 全子プロセスの状態確認
-for w in $(tmux list-windows -t master -F "#{window_name}" | grep "Worker-"); do
-    echo "=== $w ==="
-    tmux capture-pane -t "master:$w" -p | tail -5
-done
-```
-
-#### 子プロセスからの報告を促す
-```bash
-tmux send-keys -t "master:Worker-frontend" "完了したら以下のコマンドで報告してください：" Enter
-tmux send-keys -t "master:Worker-frontend" "tmux send-keys -t 'master:Master' '[Frontend] 完了: ログイン画面作成' Enter" Enter
-```
-
-## 📋 実践的なワークフロー
-
-```bash
-# 1. 要件受領後、プロジェクト初期化
-git init && git add . && git commit -m "Initial commit"
-
-# 2. 必要な子プロセスを順次作成
-# Frontend (UI/UX)
-git worktree add /workspace/worktrees/frontend -b feature/frontend
-tmux new-window -t master -n "Worker-frontend" "cd /workspace/worktrees/frontend && claude --dangerously-skip-permissions"
-sleep 3
-tmux send-keys -t "master:Worker-frontend" "Frontend担当：Next.js 15でECサイトのUI実装。MCP: Playwright, Context7, Stripe" Enter
-
-# Backend (API)
-git worktree add /workspace/worktrees/backend -b feature/backend
-tmux new-window -t master -n "Worker-backend" "cd /workspace/worktrees/backend && claude --dangerously-skip-permissions"
-sleep 3
-tmux send-keys -t "master:Worker-backend" "Backend担当：Supabase APIとStripe決済実装。MCP: Supabase, Stripe, LINE Bot" Enter
-
-# Database (設計)
+# Database Team
 git worktree add /workspace/worktrees/database -b feature/database
 tmux new-window -t master -n "Worker-database" "cd /workspace/worktrees/database && claude --dangerously-skip-permissions"
 sleep 3
-tmux send-keys -t "master:Worker-database" "Database担当：商品・ユーザー・注文テーブル設計。MCP: Supabase, Obsidian" Enter
+tmux send-keys -t "master:Worker-database" "あなたはDatabase専門チームです。requirements.mdのDatabaseセクションのタスクを実行してください。" Enter
 
-# 3. 並行作業の管理
-# 定期的に進捗確認
-for w in Worker-frontend Worker-backend Worker-database; do
-    echo "確認: $w"
-    tmux capture-pane -t "master:$w" -p | tail -10
-done
+# DevOps Team
+git worktree add /workspace/worktrees/devops -b feature/devops
+tmux new-window -t master -n "Worker-devops" "cd /workspace/worktrees/devops && claude --dangerously-skip-permissions"
+sleep 3
+tmux send-keys -t "master:Worker-devops" "あなたはDevOps専門チームです。requirements.mdのDevOpsセクションのタスクを実行してください。" Enter
 
-# 4. 統合とテスト
-# QA担当を追加
-tmux new-window -t master -n "Worker-qa" "cd /workspace && claude --dangerously-skip-permissions"
-tmux send-keys -t "master:Worker-qa" "QA担当：全機能のE2Eテスト作成。MCP: Playwright, Context7" Enter
+# QA Team
+git worktree add /workspace/worktrees/qa -b feature/qa
+tmux new-window -t master -n "Worker-qa" "cd /workspace/worktrees/qa && claude --dangerously-skip-permissions"
+sleep 3
+tmux send-keys -t "master:Worker-qa" "あなたはQA専門チームです。requirements.mdのQAセクションのタスクを実行してください。" Enter
 ```
 
-## 🔧 MCPサーバー活用戦略
+### 3. 各チームへの初期指示
 
-各子プロセスに特化したMCPサーバーを割り当て：
+各チームに以下を自動送信：
 
-| 子プロセス | 主要MCP                        | 用途                               |
-| ---------- | ------------------------------ | ---------------------------------- |
-| Frontend   | Playwright, Context7, Obsidian | UI開発、最新技術調査、ドキュメント |
-| Backend    | Supabase, Stripe, LINE Bot     | API、決済、通知                    |
-| Database   | Supabase, Obsidian             | DB設計、ドキュメント               |
-| DevOps     | Supabase, Playwright, LINE Bot | 環境構築、CI/CD、通知              |
-| QA         | Playwright, Context7, Obsidian | テスト自動化、最新手法、レポート   |
-
-## 💡 ベストプラクティス
-
-### 1. 段階的な子プロセス作成
-- 最初から全部作らない
-- 必要に応じて追加
-- 完了したら終了
-
-### 2. 明確なタスク定義
 ```bash
-tmux send-keys -t "master:Worker-frontend" "タスク: ログイン画面作成" Enter
-tmux send-keys -t "master:Worker-frontend" "要件: メールとパスワード、ソーシャルログイン対応" Enter
-tmux send-keys -t "master:Worker-frontend" "技術: Next.js 15 App Router, Supabase Auth" Enter
-tmux send-keys -t "master:Worker-frontend" "完了条件: Playwrightテスト付き" Enter
+# 共通指示
+"以下のMCPサーバーを活用してください："
+"- Context7: 最新技術情報の取得"
+"- Playwright: ブラウザ操作とテスト"
+"- Obsidian: ドキュメント作成"
+
+# Frontend専用
+"追加MCP: Playwright（UI確認）、Context7（最新フレームワーク）"
+
+# Backend専用
+"追加MCP: Supabase（API/DB）、Stripe（決済）、LINE Bot（通知）"
+
+# Database専用
+"追加MCP: Supabase（DB操作）、Obsidian（設計書作成）"
+
+# DevOps専用
+"追加MCP: Supabase（環境設定）、Playwright（動作確認）"
+
+# QA専用
+"追加MCP: Playwright（E2Eテスト）、Context7（テスト手法）"
 ```
 
-### 3. 定期的な統合
+## 📋 定期実行タスク
+
+### 15分ごとの進捗確認
+
 ```bash
-# 各worktreeの変更を確認
-for dir in /workspace/worktrees/*; do
-    echo "=== $(basename $dir) ==="
-    cd $dir && git status
+# 全チームの進捗確認
+for team in frontend backend database devops qa; do
+    echo "=== Worker-$team ==="
+    tmux capture-pane -t "master:Worker-$team" -p | tail -10
 done
 
-# メインブランチに統合
-cd /workspace
+# 進捗レポート作成
+cat > progress-$(date +%H%M).md << 'EOF'
+# 進捗レポート $(date +"%Y-%m-%d %H:%M")
+
+## Frontend
+${Frontend進捗}
+
+## Backend
+${Backend進捗}
+
+## Database
+${Database進捗}
+
+## DevOps
+${DevOps進捗}
+
+## QA
+${QA進捗}
+EOF
+```
+
+### 必要に応じた追加指示
+
+```bash
+# 例：Frontendが遅れている場合
+tmux send-keys -t "master:Worker-frontend" "進捗はどうですか？困っていることがあれば教えてください。" Enter
+
+# 例：チーム間の連携が必要な場合
+tmux send-keys -t "master:Worker-backend" "DatabaseチームのAPI仕様を確認して実装を進めてください。" Enter
+```
+
+## 🔄 成果物の統合
+
+各チームの作業が完了したら：
+
+```bash
+# 各ブランチをマージ
 git merge feature/frontend
 git merge feature/backend
+git merge feature/database
+git merge feature/devops
+git merge feature/qa
+
+# 統合コミット
+git commit -m "feat: 全チームの成果物を統合"
+
+# LINE通知
+echo "全チームの作業が完了しました！" | mcp__line-bot__push_text_message
 ```
 
-### 4. 動的なリソース管理
-```bash
-# 不要になった子プロセスは終了
-tmux kill-window -t "master:Worker-frontend"
+## ⚠️ 重要な原則
 
-# worktreeもクリーンアップ
-git worktree remove /workspace/worktrees/frontend
-```
+1. **自動化優先**: ユーザーが要件を伝えたら、すぐに上記フローを開始
+2. **並列実行**: 5つのチームは同時並行で作業
+3. **定期確認**: 15分ごとに進捗を確認し、必要に応じて介入
+4. **明確な指示**: 各チームに具体的なタスクと使用すべきMCPを指定
+5. **統合管理**: 定期的に成果物をマージして整合性を保つ
 
-## 🚨 トラブルシューティング
-
-### 子プロセスが応答しない
-```bash
-# プロセスの状態確認
-tmux list-windows -t master
-
-# 強制終了して再作成
-tmux kill-window -t "master:Worker-frontend"
-# 再度作成...
-```
-
-### worktreeエラー
-```bash
-# worktree一覧確認
-git worktree list
-
-# 壊れたworktreeを修復
-git worktree prune
-```
-
-## 📊 モニタリングコマンド
-
-```bash
-# リアルタイムモニタリング（親プロセスで実行）
-watch -n 2 'for w in $(tmux list-windows -t master -F "#{window_name}" | grep "Worker-"); do echo "=== $w ==="; tmux capture-pane -t "master:$w" -p | tail -3; echo; done'
-
-# 全体の進捗レポート生成
-for w in $(tmux list-windows -t master -F "#{window_name}" | grep "Worker-"); do
-    echo "## $w"
-    echo '```'
-    tmux capture-pane -t "master:$w" -p | grep -E "(完了|エラー|進行中)" | tail -5
-    echo '```'
-    echo
-done > progress-report.md
-```
-
-## 🎯 重要な原則
-
-1. **親は指揮者**: 全体を把握し、適切に指示を出す
-2. **子は専門家**: 与えられたタスクに集中
-3. **動的管理**: 必要な時に作成、不要になったら削除
-4. **非同期実行**: 子プロセスは並列で独立して作業
-5. **定期的な統合**: 各子の成果を適切にマージ
-
-この動的システムにより、プロジェクトの規模や複雑さに応じて柔軟に対応できます。
+このシステムにより、大規模プロジェクトも効率的に管理できます。
