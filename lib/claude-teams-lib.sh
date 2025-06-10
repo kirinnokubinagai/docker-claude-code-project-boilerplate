@@ -65,9 +65,22 @@ check_dependencies() {
 # tmuxセッション管理
 kill_tmux_session() {
     local session="$1"
-    if tmux has-session -t "$session" 2>/dev/null; then
+    
+    log_info "tmuxセッション '$session' の確認中..."
+    
+    # タイムアウト付きでセッション存在確認
+    if timeout 5 tmux has-session -t "$session" 2>/dev/null; then
         log_info "既存のセッション '$session' をクリーンアップ中..."
-        tmux kill-session -t "$session"
+        
+        # タイムアウト付きでセッション削除
+        if timeout 10 tmux kill-session -t "$session" 2>/dev/null; then
+            log_success "セッション '$session' を正常に削除しました"
+        else
+            log_warning "セッション削除がタイムアウトしました。強制終了を試みます..."
+            tmux kill-server 2>/dev/null || true
+        fi
+    else
+        log_info "セッション '$session' は存在しません（またはタイムアウト）"
     fi
 }
 
@@ -163,5 +176,18 @@ wait_for_process() {
 # 安全なtrap設定
 setup_trap() {
     local cleanup_function="$1"
-    trap "$cleanup_function" EXIT INT TERM
+    
+    # 引数チェック
+    if [ -z "$cleanup_function" ]; then
+        log_error "cleanup関数が指定されていません"
+        return 1
+    fi
+    
+    # trap設定
+    if trap "$cleanup_function" EXIT INT TERM; then
+        log_info "trap設定完了: $cleanup_function"
+    else
+        log_error "trap設定に失敗しました"
+        return 1
+    fi
 }

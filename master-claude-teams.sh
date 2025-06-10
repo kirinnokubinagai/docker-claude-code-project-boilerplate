@@ -18,7 +18,15 @@ source "$SCRIPT_DIR/config/teams.conf"
 # クリーンアップ関数
 cleanup() {
     log_warning "クリーンアップを実行中..."
-    kill_tmux_session "$SESSION_NAME"
+    
+    # プロセスタイムアウトでクリーンアップを強制終了
+    timeout 10 kill_tmux_session "$SESSION_NAME" || {
+        log_warning "tmuxセッションのクリーンアップがタイムアウトしました（10秒）"
+        # 強制的にtmuxセッションを終了
+        tmux kill-server 2>/dev/null || true
+    }
+    
+    log_info "クリーンアップ完了"
 }
 
 # worktreeのセットアップ
