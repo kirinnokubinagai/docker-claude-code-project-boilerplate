@@ -2,6 +2,46 @@
 
 # Claude Teams共通ライブラリ
 
+# macOS互換のtimeout関数（gtimeoutまたは代替実装）
+run_with_timeout() {
+    local timeout_sec="$1"
+    shift
+    
+    # gtimeout（brewでインストール可能）があれば使用
+    if command -v gtimeout >/dev/null 2>&1; then
+        gtimeout "$timeout_sec" "$@"
+    # GNU timeout（Linux）があれば使用
+    elif command -v timeout >/dev/null 2>&1; then
+        timeout "$timeout_sec" "$@"
+    else
+        # 代替実装：バックグラウンドで実行してsleepで制御
+        "$@" &
+        local pid=$!
+        
+        # タイムアウト監視をバックグラウンドで実行
+        (
+            sleep "$timeout_sec"
+            if kill -0 "$pid" 2>/dev/null; then
+                kill -TERM "$pid" 2>/dev/null || true
+                sleep 2
+                if kill -0 "$pid" 2>/dev/null; then
+                    kill -KILL "$pid" 2>/dev/null || true
+                fi
+            fi
+        ) &
+        local timeout_pid=$!
+        
+        # メインプロセスの完了を待機
+        if wait "$pid" 2>/dev/null; then
+            kill "$timeout_pid" 2>/dev/null || true
+            return 0
+        else
+            kill "$timeout_pid" 2>/dev/null || true
+            return 124  # timeoutコマンドの終了コード
+        fi
+    fi
+}
+
 # 色定義
 export RED='\033[0;31m'
 export GREEN='\033[0;32m'
@@ -69,11 +109,11 @@ kill_tmux_session() {
     log_info "tmuxセッション '$session' の確認中..."
     
     # タイムアウト付きでセッション存在確認
-    if timeout 5 tmux has-session -t "$session" 2>/dev/null; then
+    if run_with_timeout 5 tmux has-session -t "$session" 2>/dev/null; then
         log_info "既存のセッション '$session' をクリーンアップ中..."
         
         # タイムアウト付きでセッション削除
-        if timeout 10 tmux kill-session -t "$session" 2>/dev/null; then
+        if run_with_timeout 10 tmux kill-session -t "$session" 2>/dev/null; then
             log_success "セッション '$session' を正常に削除しました"
         else
             log_warning "セッション削除がタイムアウトしました。強制終了を試みます..."

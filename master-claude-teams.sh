@@ -8,6 +8,9 @@ set -e
 # スクリプトのディレクトリを取得
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# WORKSPACE環境変数を明示的に設定（Docker外実行時の対応）
+export WORKSPACE="${WORKSPACE:-$SCRIPT_DIR}"
+
 # ライブラリと設定をロード
 source "$SCRIPT_DIR/lib/claude-teams-lib.sh"
 source "$SCRIPT_DIR/lib/team-configs.sh"
@@ -20,7 +23,7 @@ cleanup() {
     log_warning "クリーンアップを実行中..."
     
     # プロセスタイムアウトでクリーンアップを強制終了
-    timeout 10 kill_tmux_session "$SESSION_NAME" || {
+    run_with_timeout 10 kill_tmux_session "$SESSION_NAME" || {
         log_warning "tmuxセッションのクリーンアップがタイムアウトしました（10秒）"
         # 強制的にtmuxセッションを終了
         tmux kill-server 2>/dev/null || true
