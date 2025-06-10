@@ -8,15 +8,32 @@ set -e
 # 環境変数の設定
 export WORKSPACE="/workspace"
 
+# workspaceディレクトリの権限設定（developerユーザーが書き込めるように）
+chown -R developer:developer /workspace
+
 # Master Claudeスクリプトの実行権限
 if [ -f "/workspace/master-claude-teams.sh" ]; then
     chmod +x /workspace/master-claude-teams.sh
+fi
+
+# libファイルの実行権限
+if [ -d "/workspace/lib" ]; then
+    chmod +x /workspace/lib/*.sh
 fi
 
 # tmux設定ファイルをコピー
 if [ -f "/workspace/docker/.tmux.conf" ]; then
     cp /workspace/docker/.tmux.conf /home/developer/.tmux.conf
     chown developer:developer /home/developer/.tmux.conf
+fi
+
+# Claude Code用の設定ディレクトリ作成
+mkdir -p /home/developer/.anthropic
+chown -R developer:developer /home/developer/.anthropic
+
+# Dockerソケットの権限調整（developerユーザーが使えるように）
+if [ -S /var/run/docker.sock ]; then
+    chmod 666 /var/run/docker.sock || true
 fi
 
 # 初期化メッセージ

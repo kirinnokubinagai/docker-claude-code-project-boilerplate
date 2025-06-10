@@ -21,7 +21,10 @@ RUN apk add --no-cache \
 # developerユーザーを作成（既存のGID/UIDを考慮）
 RUN addgroup -g 1001 developer || true && \
     adduser -D -u 1001 -G developer -s /usr/bin/fish -h /home/developer developer && \
-    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    # dockerグループに追加（Docker内でdockerコマンドを使えるように）
+    addgroup -S docker 2>/dev/null || true && \
+    adduser developer docker
 
 # fish設定ディレクトリの作成
 RUN mkdir -p /home/developer/.config/fish/functions
@@ -62,6 +65,22 @@ RUN echo "set -g default-shell /usr/bin/fish" > /home/developer/.tmux.conf && \
     echo "set -g status-bg colour234" >> /home/developer/.tmux.conf && \
     echo "set -g status-fg colour137" >> /home/developer/.tmux.conf && \
     chown developer:developer /home/developer/.tmux.conf
+
+# developerユーザーの環境設定
+USER developer
+WORKDIR /home/developer
+
+# gitの初期設定
+RUN git config --global user.name "Developer" && \
+    git config --global user.email "developer@claude-teams.local" && \
+    git config --global init.defaultBranch main && \
+    git config --global safe.directory /workspace
+
+# .anthropicディレクトリ作成（Claude Code設定用）
+RUN mkdir -p /home/developer/.anthropic
+
+# rootに戻る（entrypointのため）
+USER root
 
 # ホームディレクトリの権限を設定
 RUN chown -R developer:developer /home/developer

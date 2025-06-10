@@ -13,8 +13,7 @@
 
 ### 1. セットアップ
 ```bash
-git clone [repository-url] master-claude
-cd master-claude
+git clone [repository-url]
 ./init-project.sh my-project
 cd my-project
 
@@ -30,11 +29,13 @@ SLACK_BOT_TOKEN=your_slack_token
 ### 2. 起動
 ```bash
 # 基本起動（5チーム並列）
-./master-claude-teams.sh
 
-# または別の起動方法
 docker-compose up -d
 docker-compose exec claude-code fish
+
+# Cloude Codeの設定を追加
+cloude code
+
 ./master-claude-teams.sh
 ```
 
@@ -73,13 +74,13 @@ broadcast_to_teams "devops" "NOTIFY" "本番デプロイを開始します"
 
 ## 🏢 5つの専門チーム
 
-| チーム   | 専門分野       | 主要MCP                                    | チーム間通信機能     |
-| -------- | -------------- | ------------------------------------------ | -------------------- |
-| Master   | 全体設計・調整 | 全MCP統括、要件定義                        | 全チーム統括         |
-| Frontend | UI/UX実装      | Context7, Obsidian, Playwright, LINE Bot  | ↔️ Backend, Database |
-| Backend  | API開発        | Supabase, Obsidian, Postgres, LINE Bot    | ↔️ Frontend, Database |
-| Database | DB設計         | Supabase, Obsidian, Postgres, LINE Bot    | ↔️ Backend, DevOps   |
-| DevOps   | インフラ       | Playwright, Obsidian, LINE Bot, Sentry    | ↔️ 全チーム通知      |
+| チーム   | 専門分野       | 主要MCP                                  | チーム間通信機能     |
+| -------- | -------------- | ---------------------------------------- | -------------------- |
+| Master   | 全体設計・調整 | 全MCP統括、要件定義                      | 全チーム統括         |
+| Frontend | UI/UX実装      | Context7, Obsidian, Playwright, LINE Bot | ↔️ Backend, Database  |
+| Backend  | API開発        | Supabase, Obsidian, Postgres, LINE Bot   | ↔️ Frontend, Database |
+| Database | DB設計         | Supabase, Obsidian, Postgres, LINE Bot   | ↔️ Backend, DevOps    |
+| DevOps   | インフラ       | Playwright, Obsidian, LINE Bot, Sentry   | ↔️ 全チーム通知       |
 
 ## 📚 自動ドキュメント化機能
 
