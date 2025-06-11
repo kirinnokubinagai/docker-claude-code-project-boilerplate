@@ -15,6 +15,7 @@ export WORKSPACE="${WORKSPACE:-$SCRIPT_DIR}"
 source "$SCRIPT_DIR/lib/core-lib.sh"
 source "$SCRIPT_DIR/lib/team-operations.sh"
 source "$SCRIPT_DIR/lib/universal-characteristics.sh"
+source "$SCRIPT_DIR/lib/dynamic-team-builder.sh"
 source "$SCRIPT_DIR/config/teams.conf"
 source "$SCRIPT_DIR/config/team-structure.conf"
 
@@ -257,6 +258,21 @@ create_master_config() {
 
 あなたは大規模開発チームを統括するMaster Architectです。
 チーム数とメンバー数はプロジェクトの規模に応じて動的に変化します。
+
+## 🚀 動的チーム構築機能
+
+### プロジェクト開始時
+1. プロジェクト要件を分析
+2. 必要なチームとメンバー数を自動決定
+3. teams.jsonを動的に生成
+4. 最適な技術スタックを選定
+
+### チーム構成の決定基準
+- **プロジェクトタイプ**: web-app, mobile-app, ai-product, blockchain, enterprise
+- **規模**: 小規模(1-2名), 中規模(2-3名), 大規模(3-4名), 超大規模(4-6名)
+- **技術要件**: 必要な専門性に基づいてチームを選定
+
+詳細は CLAUDE_MASTER_DYNAMIC.md を参照してください。
 
 ## ⚠️ 重要：新しいコミュニケーションルール
 

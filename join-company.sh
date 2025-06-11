@@ -10,20 +10,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ライブラリをロード
 source "$SCRIPT_DIR/lib/common-lib.sh"
 source "$SCRIPT_DIR/lib/team-management.sh"
+source "$SCRIPT_DIR/lib/dynamic-team-builder.sh"
 
 # 使用方法を表示
 usage() {
     cat << EOF
-使用方法: $0 <team-template.json>
+使用方法: 
+  $0 <team-template.json>       既存のテンプレートからチームを追加
+  $0 --dynamic                  動的にチーム構成を決定（Masterが分析）
 
 チームテンプレートからMaster Claude Teams Systemに新しいチームを追加します。
 
 引数:
   team-template.json    チーム定義のJSONファイル
+  --dynamic            Masterが要件を分析して最適なチーム構成を決定
 
 例:
   $0 team-templates/frontend-team.json
   $0 team-templates/new-team.json
+  $0 --dynamic
 
 利用可能なテンプレート:
 $(ls -1 "$SCRIPT_DIR/team-templates/"*.json 2>/dev/null | xargs -n1 basename || echo "  テンプレートが見つかりません")
@@ -34,6 +39,28 @@ EOF
 # 引数チェック
 if [ $# -ne 1 ]; then
     usage
+fi
+
+# 動的モードの確認
+if [ "$1" = "--dynamic" ]; then
+    log_info "動的チーム構成モードで起動します"
+    
+    # CLAUDE_MASTER_DYNAMIC.mdを作成
+    generate_master_dynamic_prompt > "$WORKSPACE/CLAUDE_MASTER_DYNAMIC.md"
+    
+    log_success "動的チーム構成の準備が完了しました"
+    echo ""
+    echo "📝 次の手順:"
+    echo "1. Masterとして master-claude-teams.sh を起動"
+    echo "2. プロジェクト要件を説明"
+    echo "3. Masterが最適なチーム構成を決定してteams.jsonを生成"
+    echo "4. 自動的にチームが構築されます"
+    echo ""
+    echo "例:"
+    echo "  「SNSのようなWebアプリケーションを作りたい」"
+    echo "  「AIを使った画像認識アプリを開発したい」"
+    echo "  「ブロックチェーンを使ったNFTマーケットプレイス」"
+    exit 0
 fi
 
 TEMPLATE_FILE="$1"
