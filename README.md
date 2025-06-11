@@ -210,8 +210,9 @@ cp team-templates/new-team.json team-templates/my-custom-team.json
 ```bash
 # ウィンドウ切り替え
 Ctrl+a → 0  # Master
-Ctrl+a → 1  # Frontend Team（チームがある場合）
-Ctrl+a → 2  # Backend Team（チームがある場合）
+Ctrl+a → 1  # Team 1（チームがある場合）
+Ctrl+a → 2  # Team 2（チームがある場合）
+Ctrl+a → N  # Team N（チームがある場合）
 
 # ペイン操作
 Ctrl+a → 矢印キー  # ペイン間移動

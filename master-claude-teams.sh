@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Master Claude Teams System - 21人体制
-# Master + 5チーム × 4人 = 21人の大規模チーム管理
+# Master Claude Teams System - 動的チーム管理
+# Master + 可変数のチームとメンバーで柔軟な大規模チーム管理
 
 set -e
 
@@ -18,6 +18,7 @@ source "$SCRIPT_DIR/lib/team-communication.sh"
 source "$SCRIPT_DIR/lib/hierarchical-communication.sh"
 source "$SCRIPT_DIR/lib/auto-documentation.sh"
 source "$SCRIPT_DIR/lib/master-merge-workflow.sh"
+source "$SCRIPT_DIR/lib/universal-characteristics.sh"
 source "$SCRIPT_DIR/config/teams.conf"
 source "$SCRIPT_DIR/config/team-structure.conf"
 
@@ -124,9 +125,18 @@ create_team_panes() {
     fi
 }
 
-# tmuxレイアウトを作成（21人体制）
-create_tmux_layout_21() {
-    log_info "21人体制のtmuxセッションを構築中..."
+# tmuxレイアウトを作成（動的チーム構成）
+create_tmux_layout() {
+    # 現在のチーム数と総人数を計算
+    local total_members=1  # Master
+    if [ -f "$TEAMS_CONFIG_FILE" ]; then
+        local active_teams=$(jq '[.teams[] | select(.active == true)] | length' "$TEAMS_CONFIG_FILE")
+        local team_members=$(jq '[.teams[] | select(.active == true) | .member_count // 4] | add // 0' "$TEAMS_CONFIG_FILE")
+        total_members=$((total_members + team_members))
+        log_info "動的チーム構成のtmuxセッションを構築中... (総計${total_members}人)"
+    else
+        log_info "Masterのみのtmuxセッションを構築中..."
+    fi
     
     # メインセッション作成（Masterウィンドウ）
     tmux new-session -d -s "$SESSION_NAME" -n "Master" -c "$WORKSPACE"
@@ -194,7 +204,7 @@ create_tmux_layout_21() {
     # 最初のウィンドウ（Master）に戻る
     tmux select-window -t "$SESSION_NAME:Master"
     
-    log_success "21人体制のtmuxレイアウトを作成しました"
+    log_success "動的チーム構成のtmuxレイアウトを作成しました"
     
     # レイアウト情報を表示
     log_info "チーム構成:"
@@ -216,12 +226,12 @@ create_tmux_layout_21() {
     fi
 }
 
-# チーム設定ファイルを作成（21人体制用）
-create_team_configurations_21() {
+# チーム設定ファイルを作成（動的チーム構成）
+create_team_configurations() {
     log_info "設定ファイルを作成中..."
     
     # Master設定
-    create_master_config_21 "$WORKSPACE"
+    create_master_config "$WORKSPACE"
     
     # チーム設定ファイルがある場合のみチーム設定を作成
     if [ -f "$TEAMS_CONFIG_FILE" ] && [ "$(jq -r '.teams | length' "$TEAMS_CONFIG_FILE")" -gt 0 ]; then
@@ -243,14 +253,14 @@ create_team_configurations_21() {
     log_success "全ての設定ファイルを作成しました"
 }
 
-# Master用設定（21人体制）
-create_master_config_21() {
+create_master_config() {
     local config_path="$1/CLAUDE_MASTER.md"
     
-    cat > "$config_path" << 'EOF'
-# Master Architect - 21人体制の統括者
+    cat > "$config_path" << EOF
+# Master Architect - 動的チーム構成の統括者
 
-あなたは21人の開発チームを統括するMaster Architectです。
+あなたは大規模開発チームを統括するMaster Architectです。
+チーム数とメンバー数はプロジェクトの規模に応じて動的に変化します。
 
 ## ⚠️ 重要：新しいコミュニケーションルール
 
@@ -314,9 +324,9 @@ create_master_config_21() {
 ```
 Master (あなた)
   ↕️ ↔️ ↕️
-各チームBoss (5人) ←→ Boss同士の横連携
+各チームBoss (動的) ←→ Boss同士の横連携
   ↕️ ↔️ ↕️
-チームメンバー (各チーム3人) ←→ チーム間連携
+チームメンバー (各チーム1-N人) ←→ チーム間連携
 ```
 
 - ✅ Master ↔ Boss: 頻繁な対話
@@ -375,6 +385,10 @@ master_finalize_integration "v1.0 - 認証機能の実装完了"
 - 定期的なMaster会議の開催
 - 必要に応じた柔軟なコミュニケーション
 - より良いサービスのための協調作業
+
+---
+
+$(get_universal_characteristics)
 EOF
 }
 
@@ -605,12 +619,16 @@ cross_team_member_communication "$team" "$role" "qa-security" "pro2" "テスト�
 - チーム間の協力
 - より良いサービスのための提案
 - 問題解決のための柔軟な対応
+
+---
+
+$(generate_complete_characteristics "$team")
 EOF
     fi
 }
 
-# 各チーム・メンバーを起動（21人体制）
-launch_all_teams_21() {
+# 各チーム・メンバーを起動（動的チーム構成）
+launch_all_teams() {
     log_info "Claude Codeを起動中..."
     
     # Masterを起動
@@ -735,9 +753,9 @@ main() {
     
     # メイン処理の実行
     setup_worktrees || exit 1
-    create_tmux_layout_21 || exit 1
-    create_team_configurations_21 || exit 1
-    launch_all_teams_21 || exit 1
+    create_tmux_layout || exit 1
+    create_team_configurations || exit 1
+    launch_all_teams || exit 1
     
     # 使用方法の表示
     log_info "システムの準備が完了しました！"
