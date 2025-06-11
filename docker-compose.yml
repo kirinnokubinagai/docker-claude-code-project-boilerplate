@@ -14,6 +14,7 @@ services:
 
       # Claude Code設定
       - ~/.anthropic:/home/developer/.anthropic
+      - ~/.claude:/home/developer/.claude
 
       # Fish設定
       - ./docker/fish/config.fish:/home/developer/.config/fish/config.fish

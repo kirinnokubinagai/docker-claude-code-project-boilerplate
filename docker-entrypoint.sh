@@ -28,8 +28,8 @@ if [ -f "/workspace/docker/.tmux.conf" ]; then
 fi
 
 # Claude Code用の設定ディレクトリ作成
-mkdir -p /home/developer/.anthropic
-chown -R developer:developer /home/developer/.anthropic
+mkdir -p /home/developer/.anthropic /home/developer/.claude
+chown -R developer:developer /home/developer/.anthropic /home/developer/.claude
 
 # Dockerソケットの権限調整（developerユーザーが使えるように）
 if [ -S /var/run/docker.sock ]; then
