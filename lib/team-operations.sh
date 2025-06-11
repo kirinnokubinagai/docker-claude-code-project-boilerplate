@@ -353,18 +353,8 @@ create_team_base_config() {
     local team="$2"
     local config_path="$team_dir/CLAUDE_TEAM.md"
     
-    local team_cap=""
-    case "$team" in
-        "frontend") team_cap="Frontend" ;;
-        "backend") team_cap="Backend" ;;
-        "database") team_cap="Database" ;;
-        "devops") team_cap="DevOps" ;;
-        "qa-security") team_cap="QA-Security" ;;
-        *) team_cap="$team" ;;
-    esac
-    
     cat > "$config_path" << EOF
-# ${team_cap} Team - 動的チーム構成
+# ${team} Team - 動的チーム構成
 
 ## チーム構成
 - Boss: チームリーダー、Masterとの窓口

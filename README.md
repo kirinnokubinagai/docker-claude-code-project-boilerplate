@@ -37,6 +37,9 @@ docker-compose up -d
 # コンテナに入る
 docker-compose exec -w /workspace claude-code developer-fish
 
+# 動的チーム構成を使用する場合
+./join-company.sh --dynamic
+
 # Masterのみで起動（デフォルト）
 ./master-claude-teams.sh
 ```

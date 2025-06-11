@@ -64,20 +64,6 @@ if [ -S /var/run/docker.sock ]; then
     chmod 666 /var/run/docker.sock || true
 fi
 
-# 初期化メッセージ
-cat << 'WELCOME'
-🚀 Master Claude System v2.0
-
-動的親子プロセス管理システムへようこそ！
-
-開始コマンド:
-  master     - Master Claudeを起動（推奨）
-  check_mcp  - MCPサーバーの状態確認
-
-注意: 初回起動時は自動的にMCPサーバーが設定されます。
-
-WELCOME
-
 # 必要なディレクトリを作成（developerユーザー用）
 mkdir -p /home/developer/.npm /home/developer/.local /home/developer/.config /home/developer/.cache
 chown -R developer:developer /home/developer

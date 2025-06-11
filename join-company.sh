@@ -7,8 +7,12 @@ set -e
 # スクリプトのディレクトリを取得
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# WORKSPACE環境変数を明示的に設定
+export WORKSPACE="${WORKSPACE:-$SCRIPT_DIR}"
+
 # ライブラリをロード
-source "$SCRIPT_DIR/lib/common-lib.sh"
+source "$SCRIPT_DIR/lib/core-lib.sh"
+source "$SCRIPT_DIR/lib/team-operations.sh"
 source "$SCRIPT_DIR/lib/team-management.sh"
 source "$SCRIPT_DIR/lib/dynamic-team-builder.sh"
 
