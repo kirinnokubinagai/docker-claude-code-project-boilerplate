@@ -8,20 +8,20 @@ set -e
 # 環境変数の設定
 export WORKSPACE="/workspace"
 
-# UID/GIDが環境変数で指定されている場合は、developerユーザーのUID/GIDを変更
-if [ ! -z "$UID" ] && [ ! -z "$GID" ] && [ "$UID" != "0" ]; then
+# USER_UID/USER_GIDが環境変数で指定されている場合は、developerユーザーのUID/GIDを変更
+if [ ! -z "$USER_UID" ] && [ ! -z "$USER_GID" ] && [ "$USER_UID" != "0" ]; then
     # 現在のdeveloperユーザーのUID/GIDを取得
     CURRENT_UID=$(id -u developer)
     CURRENT_GID=$(id -g developer)
     
     # 変更が必要な場合のみ実行
-    if [ "$CURRENT_UID" != "$UID" ] || [ "$CURRENT_GID" != "$GID" ]; then
+    if [ "$CURRENT_UID" != "$USER_UID" ] || [ "$CURRENT_GID" != "$USER_GID" ]; then
         # homeディレクトリの権限を一時的にrootに
         chown -R root:root /home/developer
         
         # UID/GIDを変更
-        groupmod -g $GID developer 2>/dev/null || true
-        usermod -u $UID developer 2>/dev/null || true
+        groupmod -g $USER_GID developer 2>/dev/null || true
+        usermod -u $USER_UID developer 2>/dev/null || true
         
         # homeディレクトリの権限を戻す
         chown -R developer:developer /home/developer
@@ -29,7 +29,11 @@ if [ ! -z "$UID" ] && [ ! -z "$GID" ] && [ "$UID" != "0" ]; then
 fi
 
 # workspaceディレクトリの権限設定（developerユーザーが書き込めるように）
-chown -R developer:developer /workspace
+# ただし、.gitディレクトリは除外（既存の権限を保持）
+find /workspace -mindepth 1 -maxdepth 1 ! -name '.git' -exec chown -R developer:developer {} \; 2>/dev/null || true
+
+# 新規ファイルのみ権限変更
+find /workspace -user root -exec chown developer:developer {} \; 2>/dev/null || true
 
 # Master Claudeスクリプトの実行権限
 if [ -f "/workspace/master-claude-teams.sh" ]; then

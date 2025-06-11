@@ -13,12 +13,12 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🚀 Docker Compose をユーザー権限で起動します${NC}"
 
 # 現在のユーザーのUIDとGIDを取得
-export UID=$(id -u)
-export GID=$(id -g)
+export USER_UID=$(id -u)
+export USER_GID=$(id -g)
 
 echo -e "${BLUE}ℹ️  ユーザー情報:${NC}"
-echo "   UID: $UID"
-echo "   GID: $GID"
+echo "   UID: $USER_UID"
+echo "   GID: $USER_GID"
 
 # .envファイルの存在確認
 if [ ! -f ".env" ]; then
