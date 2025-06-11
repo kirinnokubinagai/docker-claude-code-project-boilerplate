@@ -68,12 +68,14 @@ SLACK_BOT_TOKEN=your_slack_token
 ```bash
 # 基本起動（5チーム並列）
 
+# 方法1: ユーザー権限で起動（推奨）
+./start-with-user.sh
+
+# 方法2: 通常起動
 docker-compose up -d
 
-# developerユーザーとしてログイン（2つの方法）
-docker-compose exec -w /workspace claude-code developer-fish  # 推奨：確実にdeveloperユーザー
-# または
-docker-compose exec -w /workspace claude-code su - developer -c fish
+# developerユーザーとしてログイン
+docker-compose exec -w /workspace claude-code developer-fish
 
 # MCP設定確認
 check_mcp

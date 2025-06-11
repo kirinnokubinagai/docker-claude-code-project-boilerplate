@@ -8,6 +8,13 @@ set -e
 # 環境変数の設定
 export WORKSPACE="/workspace"
 
+# UID/GIDが環境変数で指定されている場合は、developerユーザーのUID/GIDを変更
+if [ ! -z "$UID" ] && [ ! -z "$GID" ]; then
+    # developerユーザーのUID/GIDを変更
+    usermod -u $UID developer 2>/dev/null || true
+    groupmod -g $GID developer 2>/dev/null || true
+fi
+
 # workspaceディレクトリの権限設定（developerユーザーが書き込めるように）
 chown -R developer:developer /workspace
 
