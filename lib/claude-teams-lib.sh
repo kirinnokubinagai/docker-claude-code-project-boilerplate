@@ -132,14 +132,24 @@ cleanup_worktree() {
     
     cd "$workspace" || return 1
     
+    # Gitリポジトリが存在しない場合はスキップ
+    if [ ! -d ".git" ]; then
+        return 0
+    fi
+    
+    # HEADが存在しない場合もスキップ
+    if ! git rev-parse HEAD >/dev/null 2>&1; then
+        return 0
+    fi
+    
     # worktreeが存在する場合は削除
-    if git worktree list | grep -q "worktrees/$worktree_name"; then
+    if git worktree list 2>/dev/null | grep -q "worktrees/$worktree_name"; then
         log_info "既存のworktree '$worktree_name' を削除中..."
         git worktree remove --force "worktrees/$worktree_name" 2>/dev/null || true
     fi
     
     # ブランチが存在する場合は削除
-    if git branch | grep -q "$branch_name"; then
+    if git branch 2>/dev/null | grep -q "$branch_name"; then
         log_info "既存のブランチ '$branch_name' を削除中..."
         git branch -D "$branch_name" 2>/dev/null || true
     fi
@@ -149,18 +159,89 @@ cleanup_worktree() {
 init_git_repo() {
     local workspace="$1"
     
-    if [ ! -d "$workspace/.git" ]; then
+    cd "$workspace" || {
+        log_error "ワークスペースに移動できません: $workspace"
+        return 1
+    }
+    
+    if [ ! -d ".git" ]; then
         log_info "Gitリポジトリを初期化中..."
-        cd "$workspace" || return 1
-        git init
-        echo "# Project" > README.md
-        git add README.md
+        git init || {
+            log_error "git initに失敗しました"
+            return 1
+        }
+    fi
+    
+    # HEADが存在するか確認（初期コミットがあるか）
+    if ! git rev-parse HEAD >/dev/null 2>&1; then
+        log_info "初期コミットを作成中..."
+        
+        # 基本的なファイルを作成
+        if [ ! -f "README.md" ]; then
+            echo "# $(basename "$workspace")" > README.md
+        fi
+        
+        # .gitignoreを作成
+        if [ ! -f ".gitignore" ]; then
+            cat > .gitignore << 'EOF'
+# Dependencies
+node_modules/
+.npm/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Team worktrees
+worktrees/
+
+# Message queue
+.team-messages/
+EOF
+        fi
+        
+        # 初期コミット
+        git add -A
         git commit -m "Initial commit" || {
             log_error "初期コミットに失敗しました"
             return 1
         }
-        log_success "Gitリポジトリを初期化しました"
+        log_success "初期コミットを作成しました"
+    else
+        log_info "Gitリポジトリは既に初期化されています"
     fi
+    
+    # mainブランチであることを確認
+    local current_branch=$(git branch --show-current)
+    if [ "$current_branch" != "main" ] && [ "$current_branch" != "master" ]; then
+        log_warning "現在のブランチ: $current_branch"
+    fi
+    
+    return 0
 }
 
 # tmuxペインにコマンドを送信

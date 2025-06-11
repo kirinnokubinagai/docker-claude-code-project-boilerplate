@@ -41,6 +41,17 @@ setup_worktrees() {
         return 1
     }
     
+    # Gitリポジトリの状態を確認
+    if [ ! -d ".git" ]; then
+        log_error "Gitリポジトリが初期化されていません"
+        return 1
+    fi
+    
+    if ! git rev-parse HEAD >/dev/null 2>&1; then
+        log_error "初期コミットが存在しません"
+        return 1
+    fi
+    
     # 既存のworktreeをクリーンアップ
     for team in frontend backend database devops; do
         local branch=$(get_team_branch "$team")
@@ -51,10 +62,20 @@ setup_worktrees() {
     for team in frontend backend database devops; do
         local branch=$(get_team_branch "$team")
         log_info "worktree作成: $team -> $branch"
-        git worktree add "$WORKTREES_DIR/$team" -b "$branch" || {
-            log_error "worktreeの作成に失敗しました: $team"
-            return 1
-        }
+        
+        # ブランチが既に存在する場合は、既存のブランチを使用
+        if git show-ref --verify --quiet "refs/heads/$branch"; then
+            git worktree add "$WORKTREES_DIR/$team" "$branch" || {
+                log_error "worktreeの作成に失敗しました: $team (既存ブランチ)"
+                return 1
+            }
+        else
+            # 新しいブランチを作成
+            git worktree add "$WORKTREES_DIR/$team" -b "$branch" || {
+                log_error "worktreeの作成に失敗しました: $team (新規ブランチ)"
+                return 1
+            }
+        fi
     done
     
     log_success "全てのworktreeを作成しました"
