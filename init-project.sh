@@ -102,9 +102,11 @@ check_boilerplate_files() {
         "docker-compose.yml"
         "docker-entrypoint.sh"
         "master-claude-teams.sh"
+        "join-company.sh"
         "lib"
         "config"
         "docker"
+        "team-templates"
     )
     
     for file in "${required_files[@]}"; do
@@ -150,9 +152,11 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     cp "$SCRIPT_DIR/docker-compose.yml" "$FULL_PROJECT_PATH/"
     cp "$SCRIPT_DIR/docker-entrypoint.sh" "$FULL_PROJECT_PATH/"
     cp "$SCRIPT_DIR/master-claude-teams.sh" "$FULL_PROJECT_PATH/"
+    cp "$SCRIPT_DIR/join-company.sh" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/lib" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/config" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/docker" "$FULL_PROJECT_PATH/"
+    cp -r "$SCRIPT_DIR/team-templates" "$FULL_PROJECT_PATH/"
     
     # オプションファイルのコピー
     [ -f "$SCRIPT_DIR/.env.example" ] && cp "$SCRIPT_DIR/.env.example" "$FULL_PROJECT_PATH/"
@@ -176,7 +180,7 @@ else
         
         echo "📋 必要なファイルをコピー中..."
         # 既存ファイルの上書き確認
-        for file in Dockerfile docker-compose.yml docker-entrypoint.sh master-claude-teams.sh; do
+        for file in Dockerfile docker-compose.yml docker-entrypoint.sh master-claude-teams.sh join-company.sh; do
             if [ -f "$file" ]; then
                 echo "⚠️  既存の $file を上書きします"
             fi
@@ -187,6 +191,7 @@ else
         cp -r "$SCRIPT_DIR/lib" .
         cp -r "$SCRIPT_DIR/config" .
         cp -r "$SCRIPT_DIR/docker" .
+        cp -r "$SCRIPT_DIR/team-templates" .
         
         # オプションファイル
         [ -f "$SCRIPT_DIR/.env.example" ] && [ ! -f ".env.example" ] && cp "$SCRIPT_DIR/.env.example" .
@@ -301,4 +306,9 @@ echo "🔧 よく使うコマンド:"
 echo "docker-compose up -d                    # コンテナ起動"
 echo "docker-compose exec claude-code fish    # シェル接続"
 echo "master                # 6チーム並列システム"
+echo "./join-company.sh <team-template>       # 新しいチームを追加"
 echo "docker-compose down                     # コンテナ停止"
+echo ""
+echo "📚 チーム追加例:"
+echo "./join-company.sh team-templates/frontend-team.json   # フロントエンドチーム追加"
+echo "./join-company.sh team-templates/backend-team.json    # バックエンドチーム追加"

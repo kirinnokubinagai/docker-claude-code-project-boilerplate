@@ -65,6 +65,12 @@ ECサイトを作って
 }
 ```
 
+### teams.jsonの役割
+- **チーム構成の定義** - プロジェクトで稼働するチームをJSON形式で管理
+- **動的チーム管理** - 必要に応じてチームの追加・削除・無効化が可能
+- **メンバー数制御** - 各チームのメンバー数（1-4人）を設定
+- **技術スタック定義** - チームごとの専門技術を明記
+
 ### よく使うチーム構成例
 
 #### 5チーム構成（大規模プロジェクト）
@@ -102,6 +108,100 @@ tmux kill-session -t claude-teams
 
 # アクティブなチーム確認
 cat config/teams.json | jq '.teams[] | select(.active == true) | .name'
+```
+
+## 🏢 join-company.sh - テンプレートからチーム追加
+
+### 概要
+`join-company.sh`は、事前定義されたチームテンプレートを使用して、新しいチームをプロジェクトに追加するツールです。
+
+### 使用方法
+```bash
+# 基本的な使い方
+./join-company.sh <team-template.json>
+
+# 例：フロントエンドチームを追加
+./join-company.sh team-templates/frontend-team.json
+
+# 例：新しいカスタムチームを追加
+./join-company.sh team-templates/new-team.json
+```
+
+### 利用可能なテンプレート
+```bash
+# テンプレート一覧を確認
+ls -la team-templates/
+
+# 主なテンプレート:
+- frontend-team.json    # UI/UX開発チーム
+- backend-team.json     # API/サーバー開発チーム
+- database-team.json    # データベース設計チーム
+- devops-team.json      # インフラ/CI/CDチーム
+- qa-security-team.json # 品質保証/セキュリティチーム
+- mobile-team.json      # モバイルアプリ開発チーム
+- ai-team.json          # AI/機械学習チーム
+- small-team.json       # 小規模プロジェクト用（2人構成）
+- large-team.json       # 大規模プロジェクト用（4人構成）
+- new-team.json         # カスタムチーム用テンプレート
+```
+
+### チームテンプレートの構造
+```json
+{
+  "id": "frontend",
+  "name": "Frontend Team",
+  "description": "UI/UX開発チーム",
+  "tech_stack": "Next.js, React, TypeScript",
+  "member_count": 4,
+  "branch": "team/frontend",
+  "roles": {
+    "boss": {
+      "title": "Frontend Boss",
+      "responsibilities": "チーム管理、技術選定"
+    },
+    "pro1": {
+      "title": "UI/UX Architect",
+      "responsibilities": "デザインシステム構築"
+    },
+    "pro2": {
+      "title": "Performance Engineer",
+      "responsibilities": "パフォーマンス最適化"
+    },
+    "pro3": {
+      "title": "Quality Engineer",
+      "responsibilities": "テスト実装、品質管理"
+    }
+  },
+  "initial_tasks": [
+    "デザインシステムの構築",
+    "コンポーネントライブラリの整備"
+  ]
+}
+```
+
+### join-company.shの動作
+1. **テンプレート検証** - JSONファイルの構造を確認
+2. **チーム情報読み込み** - ID、名前、技術スタックなどを取得
+3. **既存チーム確認** - 同じIDのチームが存在しないか確認
+4. **Git worktree作成** - チーム専用のブランチを作成
+5. **設定ファイル生成** - チーム固有のCLAUDE.mdや初期タスクを生成
+6. **teams.json更新** - 新しいチームを追加してアクティブ化
+
+### カスタムチームの作成
+```bash
+# new-team.jsonをコピーして編集
+cp team-templates/new-team.json team-templates/my-custom-team.json
+
+# 必要な項目を編集:
+# - id: チームの一意識別子
+# - name: チーム表示名
+# - description: チームの説明
+# - tech_stack: 使用技術
+# - roles: 各メンバーの役割
+# - initial_tasks: 初期タスク
+
+# カスタムチームを追加
+./join-company.sh team-templates/my-custom-team.json
 ```
 
 ## 🎮 tmux操作ガイド
@@ -186,18 +286,6 @@ Projects/[プロジェクト名]/
 ├── progress/          # 日次進捗
 ├── manual/            # ユーザーマニュアル
 └── screenshots/       # 自動撮影画像
-```
-
-### ドキュメント生成コマンド
-```bash
-# 進捗記録
-record_implementation_progress "frontend" "ログイン画面" "completed" "実装完了"
-
-# スクリーンショット付きドキュメント
-document_feature_with_screenshots "frontend" "ログイン画面" "http://localhost:3000/login"
-
-# マニュアル生成
-generate_comprehensive_manual "プロジェクト名"
 ```
 
 ## 💡 トラブルシューティング
