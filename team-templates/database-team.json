@@ -1,0 +1,32 @@
+{
+  "id": "database",
+  "name": "Database Team",
+  "description": "データベース設計・最適化チーム - 効率的なデータ管理とパフォーマンスを実現",
+  "tech_stack": "PostgreSQL, Prisma, Redis, pgvector, TimescaleDB",
+  "member_count": 4,
+  "branch": "team/database",
+  "roles": {
+    "boss": {
+      "title": "Database Boss",
+      "responsibilities": "データ戦略立案、チーム管理、スキーマ設計承認、パフォーマンス監視"
+    },
+    "pro1": {
+      "title": "Database Architect",
+      "responsibilities": "スキーマ設計、正規化戦略、インデックス設計、パーティショニング"
+    },
+    "pro2": {
+      "title": "Database Performance Engineer",
+      "responsibilities": "クエリ最適化、実行計画分析、レプリケーション設定、バックアップ戦略"
+    },
+    "pro3": {
+      "title": "Data Security Engineer",
+      "responsibilities": "データ暗号化、アクセス制御、監査ログ、GDPR対応"
+    }
+  },
+  "initial_tasks": [
+    "データベーススキーマの設計",
+    "インデックス戦略の策定",
+    "バックアップ・リカバリ計画",
+    "パフォーマンス監視の実装"
+  ]
+}

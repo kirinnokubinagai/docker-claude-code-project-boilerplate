@@ -1,0 +1,32 @@
+{
+  "id": "frontend",
+  "name": "Frontend Team",
+  "description": "UI/UX開発チーム - ユーザーインターフェースと体験を設計・実装",
+  "tech_stack": "Next.js, React, TypeScript, Tailwind CSS, Playwright",
+  "member_count": 4,
+  "branch": "team/frontend",
+  "roles": {
+    "boss": {
+      "title": "Frontend Boss",
+      "responsibilities": "UI/UX戦略立案、チーム管理、技術選定、品質管理"
+    },
+    "pro1": {
+      "title": "UI/UX Architect",
+      "responsibilities": "デザインシステム構築、コンポーネント設計、アクセシビリティ対応"
+    },
+    "pro2": {
+      "title": "Frontend Performance Engineer",
+      "responsibilities": "パフォーマンス最適化、Core Web Vitals改善、バンドルサイズ最適化"
+    },
+    "pro3": {
+      "title": "Frontend Security & Quality Engineer",
+      "responsibilities": "セキュリティ対策、E2Eテスト実装、CI/CD整備"
+    }
+  },
+  "initial_tasks": [
+    "デザインシステムの構築",
+    "コンポーネントライブラリの整備",
+    "レスポンシブデザインの実装",
+    "パフォーマンス監視システムの導入"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "small-team",
+  "name": "Small Team",
+  "description": "小規模チーム - 2人体制のコンパクトなチーム",
+  "tech_stack": "必要な技術スタックを記載",
+  "member_count": 2,
+  "branch": "team/small-team",
+  "roles": {
+    "boss": {
+      "title": "Team Lead",
+      "responsibilities": "チーム管理と実装の両方を担当"
+    },
+    "pro1": {
+      "title": "Developer",
+      "responsibilities": "開発全般を担当"
+    }
+  },
+  "initial_tasks": [
+    "プロジェクトのセットアップ",
+    "基本機能の実装"
+  ]
+}

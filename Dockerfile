@@ -16,7 +16,8 @@ RUN apk add --no-cache \
     sudo \
     docker-cli \
     docker-compose \
-    jq
+    jq \
+    perl
 
 # developerユーザーを作成（既存のGID/UIDを考慮）
 RUN addgroup -g 1001 developer || true && \
@@ -37,6 +38,10 @@ RUN mkdir -p /home/developer/.config/fish/functions \
 # zのインストール
 RUN curl -sS https://raw.githubusercontent.com/jethrokuan/z/master/z.fish > /home/developer/.config/fish/functions/z.fish \
     && chown developer:developer /home/developer/.config/fish/functions/z.fish
+
+# tmux-xpanesのインストール
+RUN curl -L https://raw.githubusercontent.com/greymd/tmux-xpanes/master/bin/xpanes -o /usr/local/bin/xpanes \
+    && chmod +x /usr/local/bin/xpanes
 
 # Claude Codeをインストール（これは必要）
 RUN npm install -g @anthropic-ai/claude-code

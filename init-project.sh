@@ -158,6 +158,7 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     [ -f "$SCRIPT_DIR/.env.example" ] && cp "$SCRIPT_DIR/.env.example" "$FULL_PROJECT_PATH/"
     [ -f "$SCRIPT_DIR/.env" ] && cp "$SCRIPT_DIR/.env" "$FULL_PROJECT_PATH/"
     [ -f "$SCRIPT_DIR/.gitignore" ] && cp "$SCRIPT_DIR/.gitignore" "$FULL_PROJECT_PATH/"
+    [ -f "$SCRIPT_DIR/README.md" ] && cp "$SCRIPT_DIR/README.md" "$FULL_PROJECT_PATH/"
     
     # プロジェクトディレクトリに移動
     cd "$FULL_PROJECT_PATH"
@@ -190,6 +191,7 @@ else
         # オプションファイル
         [ -f "$SCRIPT_DIR/.env.example" ] && [ ! -f ".env.example" ] && cp "$SCRIPT_DIR/.env.example" .
         [ -f "$SCRIPT_DIR/.gitignore" ] && [ ! -f ".gitignore" ] && cp "$SCRIPT_DIR/.gitignore" .
+        [ -f "$SCRIPT_DIR/README.md" ] && [ ! -f "README.md" ] && cp "$SCRIPT_DIR/README.md" .
     fi
     
     UPDATE_CLAUDE_MD=true
@@ -292,11 +294,11 @@ echo "1. cd $FULL_PROJECT_PATH"
 echo "2. 必要に応じて.envファイルを編集"
 echo "3. 必要に応じてMCPサーバーの環境変数を設定"
 echo "4. docker-compose up -d でコンテナ起動"
-echo "5. docker-compose exec claude-code fish でシェルに接続"
-echo "6. ./master-claude-teams.sh で6チーム並列システム起動"
+echo "5. docker-compose exec -w /workspace claude-code developer-fish でdeveloperとしてシェルに接続 # root権限だとclaude codeを--dangerously-skipで実行できない"
+echo "6. master で6チーム並列システム起動"
 echo ""
 echo "🔧 よく使うコマンド:"
 echo "docker-compose up -d                    # コンテナ起動"
 echo "docker-compose exec claude-code fish    # シェル接続"
-echo "./master-claude-teams.sh                # 6チーム並列システム"
+echo "master                # 6チーム並列システム"
 echo "docker-compose down                     # コンテナ停止"
