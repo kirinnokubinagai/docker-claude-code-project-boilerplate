@@ -92,31 +92,37 @@ create_tmux_layout() {
     tmux set-option -t "$SESSION_NAME" -g mouse on
     
     # 画面を左右に分割（左1/3がMaster、右2/3が4チーム）
-    tmux split-window -h -p 67 -c "$WORKTREES_DIR/frontend"
+    tmux split-window -h -p 66 -c "$WORKTREES_DIR/frontend"
     
-    # 右側を4つに均等分割
-    # 現在のペイン1（右側）を上下に分割
-    tmux split-window -v -p 50 -t 1 -c "$WORKTREES_DIR/backend"
+    # 右側（ペイン1）を上下に分割
+    tmux select-pane -t "$SESSION_NAME:Teams.1"
+    tmux split-window -v -p 50 -c "$WORKTREES_DIR/backend"
     
-    # 上側（ペイン1）を左右に分割
-    tmux split-window -h -p 50 -t 1 -c "$WORKTREES_DIR/database"
+    # 右上（ペイン1）を左右に分割してDatabaseペインを作成
+    tmux select-pane -t "$SESSION_NAME:Teams.1"
+    tmux split-window -h -p 50 -c "$WORKTREES_DIR/database"
     
-    # 下側（ペイン2）を左右に分割  
-    tmux split-window -h -p 50 -t 2 -c "$WORKTREES_DIR/devops"
+    # 右下（ペイン2）を左右に分割してDevOpsペインを作成
+    tmux select-pane -t "$SESSION_NAME:Teams.2"
+    tmux split-window -h -p 50 -c "$WORKTREES_DIR/devops"
     
-    # tmuxの分割後のペイン番号:
-    # 0: Master (左)
-    # 1: Frontend (右上左)
-    # 2: Backend (右下左)
-    # 3: Database (右上右)
-    # 4: DevOps (右下右)
+    # レイアウト確認のためのデバッグ情報
+    log_info "tmuxペイン配置:"
+    log_info "  0: Master (左側)"
+    log_info "  1: Frontend (右上左)"
+    log_info "  2: Backend (右下左)"
+    log_info "  3: Database (右上右)"
+    log_info "  4: DevOps (右下右)"
     
     # ペイン名を設定
-    tmux select-pane -t 0 -T "Master"    # Master
-    tmux select-pane -t 1 -T "Frontend"  # Frontend
-    tmux select-pane -t 2 -T "Backend"   # Backend
-    tmux select-pane -t 3 -T "Database"  # Database
-    tmux select-pane -t 4 -T "DevOps"    # DevOps
+    tmux select-pane -t "$SESSION_NAME:Teams.0" -T "Master"
+    tmux select-pane -t "$SESSION_NAME:Teams.1" -T "Frontend"
+    tmux select-pane -t "$SESSION_NAME:Teams.2" -T "Backend"
+    tmux select-pane -t "$SESSION_NAME:Teams.3" -T "Database"
+    tmux select-pane -t "$SESSION_NAME:Teams.4" -T "DevOps"
+    
+    # 最初のペイン（Master）を選択
+    tmux select-pane -t "$SESSION_NAME:Teams.0"
     
     log_success "tmuxレイアウトを作成しました（5ペイン: 左Master + 右4チーム）"
 }
