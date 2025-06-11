@@ -41,19 +41,19 @@ function setup_mcp_servers
     # Supabase
     if test -n "$SUPABASE_ACCESS_TOKEN"
         echo "  追加中: Supabase"
-        claude mcp add -s user -e SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" supabase npx @supabase/mcp-server-supabase@latest
+        claude mcp add -s user supabase -e SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" -- npx @supabase/mcp-server-supabase@latest
     else
         echo "  ⚠️  Supabase: SUPABASE_ACCESS_TOKEN が設定されていません"
     end
     
     # Playwright
     echo "  追加中: Playwright"
-    claude mcp add -s user -e PLAYWRIGHT_HEADLESS="$PLAYWRIGHT_HEADLESS" -e PLAYWRIGHT_TIMEOUT="$PLAYWRIGHT_TIMEOUT" playwright npx @playwright/mcp@latest
+    claude mcp add -s user -e playwright PLAYWRIGHT_HEADLESS="$PLAYWRIGHT_HEADLESS" -e PLAYWRIGHT_TIMEOUT="$PLAYWRIGHT_TIMEOUT" -- npx @playwright/mcp@latest
     
     # Stripe
     if test -n "$STRIPE_SECRET_KEY"
         echo "  追加中: Stripe"
-        claude mcp add -s user -e STRIPE_SECRET_KEY="$STRIPE_SECRET_KEY" -e STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" stripe npx @stripe/mcp
+        claude mcp add -s user stripe -e STRIPE_SECRET_KEY="$STRIPE_SECRET_KEY" -e STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" -- npx @stripe/mcp
     else
         echo "  ⚠️  Stripe: STRIPE_SECRET_KEY が設定されていません"
     end
@@ -61,7 +61,7 @@ function setup_mcp_servers
     # LINE Bot
     if test -n "$LINE_CHANNEL_ACCESS_TOKEN"
         echo "  追加中: LINE Bot"
-        claude mcp add -s user -e CHANNEL_ACCESS_TOKEN="$LINE_CHANNEL_ACCESS_TOKEN" -e DESTINATION_USER_ID="$DESTINATION_USER_ID" line-bot npx @line/line-bot-mcp-server
+        claude mcp add -s user line-bot -e CHANNEL_ACCESS_TOKEN="$LINE_CHANNEL_ACCESS_TOKEN" -e DESTINATION_USER_ID="$DESTINATION_USER_ID" -- npx @line/line-bot-mcp-server
     else
         echo "  ⚠️  LINE Bot: LINE_CHANNEL_ACCESS_TOKEN が設定されていません"
     end
@@ -69,7 +69,7 @@ function setup_mcp_servers
     # Obsidian
     if test -d "/obsidian-vault"
         echo "  追加中: Obsidian"
-        claude mcp add -s user -e OBSIDIAN_VAULT_PATH="/obsidian-vault" obsidian uvx mcp-obsidian
+        claude mcp add -s user obsidian -e OBSIDIAN_VAULT_PATH="/obsidian-vault" -- uvx mcp-obsidian
     else
         echo "  ⚠️  Obsidian: /obsidian-vault ディレクトリが見つかりません"
     end
@@ -77,9 +77,9 @@ function setup_mcp_servers
     # Context7
     echo "  追加中: Context7"
     if test -n "$DEFAULT_MINIMUM_TOKENS"
-        claude mcp add -s user -e DEFAULT_MINIMUM_TOKENS="$DEFAULT_MINIMUM_TOKENS" context7 npx @upstash/context7-mcp
+        claude mcp add -s user context7 -e DEFAULT_MINIMUM_TOKENS="$DEFAULT_MINIMUM_TOKENS" -- npx @upstash/context7-mcp
     else
-        claude mcp add -s user -e DEFAULT_MINIMUM_TOKENS="6000" context7 npx @upstash/context7-mcp
+        claude mcp add -s user context7 npx @upstash/context7-mcp
     end
 
     # Sentry
