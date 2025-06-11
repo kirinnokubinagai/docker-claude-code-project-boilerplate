@@ -71,31 +71,31 @@ create_tmux_layout() {
     tmux set-option -t "$SESSION_NAME" -g mouse on
     
     # 画面を左右に分割（左1/3がMaster、右2/3が4チーム）
-    tmux split-window -h -p 67 -c "$(get_pane_dir 1)"
+    tmux split-window -h -p 67 -c "$WORKTREES_DIR/frontend"
     
     # 右側を4つに均等分割
     # 現在のペイン1（右側）を上下に分割
-    tmux split-window -v -p 50 -t 1 -c "$(get_pane_dir 2)"
+    tmux split-window -v -p 50 -t 1 -c "$WORKTREES_DIR/backend"
     
     # 上側（ペイン1）を左右に分割
-    tmux split-window -h -p 50 -t 1 -c "$(get_pane_dir 3)"
+    tmux split-window -h -p 50 -t 1 -c "$WORKTREES_DIR/database"
     
-    # 下側（ペイン2）を左右に分割
-    tmux split-window -h -p 50 -t 2 -c "$(get_pane_dir 4)"
+    # 下側（ペイン2）を左右に分割  
+    tmux split-window -h -p 50 -t 2 -c "$WORKTREES_DIR/devops"
     
-    # ペインの再番号付けのため、レイアウトを整理
-    # 左: Master(0)
-    # 右上左: Frontend(1)
-    # 右上右: Backend(3)
-    # 右下左: Database(2)  
-    # 右下右: DevOps(4)
+    # tmuxの分割後のペイン番号:
+    # 0: Master (左)
+    # 1: Frontend (右上左)
+    # 2: Backend (右下左)
+    # 3: Database (右上右)
+    # 4: DevOps (右下右)
     
     # ペイン名を設定
-    tmux select-pane -t 0 -T "$(get_pane_name 0)"  # Master
-    tmux select-pane -t 1 -T "$(get_pane_name 1)"  # Frontend
-    tmux select-pane -t 2 -T "$(get_pane_name 2)"  # Database
-    tmux select-pane -t 3 -T "$(get_pane_name 3)"  # Backend
-    tmux select-pane -t 4 -T "$(get_pane_name 4)"  # DevOps
+    tmux select-pane -t 0 -T "Master"    # Master
+    tmux select-pane -t 1 -T "Frontend"  # Frontend
+    tmux select-pane -t 2 -T "Backend"   # Backend
+    tmux select-pane -t 3 -T "Database"  # Database
+    tmux select-pane -t 4 -T "DevOps"    # DevOps
     
     log_success "tmuxレイアウトを作成しました（5ペイン: 左Master + 右4チーム）"
 }
@@ -134,12 +134,12 @@ launch_all_teams() {
     
     wait_for_process "$INITIAL_MESSAGE_WAIT" "初期化待機中"
     
-    # 初期メッセージを送信（ペイン番号に対応）
+    # 初期メッセージを送信（実際のペイン番号順）
     local -a initial_messages=(
         "私はMaster Architectです。全体設計と各チームの調整を行います。他の4チームと連携してプロジェクトを進めます。要件を教えてください。"
         "私はFrontend Teamです。UI/UX開発を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
-        "私はDatabase Teamです。DB設計と最適化を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
         "私はBackend Teamです。API開発を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
+        "私はDatabase Teamです。DB設計と最適化を担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
         "私はDevOps Teamです。インフラとCI/CDを担当します。CLAUDE.mdの設定に従って作業します。定期的に他チームからのメッセージを確認します。"
     )
     
