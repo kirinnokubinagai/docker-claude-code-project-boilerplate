@@ -207,7 +207,7 @@ if [ ! -f "$ENV_FILE" ]; then
 # プロジェクト設定
 PROJECT_NAME=$PROJECT_NAME
 
-# 必須: Claude Code API Key
+# Claude Code API Key
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # Optional: MCPサーバー設定（使用する場合のみ設定）
@@ -227,7 +227,7 @@ PLAYWRIGHT_TIMEOUT=30000
 DEFAULT_MINIMUM_TOKENS=6000
 EOF
     echo "✅ .envファイルが作成されました"
-    echo "⚠️  ANTHROPIC_API_KEYを設定してください"
+    echo "⚠️  環境変数を設定してください"
 else
     # 既存の.envファイルを更新
     echo "📝 既存の.envファイルを更新中..."

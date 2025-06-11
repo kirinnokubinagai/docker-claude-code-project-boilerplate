@@ -21,7 +21,7 @@ cd my-project
 
 ### 2. 環境設定
 ```bash
-# .env設定（必須）
+# .env設定（オプション）
 ANTHROPIC_API_KEY=your_key
 
 # オプション（追加MCP用）
@@ -131,11 +131,11 @@ tmux kill-session -t claude-teams  # セッション終了
 ## 🔄 コミュニケーション階層
 
 ```
-Master (1人)
+Master
   ↕️ ↔️ ↕️
-各チームBoss (5人) ←→ Boss同士の横連携
+各チームBoss ←→ Boss同士の横連携
   ↕️ ↔️ ↕️
-チームメンバー (各チーム3人) ←→ チーム間連携
+チームメンバー ←→ チーム間連携
 ```
 
 ### コミュニケーション関数
@@ -198,24 +198,6 @@ document_feature_with_screenshots "frontend" "ログイン画面" "http://localh
 
 # マニュアル生成
 generate_comprehensive_manual "プロジェクト名"
-```
-
-## 🔧 既存プロジェクトの更新
-
-### 自動更新（推奨）
-```bash
-./update-existing-project.sh ../your-project-name
-```
-
-### 手動更新
-```bash
-cd your-project
-cp path/to/boilerplate/master-claude-teams.sh ./
-cp -r path/to/boilerplate/lib ./
-cp -r path/to/boilerplate/config ./
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
 ```
 
 ## 💡 トラブルシューティング
