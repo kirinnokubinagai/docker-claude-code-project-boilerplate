@@ -9,10 +9,23 @@ set -e
 export WORKSPACE="/workspace"
 
 # UID/GIDが環境変数で指定されている場合は、developerユーザーのUID/GIDを変更
-if [ ! -z "$UID" ] && [ ! -z "$GID" ]; then
-    # developerユーザーのUID/GIDを変更
-    usermod -u $UID developer 2>/dev/null || true
-    groupmod -g $GID developer 2>/dev/null || true
+if [ ! -z "$UID" ] && [ ! -z "$GID" ] && [ "$UID" != "0" ]; then
+    # 現在のdeveloperユーザーのUID/GIDを取得
+    CURRENT_UID=$(id -u developer)
+    CURRENT_GID=$(id -g developer)
+    
+    # 変更が必要な場合のみ実行
+    if [ "$CURRENT_UID" != "$UID" ] || [ "$CURRENT_GID" != "$GID" ]; then
+        # homeディレクトリの権限を一時的にrootに
+        chown -R root:root /home/developer
+        
+        # UID/GIDを変更
+        groupmod -g $GID developer 2>/dev/null || true
+        usermod -u $UID developer 2>/dev/null || true
+        
+        # homeディレクトリの権限を戻す
+        chown -R developer:developer /home/developer
+    fi
 fi
 
 # workspaceディレクトリの権限設定（developerユーザーが書き込めるように）
@@ -28,8 +41,10 @@ if [ -d "/workspace/lib" ]; then
     chmod +x /workspace/lib/*.sh
 fi
 
-# tmux設定ファイルをコピー
+# tmux設定ファイルをコピー（権限を修正してから）
 if [ -f "/workspace/docker/.tmux.conf" ]; then
+    # 既存ファイルがある場合は削除
+    rm -f /home/developer/.tmux.conf || true
     cp /workspace/docker/.tmux.conf /home/developer/.tmux.conf
     chown developer:developer /home/developer/.tmux.conf
 fi
