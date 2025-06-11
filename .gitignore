@@ -53,3 +53,9 @@ Thumbs.db
 # OWASP ZAPレポート
 zap-reports/
 *.html
+
+# Team worktrees
+worktrees/
+
+# Team messages
+.team-messages/

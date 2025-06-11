@@ -3,34 +3,77 @@
 # Claude Code Docker Project Initializer
 # Playwright専用：ホスト側開発 + コンテナ内テスト
 
-set -e
+set -euo pipefail
 
+# スクリプトのディレクトリを取得
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 変数の初期化
 PROJECT_NAME=""
 NO_CREATE_DIR=""
 PROJECT_PATH=""
 
+# ヘルプメッセージ表示
+show_help() {
+    cat << EOF
+Usage: $(basename "$0") <project-name> [options]
+
+Claude Code Dockerプロジェクトを初期化します。
+
+引数:
+  project-name         プロジェクト名（必須）
+
+オプション:
+  --path <directory>   プロジェクトを作成するディレクトリ
+                       デフォルト: ~/Project
+  --no-create-dir      現在のディレクトリで初期化
+                       新しいディレクトリを作成しません
+  --help, -h           このヘルプメッセージを表示
+
+使用例:
+  $(basename "$0") my-ecommerce
+  $(basename "$0") my-ecommerce --path /var/www/projects
+  $(basename "$0") my-ecommerce --no-create-dir
+
+注意事項:
+  - プロジェクト名は英数字、ハイフン、アンダースコアのみ使用可能
+  - --no-create-dirを使用する場合、現在のディレクトリに必要なファイルがコピーされます
+EOF
+}
+
+# エラーハンドリング
+error_exit() {
+    echo "❌ エラー: $1" >&2
+    exit 1
+}
+
 # 引数解析
 while [ $# -gt 0 ]; do
     case "$1" in
+        --help|-h)
+            show_help
+            exit 0
+            ;;
         --no-create-dir)
             NO_CREATE_DIR="--no-create-dir"
             shift
             ;;
         --path)
-            if [ -z "$2" ] || [[ "$2" == --* ]]; then
-                echo "❌ --path オプションにはパスを指定してください"
-                exit 1
+            if [ -z "${2:-}" ] || [[ "$2" == --* ]]; then
+                error_exit "--path オプションにはパスを指定してください"
             fi
             PROJECT_PATH="$2"
             shift 2
+            ;;
+        -*)
+            error_exit "不明なオプション: $1"
             ;;
         *)
             if [ -z "$PROJECT_NAME" ]; then
                 PROJECT_NAME="$1"
                 shift
             else
-                echo "❌ 不明な引数: $1"
-                exit 1
+                error_exit "不明な引数: $1"
             fi
             ;;
     esac
@@ -38,27 +81,38 @@ done
 
 # 引数チェック
 if [ -z "$PROJECT_NAME" ]; then
-    echo "Usage: $0 <project-name> [--path <directory>] [--no-create-dir]"
-    echo "Example: $0 my-ecommerce"
-    echo "Example: $0 my-ecommerce --path /var/www/projects"
-    echo "Example: $0 my-ecommerce --no-create-dir"
-    echo ""
-    echo "プロジェクト名は必須です。"
-    echo "オプション:"
-    echo "  --path <directory>  プロジェクトを作成するディレクトリ（デフォルト: ~/Project）"
-    echo "  --no-create-dir     現在のディレクトリで初期化"
+    show_help
     exit 1
 fi
 
 # プロジェクト名の検証
 if [[ ! $PROJECT_NAME =~ ^[a-zA-Z0-9_-]+$ ]]; then
-    echo "❌ プロジェクト名は英数字、ハイフン、アンダースコアのみ使用可能です"
-    exit 1
+    error_exit "プロジェクト名は英数字、ハイフン、アンダースコアのみ使用可能です"
 fi
 
 echo "🚀 Claude Code Dockerプロジェクト初期化中..."
 echo "プロジェクト名: $PROJECT_NAME"
 echo "用途: Playwright E2Eテスト + ホスト側開発"
+
+# 必要なファイルの存在確認（ボイラープレートディレクトリ）
+check_boilerplate_files() {
+    local base_dir="$1"
+    local required_files=(
+        "Dockerfile"
+        "docker-compose.yml"
+        "docker-entrypoint.sh"
+        "master-claude-teams.sh"
+        "lib"
+        "config"
+        "docker"
+    )
+    
+    for file in "${required_files[@]}"; do
+        if [ ! -e "$base_dir/$file" ]; then
+            error_exit "必要なファイル/ディレクトリが見つかりません: $file"
+        fi
+    done
+}
 
 # プロジェクトディレクトリ作成（デフォルト）
 if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
@@ -81,29 +135,29 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     echo "📁 プロジェクトディレクトリ作成: $FULL_PROJECT_PATH"
     
     if [ -d "$FULL_PROJECT_PATH" ]; then
-        echo "❌ ディレクトリ '$FULL_PROJECT_PATH' は既に存在します"
-        exit 1
+        error_exit "ディレクトリ '$FULL_PROJECT_PATH' は既に存在します"
     fi
     
     # プロジェクトディレクトリ作成
     mkdir "$FULL_PROJECT_PATH"
     
+    # ボイラープレートファイルの存在確認
+    check_boilerplate_files "$SCRIPT_DIR"
+    
     # 必要なファイルのみコピー（.gitは除外）
     echo "📋 必要なファイルをコピー中..."
-    cp Dockerfile "$FULL_PROJECT_PATH/"
-    cp docker-compose.yml "$FULL_PROJECT_PATH/"
-    cp docker-entrypoint.sh "$FULL_PROJECT_PATH/"
-    cp master-claude-teams.sh "$FULL_PROJECT_PATH/"
-    cp -r lib "$FULL_PROJECT_PATH/"
-    cp -r config "$FULL_PROJECT_PATH/"
-    cp -r docker "$FULL_PROJECT_PATH/"
-    if [ -f ".env.example" ]; then
-        cp .env.example "$FULL_PROJECT_PATH/"
-    fi
-    if [ -f ".env" ]; then
-        cp .env "$FULL_PROJECT_PATH/"
-    fi
-    cp .gitignore "$FULL_PROJECT_PATH/"
+    cp "$SCRIPT_DIR/Dockerfile" "$FULL_PROJECT_PATH/"
+    cp "$SCRIPT_DIR/docker-compose.yml" "$FULL_PROJECT_PATH/"
+    cp "$SCRIPT_DIR/docker-entrypoint.sh" "$FULL_PROJECT_PATH/"
+    cp "$SCRIPT_DIR/master-claude-teams.sh" "$FULL_PROJECT_PATH/"
+    cp -r "$SCRIPT_DIR/lib" "$FULL_PROJECT_PATH/"
+    cp -r "$SCRIPT_DIR/config" "$FULL_PROJECT_PATH/"
+    cp -r "$SCRIPT_DIR/docker" "$FULL_PROJECT_PATH/"
+    
+    # オプションファイルのコピー
+    [ -f "$SCRIPT_DIR/.env.example" ] && cp "$SCRIPT_DIR/.env.example" "$FULL_PROJECT_PATH/"
+    [ -f "$SCRIPT_DIR/.env" ] && cp "$SCRIPT_DIR/.env" "$FULL_PROJECT_PATH/"
+    [ -f "$SCRIPT_DIR/.gitignore" ] && cp "$SCRIPT_DIR/.gitignore" "$FULL_PROJECT_PATH/"
     
     # プロジェクトディレクトリに移動
     cd "$FULL_PROJECT_PATH"
@@ -113,6 +167,31 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     UPDATE_CLAUDE_MD=true
 else
     echo "ℹ️  現在のディレクトリで初期化します"
+    
+    # 現在のディレクトリでボイラープレートファイルの存在確認
+    if [ "$SCRIPT_DIR" != "$(pwd)" ]; then
+        # 別のディレクトリから実行されている場合、ファイルをコピー
+        check_boilerplate_files "$SCRIPT_DIR"
+        
+        echo "📋 必要なファイルをコピー中..."
+        # 既存ファイルの上書き確認
+        for file in Dockerfile docker-compose.yml docker-entrypoint.sh master-claude-teams.sh; do
+            if [ -f "$file" ]; then
+                echo "⚠️  既存の $file を上書きします"
+            fi
+            cp "$SCRIPT_DIR/$file" .
+        done
+        
+        # ディレクトリのコピー（既存の場合はマージ）
+        cp -r "$SCRIPT_DIR/lib" .
+        cp -r "$SCRIPT_DIR/config" .
+        cp -r "$SCRIPT_DIR/docker" .
+        
+        # オプションファイル
+        [ -f "$SCRIPT_DIR/.env.example" ] && [ ! -f ".env.example" ] && cp "$SCRIPT_DIR/.env.example" .
+        [ -f "$SCRIPT_DIR/.gitignore" ] && [ ! -f ".gitignore" ] && cp "$SCRIPT_DIR/.gitignore" .
+    fi
+    
     UPDATE_CLAUDE_MD=true
 fi
 
@@ -153,13 +232,15 @@ else
     
     # PROJECT_NAME を更新または追加
     if grep -q "^PROJECT_NAME=" "$ENV_FILE"; then
-        sed -i.bak "s/^PROJECT_NAME=.*/PROJECT_NAME=$PROJECT_NAME/" "$ENV_FILE"
+        # macOSとLinuxの両方で動作するように
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/^PROJECT_NAME=.*/PROJECT_NAME=$PROJECT_NAME/" "$ENV_FILE"
+        else
+            sed -i "s/^PROJECT_NAME=.*/PROJECT_NAME=$PROJECT_NAME/" "$ENV_FILE"
+        fi
     else
         echo "PROJECT_NAME=$PROJECT_NAME" >> "$ENV_FILE"
     fi
-    
-    # バックアップファイルを削除
-    rm -f "$ENV_FILE.bak"
     
     echo "✅ .envファイルが更新されました"
 fi
@@ -173,7 +254,7 @@ touch screenshots/.gitkeep logs/.gitkeep temp/.gitkeep docs/.gitkeep
 echo "✅ docker-compose.ymlは環境変数で動的に設定されます"
 
 # CLAUDEプロジェクト設定ファイル更新（該当する場合のみ）
-if [ "$UPDATE_CLAUDE_MD" = "true" ]; then
+if [ "$UPDATE_CLAUDE_MD" = "true" ] && [ -f "docker/claude/CLAUDE.md" ]; then
     echo "📋 CLAUDE.mdを更新中..."
     # macOSとLinuxの両方で動作するようにsedを実行
     if [[ "$OSTYPE" == "darwin"* ]]; then

@@ -94,25 +94,26 @@ create_tmux_layout() {
     # 画面を左右に分割（左1/3がMaster、右2/3が4チーム）
     tmux split-window -h -p 66 -c "$WORKTREES_DIR/frontend"
     
-    # 右側（ペイン1）を上下に分割
+    # 右側（ペイン1）を3回縦に分割して4つのペインを作成
+    # 最初の分割：75%を残す（3/4）
     tmux select-pane -t "$SESSION_NAME:Teams.1"
-    tmux split-window -v -p 50 -c "$WORKTREES_DIR/backend"
+    tmux split-window -v -p 75 -c "$WORKTREES_DIR/backend"
     
-    # 右上（ペイン1）を左右に分割してDatabaseペインを作成
-    tmux select-pane -t "$SESSION_NAME:Teams.1"
-    tmux split-window -h -p 50 -c "$WORKTREES_DIR/database"
-    
-    # 右下（ペイン2）を左右に分割してDevOpsペインを作成
+    # 2回目の分割：66.66%を残す（2/3）
     tmux select-pane -t "$SESSION_NAME:Teams.2"
-    tmux split-window -h -p 50 -c "$WORKTREES_DIR/devops"
+    tmux split-window -v -p 66 -c "$WORKTREES_DIR/database"
+    
+    # 3回目の分割：50%を残す（1/2）
+    tmux select-pane -t "$SESSION_NAME:Teams.3"
+    tmux split-window -v -p 50 -c "$WORKTREES_DIR/devops"
     
     # レイアウト確認のためのデバッグ情報
     log_info "tmuxペイン配置:"
-    log_info "  0: Master (左側)"
-    log_info "  1: Frontend (右上左)"
-    log_info "  2: Backend (右下左)"
-    log_info "  3: Database (右上右)"
-    log_info "  4: DevOps (右下右)"
+    log_info "  0: Master (左側 1/3幅)"
+    log_info "  1: Frontend (右側 1番目)"
+    log_info "  2: Backend (右側 2番目)"
+    log_info "  3: Database (右側 3番目)"
+    log_info "  4: DevOps (右側 4番目)"
     
     # ペイン名を設定
     tmux select-pane -t "$SESSION_NAME:Teams.0" -T "Master"
@@ -124,7 +125,7 @@ create_tmux_layout() {
     # 最初のペイン（Master）を選択
     tmux select-pane -t "$SESSION_NAME:Teams.0"
     
-    log_success "tmuxレイアウトを作成しました（5ペイン: 左Master + 右4チーム）"
+    log_success "tmuxレイアウトを作成しました（5ペイン: 左Master 1/3 + 右4チーム縦4等分）"
 }
 
 # チーム設定ファイルを作成
