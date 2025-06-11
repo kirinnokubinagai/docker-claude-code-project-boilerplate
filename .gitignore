@@ -54,8 +54,14 @@ Thumbs.db
 zap-reports/
 *.html
 
-# Team worktrees
-worktrees/
+# Projects directory
+projects/
+
+# playwrightのscreenshots
+screenshots/
 
 # Team messages
 .team-messages/
+
+# Git worktrees（重要）
+worktrees/

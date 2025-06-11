@@ -285,17 +285,49 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     echo "   - Git worktreeで並列開発"
     echo ""
 fi
-echo "📋 次の手順:"
-echo "1. .envファイルでANTHROPIC_API_KEYを設定"
-echo "2. 必要に応じてMCPサーバーの環境変数を設定"
-echo "3. docker-compose up -d でコンテナ起動"
-echo "4. docker-compose exec claude-code fish でシェルに接続"
-echo "5. ./master-claude-teams.sh で5チーム並列システム起動"
-echo ""
-echo "🔧 よく使うコマンド:"
-echo "docker-compose up -d                    # コンテナ起動"
-echo "docker-compose exec claude-code fish    # シェル接続"
-echo "./master-claude-teams.sh                # 5チーム並列システム"
-echo "docker-compose down                     # コンテナ停止"
+
+# docker compose を自動起動
+echo "🐳 Dockerコンテナを起動中..."
+if docker compose up -d; then
+    echo "✅ Dockerコンテナが起動しました"
+    
+    # コンテナが完全に起動するまで少し待機
+    echo "⏳ コンテナの初期化を待機中..."
+    sleep 3
+    
+    # コンテナの状態確認
+    if docker compose ps | grep -q "running"; then
+        echo "✅ コンテナが正常に動作しています"
+        echo ""
+        echo "📋 次の手順:"
+        echo "1. .envファイルでANTHROPIC_API_KEYを設定（未設定の場合）"
+        echo "2. docker-compose exec claude-code fish でシェルに接続"
+        echo "3. ./master-claude-teams.sh で6チーム並列システム起動"
+        echo ""
+        echo "🔧 よく使うコマンド:"
+        echo "docker-compose exec claude-code fish    # シェル接続"
+        echo "./master-claude-teams.sh                # 6チーム並列システム"
+        echo "docker-compose down                     # コンテナ停止"
+        echo "docker-compose logs -f                  # ログ確認"
+    else
+        echo "⚠️  コンテナの起動に問題がある可能性があります"
+        echo "docker-compose ps で状態を確認してください"
+    fi
+else
+    echo "⚠️  Dockerコンテナの起動に失敗しました"
+    echo ""
+    echo "📋 手動で実行する場合:"
+    echo "1. .envファイルでANTHROPIC_API_KEYを設定"
+    echo "2. 必要に応じてMCPサーバーの環境変数を設定"
+    echo "3. docker-compose up -d でコンテナ起動"
+    echo "4. docker-compose exec claude-code fish でシェルに接続"
+    echo "5. ./master-claude-teams.sh で6チーム並列システム起動"
+    echo ""
+    echo "🔧 よく使うコマンド:"
+    echo "docker-compose up -d                    # コンテナ起動"
+    echo "docker-compose exec claude-code fish    # シェル接続"
+    echo "./master-claude-teams.sh                # 6チーム並列システム"
+    echo "docker-compose down                     # コンテナ停止"
+fi
 echo ""
 echo "📚 詳しくはREADME.mdを参照してください"

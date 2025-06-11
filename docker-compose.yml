@@ -7,7 +7,8 @@ services:
   claude-code:
     build: .
     container_name: claude-code-${PROJECT_NAME:-default}
-    user: "${USER_UID:-1000}:${USER_GID:-1000}"
+    # ENTRYPOINTはrootで実行、その後developerに切り替え
+    # user: "${USER_UID:-1000}:${USER_GID:-1000}"
     volumes:
       # プロジェクトファイル
       - .:/workspace

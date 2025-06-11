@@ -175,12 +175,98 @@ create_devops_config() {
 EOF
 }
 
+# QA Team設定
+create_qa_config() {
+    local config_path="$1/CLAUDE.md"
+    
+    cat > "$config_path" << 'EOF'
+# QA Team 設定
+
+あなたはQA（品質保証）チームです。
+
+## 役割
+- テスト戦略の策定
+- E2Eテストの実装
+- パフォーマンステスト
+- セキュリティテスト
+- ユーザビリティテスト
+
+## 技術スタック
+- Playwright（E2Eテスト）
+- Jest/Vitest（単体テスト）
+- OWASP ZAP（セキュリティテスト）
+- Lighthouse（パフォーマンステスト）
+- Sentry（エラー監視）
+
+## 作業ルール
+1. テストカバレッジ90%以上
+2. 自動化優先
+3. 早期からのセキュリティテスト
+4. ユーザビリティの継続的評価
+5. 完了したら`[QA] タスク完了: {内容}`と報告
+
+## チーム間通信
+- 定期的に`check_team_messages "qa"`でメッセージを確認
+- バグ報告: `send_team_message "qa" "{team}" "NOTIFY" "バグ詳細"`
+- テスト結果共有: `broadcast_to_teams "qa" "UPDATE" "テスト結果"`
+- 非同期でタスクを処理: メッセージ確認中も作業を継続
+
+## マスターとの連携
+- テスト戦略はマスターと相談
+- 品質基準の確認と遵守
+- 各チームとの連携テスト
+EOF
+}
+
+# Security Team設定
+create_security_config() {
+    local config_path="$1/CLAUDE.md"
+    
+    cat > "$config_path" << 'EOF'
+# Security Team 設定
+
+あなたはSecurityチームです。
+
+## 役割
+- セキュリティ設計
+- 脆弱性診断
+- ペネトレーションテスト
+- セキュリティ監査
+- インシデント対応計画
+
+## 技術スタック
+- OWASP ZAP
+- Snyk
+- GitHub Security Scanning
+- Sentry（セキュリティ監視）
+- SSL/TLS設定
+
+## 作業ルール
+1. OWASP Top 10対策
+2. ゼロトラストアーキテクチャ
+3. 最小権限の原則
+4. 継続的なセキュリティテスト
+5. 完了したら`[Security] タスク完了: {内容}`と報告
+
+## チーム間通信
+- 定期的に`check_team_messages "security"`でメッセージを確認
+- 脆弱性報告: `broadcast_to_teams "security" "ALERT" "脆弱性詳細"`
+- セキュリティ相談対応: 各チームからの質問に回答
+- 非同期でタスクを処理: メッセージ確認中も作業を継続
+
+## マスターとの連携
+- セキュリティポリシーはマスターと策定
+- インシデント対応計画の策定
+- 各チームのセキュリティ教育
+EOF
+}
+
 # Master用コマンドドキュメント
 create_master_commands() {
     local config_path="$1/team-commands.md"
     
     cat > "$config_path" << 'EOF'
-# Team Management Commands
+# Team Management Commands - 6チーム体制
 
 ## 🤝 チーム間通信の使い方
 
@@ -194,20 +280,18 @@ create_master_commands() {
 ```bash
 # Frontend: API仕様について相談
 send_team_message "frontend" "backend" "REQUEST" "ユーザー一覧APIの仕様を教えてください"
-# → Backendは通知を受け取るが、現在の作業を継続
-# → 適切なタイミングで仕様を返答
 
 # Backend: DB設計の相談
 send_team_message "backend" "database" "HELP" "ユーザーテーブルにソーシャルログイン情報を追加したい"
-# → Databaseチームが非同期で対応
 
-# Database: パフォーマンス問題
-send_team_message "database" "devops" "HELP" "検索クエリが遅い。インデックス以外の対策は？"
-# → DevOpsが並行して調査
+# QA: バグ報告
+send_team_message "qa" "frontend" "NOTIFY" "ログイン画面でXSSの脆弱性を発見"
 
-# DevOps: 全体への通知
+# Security: 全体への警告
+broadcast_to_teams "security" "ALERT" "新しい脆弱性CVE-2024-XXXXへの対応が必要"
+
+# DevOps: デプロイ通知
 broadcast_to_teams "devops" "NOTIFY" "本番環境のデプロイを開始します（5分程度）"
-# → 全チームが通知を受信
 ```
 
 ## 🎯 チーム管理コマンド
@@ -215,8 +299,8 @@ broadcast_to_teams "devops" "NOTIFY" "本番環境のデプロイを開始しま
 ### 1. 全チームへの一斉指示
 ```bash
 # 全チームに同じメッセージを送信
-for i in {0..4}; do
-  tmux send-keys -t "claude-teams:Teams.$i" "プロジェクトの要件: ECサイトを作成します" Enter
+for i in {0..5}; do
+  tmux send-keys -t "claude-teams:Teams.$i" "プロジェクトの要件: Todoアプリを作成します" Enter
 done
 ```
 
@@ -226,22 +310,25 @@ done
 tmux send-keys -t "claude-teams:Teams.0" "要件定義を開始します" Enter
 
 # Frontend (Pane 1)
-tmux send-keys -t "claude-teams:Teams.1" "商品一覧ページを作成してください" Enter
+tmux send-keys -t "claude-teams:Teams.1" "Todoリストのコンポーネントを作成してください" Enter
 
-# Database (Pane 2)
-tmux send-keys -t "claude-teams:Teams.2" "商品テーブルを設計してください" Enter
+# Backend (Pane 2)
+tmux send-keys -t "claude-teams:Teams.2" "Todo APIを実装してください" Enter
 
-# Backend (Pane 3)
-tmux send-keys -t "claude-teams:Teams.3" "商品APIを実装してください" Enter
+# Database (Pane 3)
+tmux send-keys -t "claude-teams:Teams.3" "Todoテーブルを設計してください" Enter
 
 # DevOps (Pane 4)
 tmux send-keys -t "claude-teams:Teams.4" "CI/CDパイプラインを構築してください" Enter
+
+# QA/Security (Pane 5)
+tmux send-keys -t "claude-teams:Teams.5" "テスト計画とセキュリティ監査を実施してください" Enter
 ```
 
 ### 3. 進捗確認
 ```bash
 # 全チームの最新出力を確認
-for i in {0..4}; do
+for i in {0..5}; do
   echo "=== Pane $i ==="
   tmux capture-pane -t "claude-teams:Teams.$i" -p | tail -10
   echo ""
@@ -253,9 +340,10 @@ done
 # ペインを選択
 tmux select-pane -t "claude-teams:Teams.0"  # Master
 tmux select-pane -t "claude-teams:Teams.1"  # Frontend
-tmux select-pane -t "claude-teams:Teams.2"  # Database
-tmux select-pane -t "claude-teams:Teams.3"  # Backend
+tmux select-pane -t "claude-teams:Teams.2"  # Backend
+tmux select-pane -t "claude-teams:Teams.3"  # Database
 tmux select-pane -t "claude-teams:Teams.4"  # DevOps
+tmux select-pane -t "claude-teams:Teams.5"  # QA/Security
 ```
 
 ### 5. ブランチ管理
@@ -270,31 +358,63 @@ git merge team/frontend
 git merge team/backend
 git merge team/database
 git merge team/devops
+git merge team/qa
+git merge team/security
 ```
 
-## 💡 実践的な使用例
+## 💡 6チーム体制のレイアウト
 
-### ECサイト開発フロー
-```bash
-# 1. 要件をMasterで定義
-tmux send-keys -t "claude-teams:Teams.0" "ECサイトの要件定義.mdを作成してください" Enter
-
-# 2. 各チームにタスク割り当て
-tmux send-keys -t "claude-teams:Teams.2" "[Database] 商品、ユーザー、注文のテーブル設計をしてください" Enter
-tmux send-keys -t "claude-teams:Teams.3" "[Backend] Supabaseで認証APIを実装してください" Enter
-tmux send-keys -t "claude-teams:Teams.1" "[Frontend] ログイン画面を作成してください" Enter
-tmux send-keys -t "claude-teams:Teams.4" "[DevOps] Docker開発環境を構築してください" Enter
-
-# 3. 進捗モニタリング
-watch -n 5 'for i in {0..4}; do echo "=== Pane $i ==="; tmux capture-pane -t "claude-teams:Teams.$i" -p | tail -5; echo ""; done'
+```
+┌─────────────┬─────────────┐
+│  0: Master  │ 3: Database │
+├─────────────┼─────────────┤
+│ 1: Frontend │  4: DevOps  │
+├─────────────┼─────────────┤
+│ 2: Backend  │ 5: QA/Sec   │
+└─────────────┴─────────────┘
 ```
 
 ## ⚡ ショートカット
 
-- `Ctrl-b q`: ペイン番号表示
-- `Ctrl-b o`: 次のペインへ移動
-- `Ctrl-b ;`: 前のペインへ戻る
-- `Ctrl-b z`: ペインを全画面表示/解除
-- `Ctrl-b !`: ペインを新しいウィンドウに分離
+- `Ctrl+a q`: ペイン番号表示
+- `Ctrl+a 0-5`: ペイン切り替え
+- `Ctrl+a z`: ペイン最大化/復元
+- `Ctrl+a d`: セッションから離脱
+
+## 🔍 チーム状態の監視
+
+```bash
+# リアルタイム監視（別ターミナルで実行）
+watch -n 5 'for i in {0..5}; do 
+  echo "=== Team $i ==="; 
+  tmux capture-pane -t "claude-teams:Teams.$i" -p | tail -5; 
+  echo ""; 
+done'
+```
+
+## 📝 設定の再読み込み
+
+```bash
+# Claude Code設定の確認
+for team in frontend backend database devops qa security; do
+  echo "=== $team ==="
+  cat worktrees/$team/CLAUDE.md | head -20
+  echo ""
+done
+```
 EOF
+}
+
+# チームブランチ名を取得
+get_team_branch() {
+    local team="$1"
+    case "$team" in
+        "frontend") echo "team/frontend" ;;
+        "backend") echo "team/backend" ;;
+        "database") echo "team/database" ;;
+        "devops") echo "team/devops" ;;
+        "qa") echo "team/qa" ;;
+        "security") echo "team/security" ;;
+        *) echo "team/$team" ;;
+    esac
 }
