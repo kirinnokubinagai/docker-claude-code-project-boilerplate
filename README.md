@@ -9,6 +9,44 @@
 - **自動ドキュメント化** - Obsidian + Playwright でスクリーンショット付きマニュアル自動生成
 - **非同期タスク処理** - 作業を止めずに並列でコラボレーション
 
+## 🔧 既存プロジェクトの更新方法
+
+既に`init-project.sh`で作成したプロジェクトがある場合：
+
+### 方法1: 自動更新スクリプトを使用（推奨）
+```bash
+# docker-claude-code-boiler-plateディレクトリで実行
+./update-existing-project.sh ../your-project-name
+```
+
+### 方法2: 手動更新
+```bash
+# 1. 作成済みプロジェクトのディレクトリに移動
+cd path/to/your-project
+
+# 2. 更新されたファイルをコピー
+cp path/to/docker-claude-code-boiler-plate/master-claude-teams.sh ./
+cp -r path/to/docker-claude-code-boiler-plate/lib ./
+cp -r path/to/docker-claude-code-boiler-plate/config ./
+cp path/to/docker-claude-code-boiler-plate/docker/fish/config.fish ./docker/fish/
+cp path/to/docker-claude-code-boiler-plate/docker/developer-entrypoint.sh ./docker/
+cp path/to/docker-claude-code-boiler-plate/docker-entrypoint.sh ./
+cp path/to/docker-claude-code-boiler-plate/Dockerfile ./
+cp path/to/docker-claude-code-boiler-plate/docker-compose.yml ./
+
+# 3. Dockerイメージを再ビルド
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+# 4. 新しい設定で起動
+docker-compose exec -w /workspace claude-code developer-fish
+
+# 5. fishシェル内でMCPを再設定
+setup_mcp_manual  # MCPサーバーを再設定
+master           # 5チーム並列システムを起動
+```
+
 ## 🚀 使い方（3ステップ）
 
 ### 1. セットアップ

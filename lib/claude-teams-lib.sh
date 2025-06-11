@@ -73,10 +73,10 @@ show_banner() {
     local title="$1"
     local subtitle="$2"
     
-    printf "${PURPLE}╔════════════════════════════════════════╗${NC}\n"
-    printf "${PURPLE}║%40s║${NC}\n" "$title"
-    printf "${PURPLE}║%40s║${NC}\n" "$subtitle"
-    printf "${PURPLE}╚════════════════════════════════════════╝${NC}\n"
+    printf "${PURPLE}╔════════════════════════════════════════════╗${NC}\n"
+    printf "${PURPLE}║%-44s║${NC}\n" "  $title"
+    printf "${PURPLE}║%-44s║${NC}\n" "  $subtitle"
+    printf "${PURPLE}╚════════════════════════════════════════════╝${NC}\n"
     echo ""
 }
 
