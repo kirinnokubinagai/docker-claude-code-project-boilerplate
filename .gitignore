@@ -66,3 +66,15 @@ screenshots/
 
 # Git worktrees（重要）
 worktrees/
+
+# プロジェクトディレクトリ
+todo-app/
+
+# 動的生成ファイル
+CLAUDE_MASTER_DYNAMIC.md
+PROJECT_REQUIREMENTS.md
+DYNAMIC_TEAM_PROMPT.md
+.workflow_state.json
+
+# メッセージキュー
+.messages/

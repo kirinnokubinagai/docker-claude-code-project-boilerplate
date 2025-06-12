@@ -1,205 +1,152 @@
-# ==============================================
-# Master Claude System Fish設定
-# ==============================================
+# Fish Shell Configuration for Master Claude Teams System
 
-# 環境変数の設定（Docker環境用）
-set -gx WORKSPACE /workspace
-set -gx HOME /home/developer
-set -gx USER developer
+# PATH設定（重複を避ける）
+set -g fish_user_paths /usr/local/bin $fish_user_paths
+set -U fish_user_paths (printf '%s\n' $fish_user_paths | awk '!a[$0]++')
 
-# npmのグローバルパッケージをユーザーディレクトリにインストール
-set -gx NPM_CONFIG_PREFIX $HOME/.npm
-set -gx PATH $NPM_CONFIG_PREFIX/bin $PATH
-
-# z (ディレクトリジャンプ) の設定
-set -g Z_CMD "z"
-set -g Z_DATA "$HOME/.z"
-
-# Ctrl+R でfzfを使った履歴検索のキーバインド
-function fish_user_key_bindings
-    bind \cr 'fzf_history_search'
+# Claude API設定
+if test -n "$ANTHROPIC_API_KEY"
+    set -x ANTHROPIC_API_KEY $ANTHROPIC_API_KEY
 end
 
-# Ctrl+R でfzfを使った履歴検索
-function fzf_history_search
-    history | fzf --height=40% --reverse --query=(commandline) | read -l result
-    if test -n "$result"
-        commandline "$result"
-    end
-    commandline -f repaint
-end
-
-# Claude Code Company用のエイリアス
+# エイリアスとカスタムコマンド
+alias ll='ls -la'
+alias master='/workspace/master-claude-teams.sh'
+alias check_mcp='claude mcp list'
 alias cc='claude --dangerously-skip-permissions'
 
-# ==== Master Claude System v2.0 ====
-
-# 初回起動時のMCPサーバー追加関数
-function setup_mcp_servers
-    echo "🔧 MCPサーバーを設定中..."
-    
-    # Supabase
-    if test -n "$SUPABASE_ACCESS_TOKEN"
-        echo "  追加中: Supabase"
-        claude mcp add -s user supabase -e SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" -- npx @supabase/mcp-server-supabase@latest
-    else
-        echo "  ⚠️  Supabase: SUPABASE_ACCESS_TOKEN が設定されていません"
-    end
-    
-    # Playwright
-    echo "  追加中: Playwright"
-    claude mcp add -s user -e playwright PLAYWRIGHT_HEADLESS="$PLAYWRIGHT_HEADLESS" -e PLAYWRIGHT_TIMEOUT="$PLAYWRIGHT_TIMEOUT" -- npx @playwright/mcp@latest
-    
-    # Stripe
-    if test -n "$STRIPE_SECRET_KEY"
-        echo "  追加中: Stripe"
-        claude mcp add -s user stripe -e STRIPE_SECRET_KEY="$STRIPE_SECRET_KEY" -e STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" -- npx @stripe/mcp
-    else
-        echo "  ⚠️  Stripe: STRIPE_SECRET_KEY が設定されていません"
-    end
-    
-    # LINE Bot
-    if test -n "$LINE_CHANNEL_ACCESS_TOKEN"
-        echo "  追加中: LINE Bot"
-        claude mcp add -s user line-bot -e CHANNEL_ACCESS_TOKEN="$LINE_CHANNEL_ACCESS_TOKEN" -e DESTINATION_USER_ID="$DESTINATION_USER_ID" -- npx @line/line-bot-mcp-server
-    else
-        echo "  ⚠️  LINE Bot: LINE_CHANNEL_ACCESS_TOKEN が設定されていません"
-    end
-    
-    # Obsidian
-    if test -d "/obsidian-vault"
-        echo "  追加中: Obsidian"
-        claude mcp add -s user obsidian -e OBSIDIAN_VAULT_PATH="/obsidian-vault" -- uvx mcp-obsidian
-    else
-        echo "  ⚠️  Obsidian: /obsidian-vault ディレクトリが見つかりません"
-    end
-    
-    # Context7
-    echo "  追加中: Context7"
-    if test -n "$DEFAULT_MINIMUM_TOKENS"
-        claude mcp add -s user context7 -e DEFAULT_MINIMUM_TOKENS="$DEFAULT_MINIMUM_TOKENS" -- npx @upstash/context7-mcp
-    else
-        claude mcp add -s user context7 npx @upstash/context7-mcp
-    end
-
-    # Sentry
-    echo " 追加中: Sentry"
-    claude mcp add -s user -t sse sentry https://mcp.sentry.dev/sse
-    
-    echo "✅ MCPサーバー設定完了"
-    echo ""
-    
-    # 設定完了フラグを作成
-    touch ~/.mcp_setup_done
+# 実行可能ファイルの確認と権限付与
+if test -f /workspace/master-claude-teams.sh
+    chmod +x /workspace/master-claude-teams.sh 2>/dev/null
 end
 
-# Master Claude 起動関数
-function master
-    echo "🎯 Master Claude Teams System を起動します..."
+# プロンプトカスタマイズ
+function fish_prompt
+    set -l last_status $status
+    set -l user (whoami)
+    set -l host (hostname)
+    set -l pwd (pwd | sed -e "s|^$HOME|~|")
     
-    # 環境変数の設定
-    set -gx WORKSPACE /workspace
+    # ユーザー名@ホスト名
+    echo -n (set_color green)"$user"(set_color normal)"@"(set_color blue)"$host"(set_color normal)
     
-    # 初回起動時のみMCPサーバーを設定
-    if not test -f ~/.mcp_setup_done
-        setup_mcp_servers
-    end
+    # 現在のディレクトリ
+    echo -n " "(set_color yellow)"$pwd"(set_color normal)
     
-    # スクリプトが存在することを確認
-    if test -f /workspace/master-claude-teams.sh
-        bash /workspace/master-claude-teams.sh
+    # プロンプト記号
+    if test $last_status -eq 0
+        echo -n (set_color green)"> "(set_color normal)
     else
-        echo "❌ master-claude-teams.sh が見つかりません"
-        echo "📍 現在のディレクトリ: "(pwd)
-        echo "📂 /workspace の内容:"
-        ls -la /workspace/
+        echo -n (set_color red)"> "(set_color normal)
     end
 end
 
-# MCP確認関数
-function check_mcp
-    echo "📊 利用可能なMCPサーバーを確認中..."
-    
-    # Claude CLIが利用可能か確認
-    if not command -v claude >/dev/null 2>&1
-        echo "❌ Claude CLIがインストールされていません"
-        echo "📦 npm install -g @anthropic-ai/claude-code でインストールしてください"
-        return 1
-    end
-    
-    # MCPリストを表示
-    if claude mcp list 2>/dev/null
-        echo "✅ MCPサーバーの確認が完了しました"
-    else
-        echo "⚠️  MCPサーバーがまだ設定されていません"
-        echo "💡 'master' コマンドを実行すると自動的に設定されます"
-    end
-end
+# グリーティングメッセージは無効化（動的チーム構成の後に表示）
+set fish_greeting ""
 
-# MCP手動セットアップ関数
-function setup_mcp_manual
-    setup_mcp_servers
-end
+# zはconf.d/z.fishで自動的に読み込まれる
 
-# ヘルプ表示関数
-function help_claude
+# ヘルプメッセージ関数
+function help
     echo "🚀 Master Claude Teams System - ヘルプ"
     echo ""
-    echo "📋 主要コマンド:"
-    echo "  master         - 5チーム並列システムを起動"
-    echo "  check_mcp      - MCPサーバーの状態確認"
-    echo "  setup_mcp_manual - MCPサーバーを手動設定"
-    echo "  help_claude    - このヘルプを表示"
+    echo "基本コマンド:"
+    echo "  master          - Master Claude Teamsシステムを起動"
+    echo "  claude          - Claude CLIを直接使用"
+    echo "  claude mcp list - MCPサーバーの状態確認"
     echo ""
-    echo "🔧 エイリアス:"
-    echo "  cc             - claude --dangerously-skip-permissions"
-    echo "  ll, la, l      - ファイル一覧表示"
-    echo "  dc, dcu, dcd   - docker-compose操作"
-    echo "  gs, ga, gc, gp - Git操作"
+    echo "チーム管理:"
+    echo "  ./join-company.sh --dynamic     - 動的チーム構成（推奨）"
+    echo "  ./join-company.sh <template>    - 手動でチーム追加"
     echo ""
-    echo "💡 Tips:"
-    echo "  初回起動時は 'master' を実行してMCPを設定してください"
-    echo "  tmuxの操作は docs/tmux-cheatsheet.md を参照"
+    echo "ユーティリティ:"
+    echo "  z <directory>   - ディレクトリ履歴から高速移動"
+    echo "  ll              - 詳細なファイルリスト表示"
+    echo ""
+    echo "設定ファイル:"
+    echo "  config/teams.json - チーム構成設定"
+    echo "  .env              - 環境変数設定"
 end
 
-# ショートカット
-alias help='help_claude'
+# 動的チーム構成の自動実行（初回のみ）
+if test -f /workspace/config/teams.json
+    set teams_count (jq -r '.teams | length' /workspace/config/teams.json 2>/dev/null || echo 0)
+    if test "$teams_count" = "0"
+        # 初回起動フラグファイルをチェック
+        if not test -f /home/developer/.claude_initialized
+            echo ""
+            echo "====================================="
+            echo "🚀 Claude Code 動的チーム構成の初期化"
+            echo "====================================="
+            echo ""
+            echo "プロジェクトに最適なチーム構成を自動で作成します。"
+            echo ""
+            
+            # join-company.shが存在する場合のみ実行
+            if test -f /workspace/join-company.sh
+                # 動的チーム構成を実行
+                /workspace/join-company.sh --dynamic
+                
+                # 初回起動フラグを作成
+                touch /home/developer/.claude_initialized
+                
+                echo ""
+                echo "✅ チーム構成が完了しました！"
+                echo ""
+                echo "📝 使い方："
+                echo "  1. 'master' コマンドでtmuxセッションを開始"
+                echo "  2. 各チームが自動的に専用ウィンドウで起動します"
+                echo ""
+                echo "====================================="
+                echo ""
+            else
+                echo "⚠️  join-company.shが見つかりません。手動でセットアップしてください。"
+                echo ""
+            end
+        else
+            echo ""
+            echo "💡 プロジェクトのチーム構成がまだ設定されていません"
+            echo ""
+            echo "   1. 'cc' または 'claude code' でClaude Codeを起動"
+            echo "   2. 動的チーム構成でプロジェクトを開始することを伝える"
+            echo "   3. 要件に基づいて最適なチーム構成が自動生成されます"
+            echo ""
+        end
+    end
+else
+    # teams.jsonが存在しない場合
+    if not test -f /home/developer/.claude_initialized
+        echo ""
+        echo "====================================="
+        echo "🚀 Claude Code 動的チーム構成の初期化"
+        echo "====================================="
+        echo ""
+        echo "プロジェクトに最適なチーム構成を自動で作成します。"
+        echo ""
+        
+        if test -f /workspace/join-company.sh
+            /workspace/join-company.sh --dynamic
+            touch /home/developer/.claude_initialized
+            echo ""
+            echo "✅ チーム構成が完了しました！"
+            echo ""
+            echo "📝 使い方："
+            echo "  1. 'master' コマンドでtmuxセッションを開始"
+            echo "  2. 各チームが自動的に専用ウィンドウで起動します"
+            echo ""
+            echo "====================================="
+            echo ""
+        end
+    end
+end
 
-# 基本設定
-set -g fish_greeting ""
-set -gx PATH $PATH /usr/local/bin
-
-# 基本エイリアス
-alias ll='ls -la'
-alias la='ls -A'
-alias l='ls -CF'
-
-# 開発用エイリアス
-alias dc='docker-compose'
-alias dcu='docker-compose up -d'
-alias dcd='docker-compose down'
-alias dcl='docker-compose logs -f'
-
-# Git エイリアス
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gp='git push'
-alias gl='git log --oneline'
-
-# 起動時メッセージ
+# システム起動メッセージ（動的チーム構成の後に表示）
+echo ""
 echo "🚀 Master Claude Teams System"
-echo "📍 ユーザー: "(whoami)" | ホーム: $HOME"
+echo "📍 ユーザー: "(whoami)" | ホーム: "$HOME
 echo ""
 echo "📋 使用可能なコマンド:"
 echo "  master     - 並列システムを起動"
 echo "  check_mcp  - MCPサーバーの状態確認"
 echo "  help       - 全コマンドとヘルプを表示"
 echo ""
-
-# 初回起動時の自動セットアップ
-if not test -f ~/.mcp_setup_done
-    echo "⚠️  初回起動を検出しました。"
-    echo "👉 'master' コマンドを実行すると、MCPサーバーが自動設定されます。"
-    echo ""
-end

@@ -29,15 +29,18 @@ RUN addgroup -g 1001 developer || true && \
 
 # developerユーザーの環境ディレクトリを作成
 RUN mkdir -p /home/developer/.config/fish/functions \
+    /home/developer/.config/fish/conf.d \
     /home/developer/.npm \
     /home/developer/.local/share \
     /home/developer/.cache \
     /home/developer/.anthropic \
     && chown -R developer:developer /home/developer
 
-# zのインストール
-RUN curl -sS https://raw.githubusercontent.com/jethrokuan/z/master/z.fish > /home/developer/.config/fish/functions/z.fish \
-    && chown developer:developer /home/developer/.config/fish/functions/z.fish
+# zのインストール（正しいURL）
+RUN curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/z.fish -o /home/developer/.config/fish/functions/z.fish \
+    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/conf.d/z.fish -o /home/developer/.config/fish/conf.d/z.fish \
+    && mkdir -p /home/developer/.local/share/z \
+    && chown -R developer:developer /home/developer/.config/fish /home/developer/.local/share/z
 
 # tmux-xpanesのインストール
 RUN curl -L https://raw.githubusercontent.com/greymd/tmux-xpanes/master/bin/xpanes -o /usr/local/bin/xpanes \

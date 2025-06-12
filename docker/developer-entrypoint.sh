@@ -7,8 +7,8 @@ cd /workspace 2>/dev/null || cd /home/developer
 
 # 動的チーム構成の自動セットアップ関数
 setup_dynamic_teams() {
-    # teams.jsonが存在しない場合のみ実行
-    if [ ! -f "config/teams.json" ]; then
+    # teams.jsonが存在しないか、空の場合に実行
+    if [ ! -f "config/teams.json" ] || [ "$(jq -r '.teams | length' config/teams.json 2>/dev/null || echo 0)" = "0" ]; then
         echo "==================================="
         echo "🚀 Claude Code 動的チーム構成の初期化"
         echo "==================================="
