@@ -207,10 +207,10 @@ if [ ! -f "$ENV_FILE" ]; then
 # プロジェクト設定
 PROJECT_NAME=$PROJECT_NAME
 
-# Claude Code API Key (オプション - Claude CLIを使用する場合は設定)
-# ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# Claude Code API Key (オプション)
+# ANTHROPIC_API_KEY=
 
-# Optional: MCPサーバー設定（使用する場合のみ設定）
+# MCPサーバー設定 (オプション)
 # SUPABASE_ACCESS_TOKEN=
 # STRIPE_SECRET_KEY=
 # STRIPE_PUBLISHABLE_KEY=
@@ -292,13 +292,12 @@ fi
 echo "📋 次のステップ"
 echo "1. cd $FULL_PROJECT_PATH"
 echo "2. 必要に応じて.envファイルを編集"
-echo "3. 必要に応じてMCPサーバーの環境変数を設定"
-echo "4. docker compose up -d でコンテナ起動"
-echo "5. docker compose exec claude-code fish でシェルに接続"
-echo "6. sudo su - developer でdeveloperユーザーに切り替え"
-echo "7. setup-mcp を実行してMCPサーバーを設定（オプション）"
-echo "8. cc を実行してClaude Codeを起動（「〇〇を作りたい」でチーム自動構成）"
-echo "9. master を実行してチームを並列起動"
+echo "3. docker compose up -d でコンテナ起動"
+echo "4. docker compose exec claude-code fish でシェルに接続"
+echo "5. sudo su - developer でdeveloperユーザーに切り替え"
+echo "6. setup-mcp を実行してMCPサーバーを設定（オプション）"
+echo "7. cc を実行してClaude Codeを起動（「〇〇を作りたい」でチーム自動構成）"
+echo "8. master を実行してチームを並列起動"
 echo ""
 echo "🔧 よく使うコマンド:"
 echo "docker compose up -d                    # コンテナ起動"
