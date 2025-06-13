@@ -1,0 +1,12 @@
+{
+  "current_phase": "development",
+  "teams": {
+    "frontend": {"status": "in_progress", "branch": "team/frontend"},
+    "backend": {"status": "in_progress", "branch": "team/backend"},
+    "database": {"status": "in_progress", "branch": "team/database"},
+    "devops": {"status": "in_progress", "branch": "team/devops"},
+    "qa-security": {"status": "in_progress", "branch": "team/qa-security"}
+  },
+  "merge_order": ["database", "backend", "frontend", "devops", "qa-security"],
+  "merged": []
+}
