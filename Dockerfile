@@ -14,18 +14,13 @@ RUN apk add --no-cache \
     npm \
     coreutils \
     sudo \
-    docker-cli \
-    docker-compose \
     jq \
     perl
 
 # developerユーザーを作成（既存のGID/UIDを考慮）
 RUN addgroup -g 1001 developer || true && \
     adduser -D -u 1001 -G developer -s /usr/bin/fish -h /home/developer developer && \
-    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
-    # dockerグループに追加（Docker内でdockerコマンドを使えるように）
-    addgroup -S docker 2>/dev/null || true && \
-    adduser developer docker
+    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # developerユーザーの環境ディレクトリを作成
 RUN mkdir -p /home/developer/.config/fish/functions \
@@ -96,8 +91,15 @@ RUN apk add --no-cache gettext
 
 # entrypointスクリプトをコピー
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-COPY docker/developer-entrypoint.sh /usr/local/bin/developer-fish
-RUN chmod +x /docker-entrypoint.sh /usr/local/bin/developer-fish
+COPY docker/developer-entrypoint.sh /usr/local/bin/developer-entrypoint
+COPY docker/developer-fish.sh /usr/local/bin/developer-fish
+RUN chmod +x /docker-entrypoint.sh /usr/local/bin/developer-entrypoint /usr/local/bin/developer-fish
+
+# Fish設定ファイルをコピー
+COPY docker/fish/config.fish /tmp/config.fish
+RUN cp /tmp/config.fish /home/developer/.config/fish/config.fish && \
+    chown developer:developer /home/developer/.config/fish/config.fish && \
+    rm /tmp/config.fish
 
 # 作業ディレクトリを設定
 WORKDIR /workspace

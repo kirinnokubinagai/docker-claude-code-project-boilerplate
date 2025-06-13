@@ -32,16 +32,17 @@ LINE_USER_ID=your_line_user_id
 ### 3. 起動
 ```bash
 # Dockerコンテナ起動
-docker-compose up -d
+docker compose up -d
 
 # コンテナに入る
-docker-compose exec -w /workspace claude-code developer-fish
+docker compose exec -w /workspace claude-code developer-fish
 
-# 動的チーム構成を使用する場合
-./join-company.sh --dynamic
+# Claude Codeを起動して動的にチーム構成
+cc
+# 「〇〇を作りたい」と言うと自動的にチーム構成を決定
 
 # Masterのみで起動（デフォルト）
-./master-claude-teams.sh
+master
 ```
 
 ### 4. 開発開始
@@ -107,27 +108,25 @@ EOF
 ```bash
 # チーム追加後の再起動
 tmux kill-session -t claude-teams
-./master-claude-teams.sh
+master
 
 # アクティブなチーム確認
 cat config/teams.json | jq '.teams[] | select(.active == true) | .name'
 ```
 
-## 🏢 join-company.sh - テンプレートからチーム追加
+## 🏢 join-company - 手動でチーム追加
 
 ### 概要
-`join-company.sh`は、事前定義されたチームテンプレートを使用して、新しいチームをプロジェクトに追加するツールです。
+事前定義されたテンプレートから手動でチームを追加する場合に使用します。
+通常はccコマンドで自動的にチーム構成されるため、特殊なチームが必要な場合のみ使用してください。
 
 ### 使用方法
 ```bash
-# 基本的な使い方
-./join-company.sh <team-template.json>
+# テンプレートからチームを追加
+join-company team-templates/frontend-team.json
 
-# 例：フロントエンドチームを追加
-./join-company.sh team-templates/frontend-team.json
-
-# 例：新しいカスタムチームを追加
-./join-company.sh team-templates/new-team.json
+# カスタムチームを追加
+join-company team-templates/new-team.json
 ```
 
 ### 利用可能なテンプレート
@@ -182,7 +181,7 @@ ls -la team-templates/
 }
 ```
 
-### join-company.shの動作
+### join-companyの動作
 1. **テンプレート検証** - JSONファイルの構造を確認
 2. **チーム情報読み込み** - ID、名前、技術スタックなどを取得
 3. **既存チーム確認** - 同じIDのチームが存在しないか確認
@@ -204,7 +203,7 @@ cp team-templates/new-team.json team-templates/my-custom-team.json
 # - initial_tasks: 初期タスク
 
 # カスタムチームを追加
-./join-company.sh team-templates/my-custom-team.json
+join-company team-templates/my-custom-team.json
 ```
 
 ## 🎮 tmux操作ガイド
@@ -297,14 +296,14 @@ Projects/[プロジェクト名]/
 ### tmuxセッションエラー
 ```bash
 tmux kill-session -t claude-teams
-./master-claude-teams.sh
+master
 ```
 
 ### コンテナ接続エラー
 ```bash
-docker-compose down
-docker-compose up -d
-docker-compose exec claude-code developer-fish
+docker compose down
+docker compose up -d
+docker compose exec claude-code fish
 ```
 
 ### MCP設定確認

@@ -1,3 +1,22 @@
 {
-  "teams": []
+  "teams": [
+    {
+      "id": "frontend",
+      "name": "Frontend Team",
+      "description": "UI/UX開発",
+      "member_count": 2,
+      "tech_stack": "Next.js",
+      "branch": "team/frontend",
+      "active": true
+    },
+    {
+      "id": "backend",
+      "name": "Backend Team",
+      "description": "API開発",
+      "member_count": 2,
+      "tech_stack": "Node.js",
+      "branch": "team/backend",
+      "active": true
+    }
+  ]
 }

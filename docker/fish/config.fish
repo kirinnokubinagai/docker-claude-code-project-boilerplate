@@ -4,6 +4,16 @@
 set -g fish_user_paths /usr/local/bin $fish_user_paths
 set -U fish_user_paths (printf '%s\n' $fish_user_paths | awk '!a[$0]++')
 
+# setup_dynamic_teams関数の定義（エラー回避のため）
+function setup_dynamic_teams
+    echo "📋 動的チーム構成を初期化しています..."
+    if test -f /workspace/join-company.fish
+        /workspace/join-company.fish --dynamic
+    else
+        echo "⚠️  join-company.fishが見つかりません"
+    end
+end
+
 # Claude API設定
 if test -n "$ANTHROPIC_API_KEY"
     set -x ANTHROPIC_API_KEY $ANTHROPIC_API_KEY
@@ -11,13 +21,17 @@ end
 
 # エイリアスとカスタムコマンド
 alias ll='ls -la'
-alias master='/workspace/master-claude-teams.sh'
+alias master='/workspace/master-claude-teams.fish'
+alias join-company='/workspace/join-company.fish'
 alias check_mcp='claude mcp list'
 alias cc='claude --dangerously-skip-permissions'
 
 # 実行可能ファイルの確認と権限付与
-if test -f /workspace/master-claude-teams.sh
-    chmod +x /workspace/master-claude-teams.sh 2>/dev/null
+if test -f /workspace/master-claude-teams.fish
+    chmod +x /workspace/master-claude-teams.fish 2>/dev/null
+end
+if test -f /workspace/join-company.fish
+    chmod +x /workspace/join-company.fish 2>/dev/null
 end
 
 # プロンプトカスタマイズ
@@ -52,12 +66,11 @@ function help
     echo ""
     echo "基本コマンド:"
     echo "  master          - Master Claude Teamsシステムを起動"
-    echo "  claude          - Claude CLIを直接使用"
+    echo "  cc              - Claude CLIを直接使用"
     echo "  claude mcp list - MCPサーバーの状態確認"
     echo ""
     echo "チーム管理:"
-    echo "  ./join-company.sh --dynamic     - 動的チーム構成（推奨）"
-    echo "  ./join-company.sh <template>    - 手動でチーム追加"
+    echo "  join-company.fish <template>    - 手動でチーム追加"
     echo ""
     echo "ユーティリティ:"
     echo "  z <directory>   - ディレクトリ履歴から高速移動"
@@ -82,10 +95,10 @@ if test -f /workspace/config/teams.json
             echo "プロジェクトに最適なチーム構成を自動で作成します。"
             echo ""
             
-            # join-company.shが存在する場合のみ実行
-            if test -f /workspace/join-company.sh
+            # join-company.fishが存在する場合のみ実行
+            if test -f /workspace/join-company.fish
                 # 動的チーム構成を実行
-                /workspace/join-company.sh --dynamic
+                /workspace/join-company.fish --dynamic
                 
                 # 初回起動フラグを作成
                 touch /home/developer/.claude_initialized
@@ -100,14 +113,14 @@ if test -f /workspace/config/teams.json
                 echo "====================================="
                 echo ""
             else
-                echo "⚠️  join-company.shが見つかりません。手動でセットアップしてください。"
+                echo "⚠️  join-company.fishが見つかりません。手動でセットアップしてください。"
                 echo ""
             end
         else
             echo ""
             echo "💡 プロジェクトのチーム構成がまだ設定されていません"
             echo ""
-            echo "   1. 'cc' または 'claude code' でClaude Codeを起動"
+            echo "   1. 'cc'でClaude Codeを起動"
             echo "   2. 動的チーム構成でプロジェクトを開始することを伝える"
             echo "   3. 要件に基づいて最適なチーム構成が自動生成されます"
             echo ""
@@ -124,8 +137,8 @@ else
         echo "プロジェクトに最適なチーム構成を自動で作成します。"
         echo ""
         
-        if test -f /workspace/join-company.sh
-            /workspace/join-company.sh --dynamic
+        if test -f /workspace/join-company.fish
+            /workspace/join-company.fish --dynamic
             touch /home/developer/.claude_initialized
             echo ""
             echo "✅ チーム構成が完了しました！"
@@ -141,12 +154,17 @@ else
 end
 
 # システム起動メッセージ（動的チーム構成の後に表示）
-echo ""
-echo "🚀 Master Claude Teams System"
-echo "📍 ユーザー: "(whoami)" | ホーム: "$HOME
-echo ""
-echo "📋 使用可能なコマンド:"
-echo "  master     - 並列システムを起動"
-echo "  check_mcp  - MCPサーバーの状態確認"
-echo "  help       - 全コマンドとヘルプを表示"
-echo ""
+# インタラクティブシェルの場合のみ表示
+if status is-interactive; and not set -q CLAUDE_GREETING_SHOWN
+    echo ""
+    echo "🚀 Master Claude Teams System"
+    echo "📍 ユーザー: "(whoami)" | ホーム: "$HOME
+    echo ""
+    echo "📋 使用可能なコマンド:"
+    echo "  cc         - 全権限claudeコマンド"
+    echo "  master     - 並列システムを起動"
+    echo "  check_mcp  - MCPサーバーの状態確認"
+    echo "  help       - 全コマンドとヘルプを表示"
+    echo ""
+    set -x CLAUDE_GREETING_SHOWN 1
+end
