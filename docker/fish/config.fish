@@ -17,13 +17,14 @@ end
 
 # エイリアスとカスタムコマンド
 alias ll='ls -la'
-alias master='env -u TMUX /workspace/scripts/master-claude-teams-fixed.fish'
+alias master='env -u TMUX /workspace/scripts/master-claude-teams.fish'
 alias check_mcp='claude mcp list'
-alias cc='claude --dangerously-skip-permissions'
+alias cc='claude'
+alias ccd='claude --dangerously-skip-permissions'
 
 # 実行可能ファイルの確認と権限付与
-if test -f /workspace/scripts/master-claude-teams-fixed.fish
-    chmod +x /workspace/scripts/master-claude-teams-fixed.fish 2>/dev/null
+if test -f /workspace/scripts/master-claude-teams.fish
+    chmod +x /workspace/scripts/master-claude-teams.fish 2>/dev/null
 end
 
 # プロンプトカスタマイズ
@@ -58,11 +59,11 @@ function tmux_help
     echo ""
     echo "基本コマンド:"
     echo "  master          - Master Claude Teamsシステムを起動"
-    echo "  cc              - Claude CLIを直接使用"
+    echo "  ccd             - Claude CLIを直接使用"
     echo "  check_mcp       - MCPサーバーの状態確認"
     echo ""
     echo "ワークフロー:"
-    echo "  1. cc            - アプリ要件を説明 → teams.json生成"
+    echo "  1. ccd           - アプリ要件を説明 → teams.json生成"
     echo "  2. master        - teams.jsonに基づいてチーム起動"
     echo "  3. tmux attach   - セッションに接続"
     echo ""
@@ -110,26 +111,46 @@ if not test -f /home/developer/.claude_initialized
     touch /home/developer/.claude_initialized
 end
 
-# システム起動メッセージ（動的チーム構成の後に表示）
+# システム起動メッセージ
 # インタラクティブシェルの場合のみ表示
 if status is-interactive; and not set -q CLAUDE_GREETING_SHOWN
-    echo ""
-    echo "🚀 Master Claude Teams System"
-    echo "📍 ユーザー: "(whoami)" | ホーム: "$HOME
-    echo ""
-    echo "📋 使用可能なコマンド:"
-    echo "  cc         - 全権限claudeコマンド"
-    echo "  master     - 並列システムを起動"
-    echo "  check_mcp  - MCPサーバーの状態確認"
-    echo "  tmux_help  - 全コマンドとtmuxヘルプを表示"
-    echo ""
-    echo "🔧 tmux操作ガイド:"
-    echo "  tmux attach -t claude-teams  - セッションに接続"
-    echo "  Ctrl+a → 矢印キー           - ペイン間移動"
-    echo "  Ctrl+a → z                   - ペイン最大化/復元"
-    echo "  Ctrl+a → d                   - デタッチ（終了せず切断）"
-    echo "  Ctrl+a → [                   - スクロールモード（qで終了）"
-    echo "  Ctrl+a → スペース           - レイアウト変更"
-    echo ""
+    set -l current_user (whoami)
+    
+    # rootユーザーの場合の警告
+    if test "$current_user" = "root"
+        echo ""
+        echo "⚠️  警告: rootユーザーでログインしています"
+        echo "=================================="
+        echo ""
+        echo "Claude CLIの --dangerously-skip-permissions オプションは"
+        echo "developerユーザーでのみ使用できます。"
+        echo ""
+        echo "以下のコマンドでdeveloperユーザーに切り替えてください:"
+        echo ""
+        echo "  sudo su - developer"
+        echo ""
+        echo "=================================="
+        echo ""
+    else
+        echo ""
+        echo "🚀 Master Claude Teams System"
+        echo "📍 ユーザー: $current_user | ホーム: $HOME"
+        echo ""
+        echo "📋 使用可能なコマンド:"
+        echo "  ccd        - 全権限claudeコマンド"
+        echo "  master     - 並列システムを起動"
+        echo "  check_mcp  - MCPサーバーの状態確認"
+        echo "  tmux_help  - 全コマンドとtmuxヘルプを表示"
+        echo ""
+        echo "🔧 tmux操作ガイド:"
+        echo "  tmux attach -t claude-teams  - セッションに接続"
+        echo "  Ctrl+a → 矢印キー           - ペイン間移動"
+        echo "  Ctrl+a → z                   - ペイン最大化/復元"
+        echo "  Ctrl+a → d                   - デタッチ（終了せず切断）"
+        echo "  Ctrl+a → [                   - スクロールモード（qで終了）"
+        echo "  Ctrl+a → スペース           - レイアウト変更"
+        echo ""
+    end
+    
     set -x CLAUDE_GREETING_SHOWN 1
 end

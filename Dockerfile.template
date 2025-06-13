@@ -31,10 +31,15 @@ RUN mkdir -p /home/developer/.config/fish/functions \
     /home/developer/.anthropic \
     && chown -R developer:developer /home/developer
 
-# zのインストール（正しいURL）
-RUN curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/z.fish -o /home/developer/.config/fish/functions/z.fish \
+# zのインストール（fishプラグインマネージャー不要の単独インストール）
+RUN mkdir -p /home/developer/.local/share/z \
+    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/z.fish -o /home/developer/.config/fish/functions/z.fish \
+    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/__z.fish -o /home/developer/.config/fish/functions/__z.fish \
+    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/__z_add.fish -o /home/developer/.config/fish/functions/__z_add.fish \
+    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/__z_clean.fish -o /home/developer/.config/fish/functions/__z_clean.fish \
+    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/__z_complete.fish -o /home/developer/.config/fish/functions/__z_complete.fish \
     && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/conf.d/z.fish -o /home/developer/.config/fish/conf.d/z.fish \
-    && mkdir -p /home/developer/.local/share/z \
+    && touch /home/developer/.local/share/z/data \
     && chown -R developer:developer /home/developer/.config/fish /home/developer/.local/share/z
 
 # tmux-xpanesのインストール
@@ -88,8 +93,7 @@ RUN apk add --no-cache gettext
 
 # entrypointスクリプトをコピー
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-COPY docker/developer-entrypoint.sh /usr/local/bin/developer-entrypoint
-RUN chmod +x /docker-entrypoint.sh /usr/local/bin/developer-entrypoint
+RUN chmod +x /docker-entrypoint.sh
 
 # Fish設定ファイルをコピー
 COPY docker/fish/config.fish /tmp/config.fish

@@ -15,7 +15,8 @@ set -g NC (set_color normal 2>/dev/null; or echo "")
 # 設定
 set -g SESSION_NAME claude-teams
 set -g WORKSPACE /workspace
-set -g TEAMS_CONFIG_FILE $WORKSPACE/config/teams.json
+set -g TEAMS_CONFIG_FILE $WORKSPACE/docker/config/teams.json
+set -g TASKS_CONFIG_FILE $WORKSPACE/docker/config/team-tasks.json
 
 # ログ関数
 function log_info
@@ -28,6 +29,98 @@ end
 
 function log_error
     printf "%s[ERROR]%s %s\n" $RED $NC "$argv"
+end
+
+function log_warning
+    printf "%s[WARN]%s %s\n" $YELLOW $NC "$argv"
+end
+
+# ペインインデックスを取得
+function get_pane_index_for_team
+    set -l team_id $argv[1]
+    set -l member_index $argv[2]  # 1-based
+    
+    # 累積インデックスを計算（tmuxのペインは1から始まる）
+    set -l pane_idx 1  # Masterペインが1
+    
+    # teams.jsonから各チームのメンバー数を取得
+    set -l teams (jq -r '.teams[] | select(.active == true) | .id' $TEAMS_CONFIG_FILE 2>/dev/null)
+    
+    for t in $teams
+        if test "$t" = "$team_id"
+            # 該当チームのメンバーインデックスを追加
+            set pane_idx (math $pane_idx + $member_index)
+            break
+        else
+            # このチームのメンバー数を追加
+            set -l count (jq -r ".teams[] | select(.id == \"$t\") | .member_count // 1" $TEAMS_CONFIG_FILE 2>/dev/null)
+            set pane_idx (math $pane_idx + $count)
+        end
+    end
+    
+    echo $pane_idx
+end
+
+# タスクをペインに送信
+function send_task_to_pane
+    set -l pane_idx $argv[1]
+    set -l task $argv[2]
+    
+    # タスクを送信（ウィンドウ番号は1）
+    tmux send-keys -t $SESSION_NAME:1.$pane_idx "$task" Enter
+    
+    return 0
+end
+
+# タスクを割り当て
+function assign_tasks
+    if not test -f $TASKS_CONFIG_FILE
+        log_warning "team-tasks.json が見つかりません。タスク割り当てをスキップします"
+        return 0
+    end
+    
+    log_info "タスクを各Claude Codeに割り当て中..."
+    
+    # Claude Codeの起動完了を待つ（プロンプトが表示されるまで）
+    log_info "Claude Codeの起動を待機中..."
+    sleep 8
+    
+    # Master Claudeにタスクを送信
+    set -l master_prompt (jq -r '.master.initial_prompt // ""' $TASKS_CONFIG_FILE 2>/dev/null)
+    if test -n "$master_prompt"
+        send_task_to_pane 1 "$master_prompt"
+        log_success "Master: タスク送信完了"
+    end
+    
+    # 各チームのタスクを送信
+    set -l teams (jq -r '.teams[] | select(.active == true) | .id' $TEAMS_CONFIG_FILE 2>/dev/null)
+    
+    for team in $teams
+        set -l team_name (jq -r ".teams[] | select(.id == \"$team\") | .name" $TEAMS_CONFIG_FILE 2>/dev/null)
+        set -l member_count (jq -r ".teams[] | select(.id == \"$team\") | .member_count // 1" $TEAMS_CONFIG_FILE 2>/dev/null)
+        
+        # ボス（最初のメンバー）にタスクを送信
+        set -l boss_prompt (jq -r ".$team.boss.initial_prompt // \"\"" $TASKS_CONFIG_FILE 2>/dev/null)
+        if test -n "$boss_prompt"
+            set -l boss_pane_idx (get_pane_index_for_team $team 1)
+            send_task_to_pane $boss_pane_idx "$boss_prompt"
+            log_success "$team_name ボス: タスク送信完了"
+        end
+        
+        # メンバータスクを送信（member1, member2等の個別オブジェクトから取得）
+        for i in (seq 2 $member_count)
+            set -l member_key "member"(math $i - 1)  # member1, member2...
+            set -l member_prompt (jq -r ".$team.$member_key.initial_prompt // \"\"" $TASKS_CONFIG_FILE 2>/dev/null)
+            
+            if test -n "$member_prompt"
+                set -l member_pane_idx (get_pane_index_for_team $team $i)
+                send_task_to_pane $member_pane_idx "$member_prompt"
+                log_success "$team_name メンバー $i: タスク送信完了"
+            end
+        end
+    end
+    
+    log_success "全てのタスク割り当てが完了しました"
 end
 
 # メイン処理
@@ -67,6 +160,10 @@ function main
     log_info "tmuxセッションを作成中..."
     tmux new-session -d -s $SESSION_NAME -n "All-Teams" -c $WORKSPACE
     
+    # ペインボーダーの設定（グローバルに設定）
+    tmux set-option -g pane-border-status top
+    tmux set-option -g pane-border-format " #{pane_title} "
+    
     # セッション作成確認
     if not tmux has-session -t $SESSION_NAME 2>/dev/null
         log_error "セッションの作成に失敗しました"
@@ -76,11 +173,15 @@ function main
     # 最初のペインはMaster（既に存在）
     log_success "Master用ペイン作成完了"
     
+    # 少し待機してからMasterペインの名前を設定
+    sleep 0.5
+    tmux select-pane -t $SESSION_NAME:1.1 -T "Master"
+    
     # worktreeディレクトリを作成
     mkdir -p $WORKSPACE/worktrees
     
     # 各チームのペインを作成
-    set -l pane_index 1
+    set -l pane_index 2  # Masterが1なので、2から開始
     if test -f $TEAMS_CONFIG_FILE
         set -l teams (jq -r '.teams[] | select(.active == true) | .id' $TEAMS_CONFIG_FILE 2>/dev/null)
         
@@ -100,6 +201,17 @@ function main
                 set -l split_status $status
                 if test $split_status -eq 0
                     log_success "  → メンバー $member のペイン作成"
+                    
+                    # ペインの名前を設定（作成直後に設定）
+                    sleep 0.1
+                    if test $member -eq 1
+                        # ボス（部長）
+                        tmux select-pane -t $SESSION_NAME:1.$pane_index -T "$team_name ボス"
+                    else
+                        # メンバー
+                        tmux select-pane -t $SESSION_NAME:1.$pane_index -T "$team_name #$member"
+                    end
+                    
                     # 3ペイン以上の場合はレイアウトを調整
                     if test $pane_index -ge 3
                         tmux select-layout -t $SESSION_NAME tiled 2>/dev/null
@@ -128,22 +240,25 @@ function main
     
     # 各ペインでClaude Codeを起動
     log_info "各ペインでClaude Codeを起動中..."
-    # 実際のペイン数を再度取得（tmuxのインデックスが0から始まることを考慮）
+    # 実際のペイン数を再度取得（tmuxのペインインデックスは1から始まる）
     set -l actual_panes (tmux list-panes -t $SESSION_NAME 2>/dev/null | wc -l | string trim)
     if test -n "$actual_panes" -a "$actual_panes" -gt 0
-        for i in (seq 0 (math $actual_panes - 1))
-            tmux send-keys -t $SESSION_NAME.$i 'claude --dangerously-skip-permissions' Enter
+        for i in (seq 1 $actual_panes)
+            tmux send-keys -t $SESSION_NAME:1.$i 'claude --dangerously-skip-permissions' Enter
             sleep 0.5
         end
     else
         # フォールバック
-        for i in (seq 0 (math $final_panes - 1))
-            tmux send-keys -t $SESSION_NAME.$i 'claude --dangerously-skip-permissions' Enter
+        for i in (seq 1 $final_panes)
+            tmux send-keys -t $SESSION_NAME:1.$i 'claude --dangerously-skip-permissions' Enter
             sleep 0.5
         end
     end
     
     log_success "全てのClaude Codeを起動しました"
+    
+    # タスクの自動割り当て
+    assign_tasks
     
     echo ""
     echo "✅ セットアップ完了！"

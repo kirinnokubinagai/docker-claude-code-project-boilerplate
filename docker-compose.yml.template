@@ -13,6 +13,9 @@ services:
       # プロジェクトファイル
       - .:/workspace
       - ./docker/claude/CLAUDE.md:/workspace/CLAUDE.md
+      
+      # configディレクトリを直置き
+      - ./docker/config:/workspace/config
 
       # Claude Code設定
       - ~/.anthropic:/home/developer/.anthropic
@@ -70,30 +73,13 @@ services:
     # カスタムネットワーク使用（コンテナ間通信用）
     networks:
       - claude-network
-    # ホストへのアクセスも必要な場合
+    # ホストのMCPサーバーにアクセスするため
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    
+    # ホストのネットワークモードを使用（MCPサーバー接続用）
+    # network_mode: "host"  # 必要に応じてコメントアウトを外す
 
-  # OWASP ZAPサービス
-  zap:
-    image: ghcr.io/zaproxy/zaproxy:stable
-    container_name: zap-${PROJECT_NAME:-default}
-    networks:
-      - claude-network
-    ports:
-      - "8090:8090"
-    volumes:
-      - ./zap-reports:/zap/reports
-      - ./zap-rules.conf:/zap/zap-rules.conf:ro
-    command: zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=true -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true
-    environment:
-      - ZAP_PORT=8090
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8090"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
   fish_history:

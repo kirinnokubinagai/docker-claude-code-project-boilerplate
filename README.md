@@ -18,7 +18,7 @@ docker exec -it claude-dev fish
 
 ### 3. Create Your App (with Claude)
 ```bash
-cc  # Describe your app to Claude
+ccd  # Describe your app to Claude
 ```
 
 ### 4. Launch Team

@@ -38,10 +38,10 @@
    ```
 
 3. **teams.json自動生成**
-   必ず以下の形式でconfig/teams.jsonを作成（**形式を厳密に守ること！**）：
+   必ず以下の形式でdocker/config/teams.jsonを作成（**形式を厳密に守ること！**）：
    ```bash
-   mkdir -p config
-   cat > config/teams.json << 'EOF'
+   mkdir -p docker/config
+   cat > docker/config/teams.json << 'EOF'
    {
      "project_name": "プロジェクト名",
      "project_type": "タイプ",
@@ -154,8 +154,8 @@
 
 次のコマンドを実行してteams.jsonを生成します:
 
-mkdir -p config
-cat > config/teams.json << 'EOF'
+mkdir -p docker/config
+cat > docker/config/teams.json << 'EOF'
 {
   "project_name": "SNSアプリ",
   "project_type": "web-app",
@@ -170,8 +170,8 @@ cat > config/teams.json << 'EOF'
 EOF
 
 タスクファイルも生成します:
-# team-tasks.jsonをconfigディレクトリに生成
-cat > config/team-tasks.json << 'EOF'
+# team-tasks.jsonをdocker/configディレクトリに生成
+cat > docker/config/team-tasks.json << 'EOF'
 {
   "master": {
     "initial_prompt": "私はMaster Claudeです。プロジェクト全体を統括します。"
@@ -181,28 +181,56 @@ cat > config/team-tasks.json << 'EOF'
       "role": "Frontend部長",
       "initial_prompt": "私はFrontend部長です。UI/UX開発を統括します。"
     },
-    "member_tasks": []
+    "member1": {
+      "role": "Frontendメンバー1",
+      "initial_prompt": "タスク一覧表示UIとタスク追加フォームの実装をお願いします。"
+    },
+    "member2": {
+      "role": "Frontendメンバー2",
+      "initial_prompt": "タスク編集・削除機能とフィルタリング機能の実装をします。"
+    }
   },
   "backend": {
     "boss": {
       "role": "Backend部長",
       "initial_prompt": "私はBackend部長です。API開発を統括します。"
     },
-    "member_tasks": []
+    "member1": {
+      "role": "Backendメンバー1",
+      "initial_prompt": "タスクCRUD APIとデータベース連携の実装をします。"
+    },
+    "member2": {
+      "role": "Backendメンバー2",
+      "initial_prompt": "認証システムとGoogle Calendar API統合の実装をします。"
+    }
   },
   "database": {
     "boss": {
       "role": "Database部長",
       "initial_prompt": "私はDatabase部長です。データ設計を統括します。"
     },
-    "member_tasks": []
+    "member1": {
+      "role": "Databaseメンバー1",
+      "initial_prompt": "データベーススキーマ設計とマイグレーション実装をします。"
+    },
+    "member2": {
+      "role": "Databaseメンバー2",
+      "initial_prompt": "インデックス最適化とクエリパフォーマンス改善をします。"
+    }
   },
   "devops": {
     "boss": {
       "role": "DevOps部長",
       "initial_prompt": "私はDevOps部長です。インフラ構築を統括します。"
     },
-    "member_tasks": []
+    "member1": {
+      "role": "DevOpsメンバー1",
+      "initial_prompt": "Docker環境構築とCI/CDパイプライン設定をします。"
+    },
+    "member2": {
+      "role": "DevOpsメンバー2",
+      "initial_prompt": "本番環境デプロイと監視システム構築をします。"
+    }
   }
 }
 EOF
@@ -486,7 +514,7 @@ while (productExists) {
 
 **重要: ユーザーが「〇〇を作りたい」と言ったら、必ず最初にタスク分割とチーム構成を実行**
 
-**超重要: teams.jsonは必ずbashコマンドで `config/teams.json` に作成すること！JSONを表示するだけでは動作しません！**
+**超重要: teams.jsonは必ずbashコマンドで `docker/config/teams.json` に作成すること！JSONを表示するだけでは動作しません！**
 
 **🛑 最重要: teams.json生成後は実装に着手せず、チーム構成の準備完了で停止すること！**
 

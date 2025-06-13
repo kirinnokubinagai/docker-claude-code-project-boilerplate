@@ -98,14 +98,11 @@ echo "用途: Playwright E2Eテスト + ホスト側開発"
 check_boilerplate_files() {
     local base_dir="$1"
     local required_files=(
-        "Dockerfile"
-        "docker-compose.yml"
+        "Dockerfile.template"
+        "docker-compose.yml.template"
         "docker-entrypoint.sh"
         "scripts"
-        "lib"
-        "config"
         "docker"
-        "team-templates"
     )
     
     for file in "${required_files[@]}"; do
@@ -147,15 +144,11 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     
     # 必要なファイルのみコピー（.gitは除外）
     echo "📋 必要なファイルをコピー中..."
-    cp "$SCRIPT_DIR/Dockerfile" "$FULL_PROJECT_PATH/"
-    cp "$SCRIPT_DIR/docker-compose.yml" "$FULL_PROJECT_PATH/"
+    cp "$SCRIPT_DIR/Dockerfile.template" "$FULL_PROJECT_PATH/Dockerfile"
+    cp "$SCRIPT_DIR/docker-compose.yml.template" "$FULL_PROJECT_PATH/docker-compose.yml"
     cp "$SCRIPT_DIR/docker-entrypoint.sh" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/scripts" "$FULL_PROJECT_PATH/"
-    cp -P "$SCRIPT_DIR/master" "$FULL_PROJECT_PATH/" 2>/dev/null || true
-    cp -r "$SCRIPT_DIR/lib" "$FULL_PROJECT_PATH/"
-    cp -r "$SCRIPT_DIR/config" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/docker" "$FULL_PROJECT_PATH/"
-    cp -r "$SCRIPT_DIR/team-templates" "$FULL_PROJECT_PATH/"
     
     # オプションファイルのコピー
     [ -f "$SCRIPT_DIR/.env.example" ] && cp "$SCRIPT_DIR/.env.example" "$FULL_PROJECT_PATH/"
@@ -179,20 +172,24 @@ else
         
         echo "📋 必要なファイルをコピー中..."
         # 既存ファイルの上書き確認
-        for file in Dockerfile docker-compose.yml docker-entrypoint.sh; do
-            if [ -f "$file" ]; then
-                echo "⚠️  既存の $file を上書きします"
-            fi
-            cp "$SCRIPT_DIR/$file" .
-        done
+        if [ -f "Dockerfile" ]; then
+            echo "⚠️  既存の Dockerfile を上書きします"
+        fi
+        cp "$SCRIPT_DIR/Dockerfile.template" ./Dockerfile
+        
+        if [ -f "docker-compose.yml" ]; then
+            echo "⚠️  既存の docker-compose.yml を上書きします"
+        fi
+        cp "$SCRIPT_DIR/docker-compose.yml.template" ./docker-compose.yml
+        
+        if [ -f "docker-entrypoint.sh" ]; then
+            echo "⚠️  既存の docker-entrypoint.sh を上書きします"
+        fi
+        cp "$SCRIPT_DIR/docker-entrypoint.sh" .
         
         # ディレクトリのコピー（既存の場合はマージ）
         cp -r "$SCRIPT_DIR/scripts" .
-        cp -P "$SCRIPT_DIR/master" . 2>/dev/null || true
-        cp -r "$SCRIPT_DIR/lib" .
-        cp -r "$SCRIPT_DIR/config" .
         cp -r "$SCRIPT_DIR/docker" .
-        cp -r "$SCRIPT_DIR/team-templates" .
         
         # オプションファイル
         [ -f "$SCRIPT_DIR/.env.example" ] && [ ! -f ".env.example" ] && cp "$SCRIPT_DIR/.env.example" .
@@ -255,8 +252,8 @@ fi
 
 # 必要なディレクトリ作成
 echo "📁 必要なディレクトリを作成中..."
-mkdir -p screenshots logs temp docs
-touch screenshots/.gitkeep logs/.gitkeep temp/.gitkeep docs/.gitkeep
+mkdir -p screenshots
+touch screenshots/.gitkeep
 
 # docker-compose.ymlは既に環境変数対応済み
 echo "✅ docker-compose.ymlは環境変数で動的に設定されます"
@@ -300,20 +297,15 @@ echo "1. cd $FULL_PROJECT_PATH"
 echo "2. 必要に応じて.envファイルを編集"
 echo "3. 必要に応じてMCPサーバーの環境変数を設定"
 echo "4. docker compose up -d でコンテナ起動"
-echo "5. docker compose exec -w /workspace claude-code developer-fish でdeveloperとしてシェルに接続 # root権限だとclaude codeを--dangerously-skipで実行できない"
-echo "6. cc を実行してClaude Codeを起動（「〇〇を作りたい」でチーム自動構成）"
-echo "7. master を実行してMasterとして起動"
+echo "5. docker compose exec claude-code fish でシェルに接続"
+echo "6. sudo su - developer でdeveloperユーザーに切り替え"
+echo "7. cc を実行してClaude Codeを起動（「〇〇を作りたい」でチーム自動構成）"
+echo "8. master を実行してチームを並列起動"
 echo ""
 echo "🔧 よく使うコマンド:"
 echo "docker compose up -d                    # コンテナ起動"
 echo "docker compose exec claude-code fish    # シェル接続"
+echo "sudo su - developer                     # developerユーザーに切り替え"
 echo "cc                                     # Claude Code起動（動的チーム構成）"
-echo "./join-company.sh <team-template>       # テンプレートからチーム追加"
+echo "master                                 # チーム並列起動"
 echo "docker compose down                     # コンテナ停止"
-echo ""
-echo "📚 動的チーム構成（推奨）:"
-echo "cc  # Claude Codeを起動して「〇〇を作りたい」で自動チーム構成"
-echo ""
-echo "📚 手動チーム追加例:"
-echo "./join-company.sh team-templates/frontend-team.json   # フロントエンドチーム追加"
-echo "./join-company.sh team-templates/backend-team.json    # バックエンドチーム追加"

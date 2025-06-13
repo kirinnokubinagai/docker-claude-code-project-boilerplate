@@ -1,0 +1,61 @@
+{
+  "master": {
+    "initial_prompt": "私はMaster Claudeです。タスク管理アプリプロジェクト全体を統括します。"
+  },
+  "frontend": {
+    "boss": {
+      "role": "Frontend部長",
+      "initial_prompt": "私はFrontend部長です。UI/UX開発とガントチャート実装を統括します。"
+    },
+    "member1": {
+      "role": "Frontendメンバー1",
+      "initial_prompt": "タスク一覧表示UIとタスク追加フォームの実装をお願いします"
+    },
+    "member2": {
+      "role": "Frontendメンバー2",
+      "initial_prompt": "タスク編集・削除機能とフィルタリング機能の実装"
+    }
+  },
+  "backend": {
+    "boss": {
+      "role": "Backend部長",
+      "initial_prompt": "私はBackend部長です。API開発とGoogle Calendar連携を統括します。"
+    },
+    "member1": {
+      "role": "Backendメンバー1",
+      "initial_prompt": "タスクCRUD APIとデータベース連携の実装"
+    },
+    "member2": {
+      "role": "Backendメンバー2",
+      "initial_prompt": "認証システムとGoogle Calendar API統合の実装"
+    }
+  },
+  "database": {
+    "boss": {
+      "role": "Database部長",
+      "initial_prompt": "私はDatabase部長です。データ設計と最適化を統括します。"
+    },
+    "member1": {
+      "role": "Databaseメンバー1",
+      "initial_prompt": "データベーススキーマ設計とマイグレーション実装"
+    },
+    "member2": {
+      "role": "Databaseメンバー2",
+      "initial_prompt": "インデックス最適化とクエリパフォーマンス改善"
+    }
+  },
+  "devops": {
+    "boss": {
+      "role": "DevOps部長",
+      "initial_prompt": "私はDevOps部長です。インフラ構築とデプロイを統括します。"
+    },
+    "member1": {
+      "role": "DevOpsメンバー1",
+      "initial_prompt": "Docker環境構築とCI/CDパイプライン設定"
+    },
+    "member2": {
+      "role": "DevOpsメンバー2",
+      "initial_prompt": "本番環境デプロイと監視システム構築"
+    }
+  }
+}

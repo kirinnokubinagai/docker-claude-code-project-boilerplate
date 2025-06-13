@@ -28,6 +28,7 @@ if [ ! -z "$USER_UID" ] && [ ! -z "$USER_GID" ] && [ "$USER_UID" != "0" ]; then
     fi
 fi
 
+
 # workspaceディレクトリの権限設定（developerユーザーが書き込めるように）
 # ただし、.gitディレクトリは除外（既存の権限を保持）
 find /workspace -mindepth 1 -maxdepth 1 ! -name '.git' -exec chown -R developer:developer {} \; 2>/dev/null || true
@@ -35,14 +36,22 @@ find /workspace -mindepth 1 -maxdepth 1 ! -name '.git' -exec chown -R developer:
 # 新規ファイルのみ権限変更
 find /workspace -user root -exec chown developer:developer {} \; 2>/dev/null || true
 
-# Master Claudeスクリプトの実行権限
-if [ -f "/workspace/master-claude-teams.sh" ]; then
-    chmod +x /workspace/master-claude-teams.sh
+# scriptsファイルの実行権限
+if [ -d "/workspace/scripts" ]; then
+    chmod +x /workspace/scripts/*.fish
 fi
 
-# libファイルの実行権限
-if [ -d "/workspace/lib" ]; then
-    chmod +x /workspace/lib/*.sh
+# rootユーザー用のfishエイリアス設定
+if [ ! -f "/root/.config/fish/config.fish" ]; then
+    mkdir -p /root/.config/fish
+    cat > /root/.config/fish/config.fish << 'EOF'
+# エイリアス設定（rootユーザー用）
+alias cc='claude --dangerously-skip-permissions'
+alias ccd='claude --dangerously-skip-permissions'
+alias master='env -u TMUX /workspace/scripts/master-claude-teams.fish'
+alias check_mcp='claude mcp list'
+alias ll='ls -la'
+EOF
 fi
 
 # tmux設定ファイルをコピー（権限を修正してから）
