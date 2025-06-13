@@ -41,17 +41,14 @@ RUN curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/z.fi
 RUN curl -L https://raw.githubusercontent.com/greymd/tmux-xpanes/master/bin/xpanes -o /usr/local/bin/xpanes \
     && chmod +x /usr/local/bin/xpanes
 
+# Docker CLIとDocker Composeのインストール（コンテナ内からホストのDockerを操作するため）
+RUN apk add --no-cache docker-cli docker-cli-compose
+
 # Claude Codeをインストール（これは必要）
 RUN npm install -g @anthropic-ai/claude-code
 
 # MCPサーバーはnpxで実行時に取得するため、グローバルインストール不要
-# 必要に応じて使用される開発ツールのみインストール
-RUN npm install -g \
-    @redocly/openapi-cli \
-    redoc-cli \
-    lighthouse \
-    snyk \
-    conventional-changelog-cli
+# 最小限のツールのみインストール
 
 # Pythonベースのツールもインストール（--break-system-packagesフラグを使用）
 RUN pip3 install --break-system-packages uv
@@ -92,8 +89,7 @@ RUN apk add --no-cache gettext
 # entrypointスクリプトをコピー
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 COPY docker/developer-entrypoint.sh /usr/local/bin/developer-entrypoint
-COPY docker/developer-fish.sh /usr/local/bin/developer-fish
-RUN chmod +x /docker-entrypoint.sh /usr/local/bin/developer-entrypoint /usr/local/bin/developer-fish
+RUN chmod +x /docker-entrypoint.sh /usr/local/bin/developer-entrypoint
 
 # Fish設定ファイルをコピー
 COPY docker/fish/config.fish /tmp/config.fish

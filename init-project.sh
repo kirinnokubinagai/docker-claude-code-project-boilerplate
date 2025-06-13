@@ -101,8 +101,7 @@ check_boilerplate_files() {
         "Dockerfile"
         "docker-compose.yml"
         "docker-entrypoint.sh"
-        "master-claude-teams.fish"
-        "join-company.fish"
+        "scripts"
         "lib"
         "config"
         "docker"
@@ -151,8 +150,8 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     cp "$SCRIPT_DIR/Dockerfile" "$FULL_PROJECT_PATH/"
     cp "$SCRIPT_DIR/docker-compose.yml" "$FULL_PROJECT_PATH/"
     cp "$SCRIPT_DIR/docker-entrypoint.sh" "$FULL_PROJECT_PATH/"
-    cp "$SCRIPT_DIR/master-claude-teams.fish" "$FULL_PROJECT_PATH/"
-    cp "$SCRIPT_DIR/join-company.fish" "$FULL_PROJECT_PATH/"
+    cp -r "$SCRIPT_DIR/scripts" "$FULL_PROJECT_PATH/"
+    cp -P "$SCRIPT_DIR/master" "$FULL_PROJECT_PATH/" 2>/dev/null || true
     cp -r "$SCRIPT_DIR/lib" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/config" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/docker" "$FULL_PROJECT_PATH/"
@@ -180,7 +179,7 @@ else
         
         echo "📋 必要なファイルをコピー中..."
         # 既存ファイルの上書き確認
-        for file in Dockerfile docker-compose.yml docker-entrypoint.sh master-claude-teams.sh join-company.sh; do
+        for file in Dockerfile docker-compose.yml docker-entrypoint.sh; do
             if [ -f "$file" ]; then
                 echo "⚠️  既存の $file を上書きします"
             fi
@@ -188,6 +187,8 @@ else
         done
         
         # ディレクトリのコピー（既存の場合はマージ）
+        cp -r "$SCRIPT_DIR/scripts" .
+        cp -P "$SCRIPT_DIR/master" . 2>/dev/null || true
         cp -r "$SCRIPT_DIR/lib" .
         cp -r "$SCRIPT_DIR/config" .
         cp -r "$SCRIPT_DIR/docker" .

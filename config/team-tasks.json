@@ -1,33 +1,33 @@
 {
   "master": {
-    "initial_prompt": "私はMaster Claudeです。workspaceのWeb開発プロジェクトを統括します。\n\n現在の目標：\n1. プロジェクトの技術スタックを確定\n2. 各チームのタスクを割り振り\n3. 進捗管理とコードレビュー"
+    "initial_prompt": "私はMaster Claudeです。タスク管理アプリプロジェクト全体を統括します。"
   },
   "frontend": {
-    "member_tasks": [
-      {
-        "member_id": 1,
-        "role": "Frontend Lead",
-        "initial_prompt": "私はFrontend Leadです。workspaceのフロントエンド開発をリードします。\n\n担当タスク：\n1. Next.js 14でのプロジェクトセットアップ\n2. UIコンポーネントライブラリの選定（shadcn/ui推奨）\n3. 状態管理の設計（Zustand or Jotai）\n4. ルーティング構造の設計"
-      },
-      {
-        "member_id": 2,
-        "role": "UI/UX Developer",
-        "initial_prompt": "私はUI/UX Developerです。workspaceのユーザー体験を設計します。\n\n担当タスク：\n1. デザインシステムの構築\n2. レスポンシブデザインの実装\n3. アクセシビリティ対応（WCAG 2.1 AA準拠）\n4. パフォーマンス最適化（Core Web Vitals）"
-      }
-    ]
+    "boss": {
+      "role": "Frontend部長",
+      "initial_prompt": "私はFrontend部長です。UI/UX開発とガントチャート実装を統括します。"
+    },
+    "member_tasks": []
   },
   "backend": {
-    "member_tasks": [
-      {
-        "member_id": 1,
-        "role": "Backend Lead",
-        "initial_prompt": "私はBackend Leadです。workspaceのバックエンド開発をリードします。\n\n担当タスク：\n1. Node.js + TypeScriptでのAPIサーバー構築\n2. PostgreSQLデータベース設計\n3. 認証・認可システムの実装（JWT + OAuth2）\n4. APIドキュメント自動生成（OpenAPI）"
-      },
-      {
-        "member_id": 2,
-        "role": "DevOps Engineer",
-        "initial_prompt": "私はDevOps Engineerです。workspaceのインフラと運用を担当します。\n\n担当タスク：\n1. Docker環境の構築\n2. CI/CDパイプラインの設定（GitHub Actions）\n3. 本番環境のデプロイ設定（Vercel + Railway）\n4. モニタリングとログ管理"
-      }
-    ]
+    "boss": {
+      "role": "Backend部長",
+      "initial_prompt": "私はBackend部長です。API開発とGoogle Calendar連携を統括します。"
+    },
+    "member_tasks": []
+  },
+  "database": {
+    "boss": {
+      "role": "Database部長",
+      "initial_prompt": "私はDatabase部長です。データ設計と最適化を統括します。"
+    },
+    "member_tasks": []
+  },
+  "devops": {
+    "boss": {
+      "role": "DevOps部長",
+      "initial_prompt": "私はDevOps部長です。インフラ構築とデプロイを統括します。"
+    },
+    "member_tasks": []
   }
 }

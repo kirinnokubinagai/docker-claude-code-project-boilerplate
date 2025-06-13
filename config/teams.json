@@ -1,22 +1,47 @@
 {
+  "project_name": "タスク管理アプリ with Googleカレンダー連携",
+  "project_type": "web-app",
+  "analyzed_at": "2025-01-13T00:00:00Z",
   "teams": [
     {
       "id": "frontend",
       "name": "Frontend Team",
-      "description": "UI/UX開発",
-      "member_count": 2,
-      "tech_stack": "Next.js",
+      "description": "UI/UX開発、ガントチャート実装",
+      "member_count": 3,
+      "tech_stack": "Next.js 14, React 18, TypeScript, Gantt Chart Library",
       "branch": "team/frontend",
-      "active": true
+      "active": true,
+      "justification": "複雑なUIとインタラクティブな機能が必要"
     },
     {
       "id": "backend",
-      "name": "Backend Team",
-      "description": "API開発",
+      "name": "Backend Team", 
+      "description": "API開発、Google連携",
       "member_count": 2,
-      "tech_stack": "Node.js",
+      "tech_stack": "Node.js, Express, Google APIs, Socket.io",
       "branch": "team/backend",
-      "active": true
+      "active": true,
+      "justification": "外部API連携とリアルタイム同期が必要"
+    },
+    {
+      "id": "database",
+      "name": "Database Team",
+      "description": "データ設計、最適化",
+      "member_count": 2,
+      "tech_stack": "PostgreSQL, Prisma ORM, Redis",
+      "branch": "team/database",
+      "active": true,
+      "justification": "複雑なリレーション設計とリアルタイム同期のためのキャッシュ設計が必要"
+    },
+    {
+      "id": "devops",
+      "name": "DevOps Team",
+      "description": "インフラ構築、デプロイ",
+      "member_count": 1,
+      "tech_stack": "Docker, GitHub Actions, Google Cloud",
+      "branch": "team/devops",
+      "active": true,
+      "justification": "Google連携のための環境構築が必要"
     }
   ]
 }
