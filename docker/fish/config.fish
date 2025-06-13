@@ -17,14 +17,15 @@ end
 
 # エイリアスとカスタムコマンド
 alias ll='ls -la'
-alias master='env -u TMUX /workspace/scripts/master-claude-teams.fish'
+alias master='env -u TMUX /workspace/docker/scripts/master-claude-teams.fish'
 alias check_mcp='claude mcp list'
 alias cc='claude'
 alias ccd='claude --dangerously-skip-permissions'
+alias setup-mcp='/workspace/docker/scripts/setup-mcp.fish'
 
 # 実行可能ファイルの確認と権限付与
-if test -f /workspace/scripts/master-claude-teams.fish
-    chmod +x /workspace/scripts/master-claude-teams.fish 2>/dev/null
+if test -f /workspace/docker/scripts/master-claude-teams.fish
+    chmod +x /workspace/docker/scripts/master-claude-teams.fish 2>/dev/null
 end
 
 # プロンプトカスタマイズ
@@ -139,6 +140,7 @@ if status is-interactive; and not set -q CLAUDE_GREETING_SHOWN
         echo "📋 使用可能なコマンド:"
         echo "  ccd        - 全権限claudeコマンド"
         echo "  master     - 並列システムを起動"
+        echo "  setup-mcp  - MCPサーバーの設定"
         echo "  check_mcp  - MCPサーバーの状態確認"
         echo "  tmux_help  - 全コマンドとtmuxヘルプを表示"
         echo ""

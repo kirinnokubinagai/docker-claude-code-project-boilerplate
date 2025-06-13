@@ -37,8 +37,8 @@ find /workspace -mindepth 1 -maxdepth 1 ! -name '.git' -exec chown -R developer:
 find /workspace -user root -exec chown developer:developer {} \; 2>/dev/null || true
 
 # scriptsファイルの実行権限
-if [ -d "/workspace/scripts" ]; then
-    chmod +x /workspace/scripts/*.fish
+if [ -d "/workspace/docker/scripts" ]; then
+    chmod +x /workspace/docker/scripts/*.fish
 fi
 
 # rootユーザー用のfishエイリアス設定
@@ -48,19 +48,20 @@ if [ ! -f "/root/.config/fish/config.fish" ]; then
 # エイリアス設定（rootユーザー用）
 alias cc='claude --dangerously-skip-permissions'
 alias ccd='claude --dangerously-skip-permissions'
-alias master='env -u TMUX /workspace/scripts/master-claude-teams.fish'
+alias master='env -u TMUX /workspace/docker/scripts/master-claude-teams.fish'
 alias check_mcp='claude mcp list'
+alias setup-mcp='/workspace/docker/scripts/setup-mcp.fish'
 alias ll='ls -la'
 EOF
 fi
 
 # tmux設定ファイルをコピー（権限を修正してから）
-if [ -f "/workspace/docker/.tmux.conf" ]; then
+if [ -f "/workspace/docker/config/.tmux.conf" ]; then
     # rootユーザーとして実行されているので、直接操作
     if [ -f "/home/developer/.tmux.conf" ]; then
         rm -f /home/developer/.tmux.conf 2>/dev/null || true
     fi
-    cp /workspace/docker/.tmux.conf /home/developer/.tmux.conf 2>/dev/null || true
+    cp /workspace/docker/config/.tmux.conf /home/developer/.tmux.conf 2>/dev/null || true
     chown developer:developer /home/developer/.tmux.conf 2>/dev/null || true
 fi
 

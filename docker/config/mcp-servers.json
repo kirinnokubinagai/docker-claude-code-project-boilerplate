@@ -1,0 +1,61 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"],
+      "env": {}
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-playwright"],
+      "env": {}
+    },
+    "everything": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-everything"],
+      "env": {}
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp"],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      },
+      "disabled": true
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@context/mcp-server-context7"],
+      "env": {},
+      "disabled": true
+    },
+    "design-reference": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-design-reference"],
+      "env": {},
+      "disabled": true
+    },
+    "obsidian": {
+      "command": "npx",
+      "args": ["-y", "@tstepanski/mcp-server-obsidian", "--obsidian-api-key", "${OBSIDIAN_API_KEY}", "--obsidian-api-host", "${OBSIDIAN_HOST:-localhost:27124}"],
+      "env": {},
+      "disabled": true
+    },
+    "line-bot": {
+      "command": "npx",
+      "args": ["-y", "@line-bot/mcp-server"],
+      "env": {
+        "LINE_CHANNEL_ACCESS_TOKEN": "${LINE_CHANNEL_ACCESS_TOKEN}",
+        "DESTINATION_USER_ID": "${DESTINATION_USER_ID}"
+      },
+      "disabled": true
+    }
+  }
+}

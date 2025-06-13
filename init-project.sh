@@ -101,7 +101,6 @@ check_boilerplate_files() {
         "Dockerfile.template"
         "docker-compose.yml.template"
         "docker-entrypoint.sh"
-        "scripts"
         "docker"
     )
     
@@ -147,7 +146,6 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     cp "$SCRIPT_DIR/Dockerfile.template" "$FULL_PROJECT_PATH/Dockerfile"
     cp "$SCRIPT_DIR/docker-compose.yml.template" "$FULL_PROJECT_PATH/docker-compose.yml"
     cp "$SCRIPT_DIR/docker-entrypoint.sh" "$FULL_PROJECT_PATH/"
-    cp -r "$SCRIPT_DIR/scripts" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/docker" "$FULL_PROJECT_PATH/"
     
     # オプションファイルのコピー
@@ -188,7 +186,6 @@ else
         cp "$SCRIPT_DIR/docker-entrypoint.sh" .
         
         # ディレクトリのコピー（既存の場合はマージ）
-        cp -r "$SCRIPT_DIR/scripts" .
         cp -r "$SCRIPT_DIR/docker" .
         
         # オプションファイル
@@ -210,8 +207,8 @@ if [ ! -f "$ENV_FILE" ]; then
 # プロジェクト設定
 PROJECT_NAME=$PROJECT_NAME
 
-# Claude Code API Key
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# Claude Code API Key (オプション - Claude CLIを使用する場合は設定)
+# ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # Optional: MCPサーバー設定（使用する場合のみ設定）
 # SUPABASE_ACCESS_TOKEN=
@@ -299,13 +296,15 @@ echo "3. 必要に応じてMCPサーバーの環境変数を設定"
 echo "4. docker compose up -d でコンテナ起動"
 echo "5. docker compose exec claude-code fish でシェルに接続"
 echo "6. sudo su - developer でdeveloperユーザーに切り替え"
-echo "7. cc を実行してClaude Codeを起動（「〇〇を作りたい」でチーム自動構成）"
-echo "8. master を実行してチームを並列起動"
+echo "7. setup-mcp を実行してMCPサーバーを設定（オプション）"
+echo "8. cc を実行してClaude Codeを起動（「〇〇を作りたい」でチーム自動構成）"
+echo "9. master を実行してチームを並列起動"
 echo ""
 echo "🔧 よく使うコマンド:"
 echo "docker compose up -d                    # コンテナ起動"
 echo "docker compose exec claude-code fish    # シェル接続"
 echo "sudo su - developer                     # developerユーザーに切り替え"
+echo "setup-mcp                              # MCPサーバー設定（初回のみ）"
 echo "cc                                     # Claude Code起動（動的チーム構成）"
 echo "master                                 # チーム並列起動"
 echo "docker compose down                     # コンテナ停止"
