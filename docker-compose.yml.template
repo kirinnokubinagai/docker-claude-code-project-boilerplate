@@ -40,29 +40,27 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
     environment:
-      # Claude Code API Key (オプション)
+      # 環境変数 (.envファイルから自動的に読み込まれます)
+      # 設定されていない変数は無視されます
+      
+      # Claude Code
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
 
-      # Supabase MCP設定
+      # MCP Servers
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
       - SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN}
-
-      # Stripe MCP設定
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
-
-      # LINE Bot MCP設定
       - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
       - DESTINATION_USER_ID=${DESTINATION_USER_ID}
-
-      # Obsidian MCP設定
       - OBSIDIAN_API_KEY=${OBSIDIAN_API_KEY}
       - OBSIDIAN_HOST=${OBSIDIAN_HOST:-localhost:27124}
 
-      # Playwright設定
+      # Playwright
       - PLAYWRIGHT_HEADLESS=${PLAYWRIGHT_HEADLESS:-true}
       - PLAYWRIGHT_TIMEOUT=${PLAYWRIGHT_TIMEOUT:-30000}
 
-      # Context7設定
+      # Context7
       - DEFAULT_MINIMUM_TOKENS=${DEFAULT_MINIMUM_TOKENS:-6000}
 
     working_dir: /workspace
