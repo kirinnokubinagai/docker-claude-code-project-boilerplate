@@ -40,7 +40,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
     environment:
-      # 必須環境変数
+      # Claude Code API Key (オプション)
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
 
       # Supabase MCP設定

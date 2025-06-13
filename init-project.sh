@@ -227,7 +227,7 @@ PLAYWRIGHT_TIMEOUT=30000
 DEFAULT_MINIMUM_TOKENS=6000
 EOF
     echo "✅ .envファイルが作成されました"
-    echo "⚠️  環境変数を設定してください"
+    echo "ℹ️  必要に応じて環境変数を設定してください"
 else
     # 既存の.envファイルを更新
     echo "📝 既存の.envファイルを更新中..."
