@@ -148,9 +148,16 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     cp "$SCRIPT_DIR/docker-entrypoint.sh" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/docker" "$FULL_PROJECT_PATH/"
     
-    # オプションファイルのコピー
-    [ -f "$SCRIPT_DIR/.env.example" ] && cp "$SCRIPT_DIR/.env.example" "$FULL_PROJECT_PATH/"
-    [ -f "$SCRIPT_DIR/.env" ] && cp "$SCRIPT_DIR/.env" "$FULL_PROJECT_PATH/"
+    # .envファイルのコピー（優先順位: .env > .env.example）
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        cp "$SCRIPT_DIR/.env" "$FULL_PROJECT_PATH/"
+        echo "📋 .envファイルをコピーしました"
+    elif [ -f "$SCRIPT_DIR/.env.example" ]; then
+        cp "$SCRIPT_DIR/.env.example" "$FULL_PROJECT_PATH/.env"
+        echo "📋 .env.exampleを.envとしてコピーしました"
+    fi
+    
+    # その他のオプションファイル
     [ -f "$SCRIPT_DIR/.gitignore" ] && cp "$SCRIPT_DIR/.gitignore" "$FULL_PROJECT_PATH/"
     [ -f "$SCRIPT_DIR/README.md" ] && cp "$SCRIPT_DIR/README.md" "$FULL_PROJECT_PATH/"
     
@@ -188,8 +195,18 @@ else
         # ディレクトリのコピー（既存の場合はマージ）
         cp -r "$SCRIPT_DIR/docker" .
         
-        # オプションファイル
-        [ -f "$SCRIPT_DIR/.env.example" ] && [ ! -f ".env.example" ] && cp "$SCRIPT_DIR/.env.example" .
+        # .envファイルのコピー（既存ファイルがない場合のみ）
+        if [ ! -f ".env" ]; then
+            if [ -f "$SCRIPT_DIR/.env" ]; then
+                cp "$SCRIPT_DIR/.env" .
+                echo "📋 .envファイルをコピーしました"
+            elif [ -f "$SCRIPT_DIR/.env.example" ]; then
+                cp "$SCRIPT_DIR/.env.example" .env
+                echo "📋 .env.exampleを.envとしてコピーしました"
+            fi
+        fi
+        
+        # その他のオプションファイル
         [ -f "$SCRIPT_DIR/.gitignore" ] && [ ! -f ".gitignore" ] && cp "$SCRIPT_DIR/.gitignore" .
         [ -f "$SCRIPT_DIR/README.md" ] && [ ! -f "README.md" ] && cp "$SCRIPT_DIR/README.md" .
     fi
@@ -199,39 +216,10 @@ fi
 
 echo ""
 
-# .envファイル作成/更新
+# .envファイルのPROJECT_NAME更新
 ENV_FILE=".env"
-if [ ! -f "$ENV_FILE" ]; then
-    echo "📝 .envファイルを作成中..."
-    cat > "$ENV_FILE" << EOF
-# プロジェクト設定
-PROJECT_NAME=$PROJECT_NAME
-
-# Claude Code API Key (オプション)
-# ANTHROPIC_API_KEY=
-
-# MCPサーバー設定 (オプション)
-# GITHUB_TOKEN=
-# SUPABASE_ACCESS_TOKEN=
-# STRIPE_SECRET_KEY=
-# STRIPE_PUBLISHABLE_KEY=
-# LINE_CHANNEL_ACCESS_TOKEN=
-# DESTINATION_USER_ID=
-# OBSIDIAN_API_KEY=
-# OBSIDIAN_HOST=
-
-# Playwright設定
-PLAYWRIGHT_HEADLESS=true
-PLAYWRIGHT_TIMEOUT=30000
-
-# Context7設定
-DEFAULT_MINIMUM_TOKENS=6000
-EOF
-    echo "✅ .envファイルが作成されました"
-    echo "ℹ️  必要に応じて環境変数を設定してください"
-else
-    # 既存の.envファイルを更新
-    echo "📝 既存の.envファイルを更新中..."
+if [ -f "$ENV_FILE" ]; then
+    echo "📝 .envファイルのPROJECT_NAMEを更新中..."
     
     # PROJECT_NAME を更新または追加
     if grep -q "^PROJECT_NAME=" "$ENV_FILE"; then
@@ -245,7 +233,9 @@ else
         echo "PROJECT_NAME=$PROJECT_NAME" >> "$ENV_FILE"
     fi
     
-    echo "✅ .envファイルが更新されました"
+    echo "✅ PROJECT_NAME=$PROJECT_NAME に更新しました"
+else
+    echo "⚠️  .envファイルが見つかりません。.env.exampleをコピーして.envを作成してください"
 fi
 
 # 必要なディレクトリ作成
