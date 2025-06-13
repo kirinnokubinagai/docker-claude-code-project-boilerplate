@@ -172,7 +172,8 @@ function create_tmux_layout
     tmux new-session -d -s $SESSION_NAME -n "All-Teams" -c $WORKSPACE
     
     # まずMasterのペインを作成（ペイン0）
-    tmux set-pane-border-format "#{pane_index}: Master"
+    # set-pane-border-formatは古いtmuxでは使えないのでコメントアウト
+    # tmux set-pane-border-format "#{pane_index}: Master"
     
     # 総メンバー数を計算
     set -l total_members 1  # Master分
@@ -197,7 +198,7 @@ function create_tmux_layout
             set -l member_count (jq -r ".teams[] | select(.id == \"$team\") | .member_count // 4" $TEAMS_CONFIG_FILE)
             set -l worktree_path $WORKTREES_DIR/$team
             
-            log_info "チームペイン作成: $team_name ({$member_count}人)"
+            log_info "チームペイン作成: $team_name ($member_count 人)"
             
             # 各メンバー用のペインを作成
             for member in (seq 1 $member_count)
@@ -235,7 +236,8 @@ function create_tmux_layout
     end
     
     # 各ペインのボーダーにタイトルを表示
-    tmux set-window-option -t $SESSION_NAME:0 pane-border-status top
+    tmux set-option -t $SESSION_NAME pane-border-status top
+    tmux set-option -t $SESSION_NAME pane-border-format "#{pane_index}: #{pane_title}"
     
     log_success "動的チーム構成のtmuxレイアウトを作成しました（1ウィンドウ）"
 end
