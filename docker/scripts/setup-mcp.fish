@@ -16,38 +16,64 @@ echo "$BLUE$BOLD    MCP Server Setup for Claude Code$NC"
 echo "$BLUE$BOLD======================================$NC"
 echo ""
 
-# Claude Code設定ディレクトリ
-set -l config_dir "$HOME/.claude"
-set -l config_file "$config_dir/claude_desktop_config.json"
-
-# 設定ディレクトリ作成
-mkdir -p $config_dir
-
-# 既存の設定をバックアップ
-if test -f $config_file
-    echo "$YELLOW[INFO]$NC 既存の設定をバックアップ中..."
-    cp $config_file "$config_file.backup"(date +%Y%m%d%H%M%S)
-end
-
-# MCP設定を生成
-echo "$BLUE[INFO]$NC MCP設定ファイルを生成中..."
-
-# テンプレートファイルから設定を読み込み、無効化されていないサーバーのみをフィルタ
+# テンプレートファイルから設定を読み込む
 set -l template_file "/workspace/docker/config/mcp-servers.json"
 
-if test -f $template_file
-    # jqを使って無効化されていないサーバーのみを抽出し、環境変数を展開
-    jq 'del(.mcpServers | to_entries[] | select(.value.disabled == true))' $template_file | \
-    envsubst > $config_file
-    
-    echo "$GREEN[SUCCESS]$NC テンプレートから設定を生成しました"
-else
+if not test -f $template_file
     echo "$RED[ERROR]$NC テンプレートファイルが見つかりません: $template_file"
     exit 1
 end
 
-echo "$GREEN[SUCCESS]$NC MCP設定ファイルを作成しました: $config_file"
+# 既存のMCPサーバーを削除
+echo "$BLUE[INFO]$NC 既存のMCPサーバーを削除中..."
+for server in (claude mcp list -s user | grep -E '^[a-zA-Z0-9-]+$')
+    echo "  - $server を削除中..."
+    claude mcp remove -s user $server >/dev/null 2>&1
+end
+
+# MCPサーバーを追加
+echo "$BLUE[INFO]$NC MCPサーバーを追加中..."
 echo ""
+
+# jqを使ってサーバー情報を解析し、claude mcp addコマンドを実行
+set -l servers (jq -r '.mcpServers | to_entries[] | select(.value.disabled != true) | .key' $template_file)
+
+for server in $servers
+    echo "$YELLOW[INFO]$NC $server を追加中..."
+    
+    # サーバー情報を取得
+    set -l command (jq -r ".mcpServers.$server.command" $template_file)
+    set -l args (jq -r ".mcpServers.$server.args[]" $template_file)
+    set -l env_vars (jq -r ".mcpServers.$server.env | to_entries[] | \"\(.key)=\(.value)\"" $template_file)
+    
+    # コマンドを構築
+    set -l cmd "claude mcp add -s user"
+    
+    # 環境変数を追加
+    for env_var in $env_vars
+        # 環境変数を展開
+        set -l expanded_var (echo $env_var | envsubst)
+        set cmd $cmd "-e" $expanded_var
+    end
+    
+    # 環境変数がある場合は -- を追加
+    if test (count $env_vars) -gt 0
+        set cmd $cmd "--"
+    end
+    
+    # サーバー名とコマンドを追加
+    set cmd $cmd $server $command $args
+    
+    # コマンドを実行
+    eval $cmd
+    
+    if test $status -eq 0
+        echo "$GREEN[SUCCESS]$NC $server を追加しました"
+    else
+        echo "$RED[ERROR]$NC $server の追加に失敗しました"
+    end
+    echo ""
+end
 
 # 環境変数の確認
 echo "$BLUE[INFO]$NC 環境変数の設定状況:"
@@ -66,13 +92,45 @@ else
     echo "  ⚠️  SUPABASE_ACCESS_TOKEN: 未設定（オプション）"
 end
 
+if test -n "$OBSIDIAN_API_KEY"
+    echo "  ✅ OBSIDIAN_API_KEY: 設定済み"
+else
+    echo "  ⚠️  OBSIDIAN_API_KEY: 未設定（オプション）"
+end
+
+if test -n "$LINE_CHANNEL_ACCESS_TOKEN"
+    echo "  ✅ LINE_CHANNEL_ACCESS_TOKEN: 設定済み"
+else
+    echo "  ⚠️  LINE_CHANNEL_ACCESS_TOKEN: 未設定（オプション）"
+end
+
 echo ""
-echo "$BLUE[INFO]$NC 利用可能なMCPサーバー:"
+echo "$BLUE[INFO]$NC 追加されたMCPサーバー:"
 echo ""
-echo "  📁 filesystem  - ファイルシステムアクセス"
-echo "  🐙 github      - GitHub操作（要: GITHUB_TOKEN）"
-echo "  🎭 playwright  - ブラウザ自動化"
-echo "  🌐 everything  - 統合サーバー"
+
+# 追加されたサーバーを表示
+for server in $servers
+    switch $server
+        case "filesystem"
+            echo "  📁 filesystem  - ファイルシステムアクセス"
+        case "github"
+            echo "  🐙 github      - GitHub操作（要: GITHUB_TOKEN）"
+        case "playwright"
+            echo "  🎭 playwright  - ブラウザ自動化"
+        case "everything"
+            echo "  🌐 everything  - 統合サーバー"
+        case "supabase"
+            echo "  🗄️  supabase    - Supabase操作（要: SUPABASE_ACCESS_TOKEN）"
+        case "context7"
+            echo "  📚 context7    - ドキュメント検索"
+        case "design-reference"
+            echo "  🎨 design-ref  - デザインリファレンス"
+        case "obsidian"
+            echo "  📝 obsidian    - Obsidianノート操作（要: OBSIDIAN_API_KEY）"
+        case "line-bot"
+            echo "  💬 line-bot    - LINE Bot操作（要: LINE_CHANNEL_ACCESS_TOKEN）"
+    end
+end
 echo ""
 
 # 無効化されているMCPサーバーの確認
@@ -105,16 +163,11 @@ echo "  3. setup-mcp を再実行"
 echo ""
 
 # 設定の確認
-echo "$BLUE[INFO]$NC MCP設定を確認するには:"
-echo "  cat $config_file | jq ."
-echo ""
 echo "$BLUE[INFO]$NC MCPサーバーの状態を確認するには:"
-echo "  claude mcp list"
+echo "  claude mcp list -s user"
 echo "  または"
 echo "  check_mcp"
 echo ""
 
 echo "$GREEN[SUCCESS]$NC MCP設定が完了しました！"
-echo ""
-echo "⚠️  注意: Claude Codeを再起動して設定を反映してください"
 echo ""
