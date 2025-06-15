@@ -29,10 +29,6 @@ services:
       - z_data:/home/developer
       - tmux_data:/home/developer/.tmux
 
-      # MCP関連設定
-      - ~/.obsidian:/home/developer/.obsidian
-      - ~/Documents/Obsidian:/obsidian-vault
-
       # スクリーンショット出力
       - ./screenshots:/workspace/screenshots
 

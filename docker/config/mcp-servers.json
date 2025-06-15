@@ -17,20 +17,17 @@
       "args": ["-y", "@supabase/mcp"],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
-      },
-      "disabled": true
+      }
     },
     "context7": {
       "command": "npx",
       "args": ["-y", "@context/mcp-server-context7"],
-      "env": {},
-      "disabled": true
+      "env": {}
     },
     "design-reference": {
       "command": "npx",
       "args": ["-y", "mcp-server-design-reference"],
-      "env": {},
-      "disabled": true
+      "env": {}
     },
     "obsidian": {
       "command": "uvx",
@@ -38,8 +35,7 @@
       "env": {
         "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}",
         "OBSIDIAN_HOST": "${OBSIDIAN_HOST:-localhost:27123}"
-      },
-      "disabled": true
+      }
     },
     "line-bot": {
       "command": "npx",
@@ -47,8 +43,7 @@
       "env": {
         "LINE_CHANNEL_ACCESS_TOKEN": "${LINE_CHANNEL_ACCESS_TOKEN}",
         "DESTINATION_USER_ID": "${DESTINATION_USER_ID}"
-      },
-      "disabled": true
+      }
     }
   }
 }

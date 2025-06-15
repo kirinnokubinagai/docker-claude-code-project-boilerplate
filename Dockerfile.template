@@ -49,6 +49,9 @@ RUN curl -L https://raw.githubusercontent.com/greymd/tmux-xpanes/master/bin/xpan
 # Docker CLIとDocker Composeのインストール（コンテナ内からホストのDockerを操作するため）
 RUN apk add --no-cache docker-cli docker-cli-compose
 
+# Claude CLIのインストール
+RUN npm install -g @anthropic-ai/claude-cli@latest
+
 # Claude Codeをインストール（これは必要）
 RUN npm install -g @anthropic-ai/claude-code
 
