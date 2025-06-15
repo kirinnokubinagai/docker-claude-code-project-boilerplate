@@ -16,7 +16,9 @@ RUN apk add --no-cache \
     sudo \
     jq \
     perl \
-    gettext
+    gettext \
+    chromium \
+    chromium-chromedriver
 
 # developerユーザーを作成（既存のGID/UIDを考慮）
 RUN addgroup -g 1001 developer || true && \
@@ -91,6 +93,10 @@ RUN chown -R developer:developer /home/developer
 
 # envsubstツールを追加（環境変数展開用）
 RUN apk add --no-cache gettext
+
+# Playwright用の環境変数を設定
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
 
 # entrypointスクリプトをコピー
 COPY docker-entrypoint.sh /docker-entrypoint.sh

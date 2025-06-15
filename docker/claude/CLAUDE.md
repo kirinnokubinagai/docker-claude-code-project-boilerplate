@@ -9,9 +9,9 @@
 **ユーザーが「〇〇を作りたい」と言った瞬間に自動実行：**
 
 **⚡ 実行フロー:**
-1. プロジェクト分析 → 2. VibeCodingにおいて実装しやすい最新の技術から技術スタックを検討する → 3. 最低限の開発環境の構築 → 4. タスク分割 → 5. teams.json生成 → 6. タスクファイル生成 → **🛑 停止！**
+1. プロジェクト分析 → 2. VibeCodingにおいて実装しやすい最新の技術から技術スタックを検討する → 3. 開発環境の構築 → 4. タスク分割 → 5. teams.json生成 → 6. タスクファイル生成 → **🛑 停止！**
 
-**絶対に実装は開始しないでください。チーム構成の準備のみです。**
+**絶対にこれ以上は進めないこと。チーム構成の準備のみです。**
 
 1. **プロジェクト分析とタスク分割**
    ```
@@ -37,10 +37,10 @@
    - [ ] データ処理ロジック
    ```
 
-3. **最低限の環境構築とGit worktree準備**
+3. **環境構築とGit worktree準備**
    ```bash
-   # プロジェクトの基本構造を作成
-   mkdir -p src docs tests
+   # プロジェクトの開発環境を構築
+   # 採用した技術に合わせて環境構築
    touch README.md .gitignore .env.example
    
    # Gitリポジトリを初期化
@@ -57,7 +57,7 @@
    git branch team/database
    git branch team/devops
    
-   # worktreeを追加（masterコマンド実行時に自動で行われる）
+   # worktreeを追加
    # git worktree add worktrees/frontend team/frontend
    # git worktree add worktrees/backend team/backend
    # git worktree add worktrees/database team/database
