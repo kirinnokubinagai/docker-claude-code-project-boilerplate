@@ -1,10 +1,5 @@
 {
   "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"],
-      "env": {}
-    },
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
@@ -15,11 +10,6 @@
     "playwright": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-playwright"],
-      "env": {}
-    },
-    "everything": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-everything"],
       "env": {}
     },
     "supabase": {
@@ -43,9 +33,12 @@
       "disabled": true
     },
     "obsidian": {
-      "command": "npx",
-      "args": ["-y", "@tstepanski/mcp-server-obsidian", "--obsidian-api-key", "${OBSIDIAN_API_KEY}", "--obsidian-api-host", "${OBSIDIAN_HOST:-localhost:27124}"],
-      "env": {},
+      "command": "uvx",
+      "args": ["mcp-obsidian"],
+      "env": {
+        "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}",
+        "OBSIDIAN_HOST": "${OBSIDIAN_HOST:-localhost:27123}"
+      },
       "disabled": true
     },
     "line-bot": {
