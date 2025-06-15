@@ -36,9 +36,17 @@
       "command": "npx",
       "args": ["@line/line-bot-mcp-server"],
       "env": {
-        "LINE_CHANNEL_ACCESS_TOKEN": "${LINE_CHANNEL_ACCESS_TOKEN}",
+        "CHANNEL_ACCESS_TOKEN": "${CHANNEL_ACCESS_TOKEN}",
         "DESTINATION_USER_ID": "${DESTINATION_USER_ID}"
       }
+    },
+    "stripe": {
+      "command": "npx",
+      "args": ["-y", "@stripe/mcp", "--tools=all", "--api-key=${STRIPE_SECRET_KEY}"],
+      "env": {
+        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
+      },
+      "disabled": true
     }
   }
 }

@@ -70,12 +70,25 @@ for server in $servers
             # 通常の環境変数展開
             set -l expanded_var (echo $env_var | envsubst)
             # デバッグ出力
-            echo "  環境変数: $env_var -> $expanded_var"
-            # 空でない値のみ追加（$が含まれていない場合）
-            if not string match -q "*=\$*" $expanded_var
-                set cmd $cmd "-e" $expanded_var
+            # echo "  環境変数: $env_var -> $expanded_var"
+            
+            # 環境変数の値を確認
+            # key=value形式で、valueが$で始まる場合は未展開と判断
+            set -l var_value (echo $expanded_var | cut -d'=' -f2-)
+            if string match -q "\$*" $var_value
+                # 環境変数名を取得
+                set -l var_name (echo $var_value | sed 's/^\$//' | sed 's/{//' | sed 's/}//')
+                # 実際の環境変数の値を確認
+                if test -n "$$var_name"
+                    # 環境変数が設定されている場合は追加
+                    set cmd $cmd "-e" $expanded_var
+                    # echo "  → 環境変数が設定されています"
+                else
+                    # echo "  → 環境変数が未設定です（スキップ）"
+                end
             else
-                echo "  警告: 環境変数が展開されませんでした"
+                # 展開済みの場合はそのまま追加
+                set cmd $cmd "-e" $expanded_var
             end
         end
     end
@@ -88,7 +101,7 @@ for server in $servers
     
     # コマンドを実行
     # デバッグ: 実行するコマンドを表示
-    echo "実行コマンド: $cmd"
+    # echo "実行コマンド: $cmd"
     eval $cmd
     
     if test $status -eq 0
@@ -122,10 +135,16 @@ else
     echo "  ⚠️  OBSIDIAN_API_KEY: 未設定（オプション）"
 end
 
-if test -n "$LINE_CHANNEL_ACCESS_TOKEN"
-    echo "  ✅ LINE_CHANNEL_ACCESS_TOKEN: 設定済み"
+if test -n "$CHANNEL_ACCESS_TOKEN"
+    echo "  ✅ CHANNEL_ACCESS_TOKEN: 設定済み"
 else
-    echo "  ⚠️  LINE_CHANNEL_ACCESS_TOKEN: 未設定（オプション）"
+    echo "  ⚠️  CHANNEL_ACCESS_TOKEN: 未設定（オプション）"
+end
+
+if test -n "$STRIPE_SECRET_KEY"
+    echo "  ✅ STRIPE_SECRET_KEY: 設定済み"
+else
+    echo "  ⚠️  STRIPE_SECRET_KEY: 未設定（オプション）"
 end
 
 echo ""
@@ -152,7 +171,9 @@ for server in $servers
         case "obsidian"
             echo "  📝 obsidian    - Obsidianノート操作（要: OBSIDIAN_API_KEY）"
         case "line-bot"
-            echo "  💬 line-bot    - LINE Bot操作（要: LINE_CHANNEL_ACCESS_TOKEN）"
+            echo "  💬 line-bot    - LINE Bot操作（要: CHANNEL_ACCESS_TOKEN）"
+        case "stripe"
+            echo "  💳 stripe      - Stripe決済操作（要: STRIPE_SECRET_KEY）"
     end
 end
 echo ""
@@ -175,7 +196,9 @@ for server in $disabled_servers
         case "obsidian"
             echo "  📝 obsidian    - Obsidianノート操作（要: OBSIDIAN_API_KEY）"
         case "line-bot"
-            echo "  💬 line-bot    - LINE Bot操作（要: LINE_CHANNEL_ACCESS_TOKEN）"
+            echo "  💬 line-bot    - LINE Bot操作（要: CHANNEL_ACCESS_TOKEN）"
+        case "stripe"
+            echo "  💳 stripe      - Stripe決済操作（要: STRIPE_SECRET_KEY）"
     end
 end
 

@@ -148,6 +148,12 @@ if [ "$NO_CREATE_DIR" != "--no-create-dir" ]; then
     cp "$SCRIPT_DIR/docker-entrypoint.sh" "$FULL_PROJECT_PATH/"
     cp -r "$SCRIPT_DIR/docker" "$FULL_PROJECT_PATH/"
     
+    # claude-devラッパーをコピー
+    if [ -f "$SCRIPT_DIR/claude-dev" ]; then
+        cp "$SCRIPT_DIR/claude-dev" "$FULL_PROJECT_PATH/"
+        chmod +x "$FULL_PROJECT_PATH/claude-dev"
+    fi
+    
     # .envファイルのコピー（優先順位: .env > .env.example）
     if [ -f "$SCRIPT_DIR/.env" ]; then
         cp "$SCRIPT_DIR/.env" "$FULL_PROJECT_PATH/"
@@ -194,6 +200,12 @@ else
         
         # ディレクトリのコピー（既存の場合はマージ）
         cp -r "$SCRIPT_DIR/docker" .
+        
+        # claude-devラッパーをコピー
+        if [ -f "$SCRIPT_DIR/claude-dev" ]; then
+            cp "$SCRIPT_DIR/claude-dev" .
+            chmod +x ./claude-dev
+        fi
         
         # .envファイルのコピー（既存ファイルがない場合のみ）
         if [ ! -f ".env" ]; then
@@ -284,17 +296,13 @@ echo "📋 次のステップ"
 echo "1. cd $FULL_PROJECT_PATH"
 echo "2. 必要に応じて.envファイルを編集"
 echo "3. docker compose up -d でコンテナ起動"
-echo "4. docker compose exec claude-code fish でシェルに接続"
-echo "5. sudo su - developer でdeveloperユーザーに切り替え"
-echo "6. setup-mcp を実行してMCPサーバーを設定（オプション）"
-echo "7. cc を実行してClaude Codeを起動（「〇〇を作りたい」でチーム自動構成）"
-echo "8. master を実行してチームを並列起動"
+echo "4. ./claude-dev でdeveloperユーザーとして接続"
+echo "5. cc を実行してClaude Codeを起動（「〇〇を作りたい」でチーム自動構成）"
+echo "6. master を実行してチームを並列起動"
 echo ""
 echo "🔧 よく使うコマンド:"
 echo "docker compose up -d                    # コンテナ起動"
-echo "docker compose exec claude-code fish    # シェル接続"
-echo "sudo su - developer                     # developerユーザーに切り替え"
-echo "setup-mcp                              # MCPサーバー設定（初回のみ）"
+echo "./claude-dev                           # developerユーザーで接続"
 echo "cc                                     # Claude Code起動（動的チーム構成）"
 echo "master                                 # チーム並列起動"
 echo "docker compose down                     # コンテナ停止"
