@@ -82,6 +82,12 @@ chown -R developer:developer /home/developer
 export HOME=/home/developer
 export USER=developer
 
+# MCP設定の自動実行
+echo "MCPサーバーを設定中..."
+su developer -c "/workspace/docker/scripts/setup-mcp.fish" || {
+    echo "[WARNING] MCP設定に失敗しましたが、続行します..."
+}
+
 # 引数があればそのコマンドを、なければfishシェルを起動
 if [ $# -eq 0 ]; then
     # デフォルト: fishシェル
