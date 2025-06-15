@@ -9,24 +9,19 @@
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-playwright"],
+      "args": ["@playwright/mcp@latest"],
       "env": {}
     },
     "supabase": {
       "command": "npx",
-      "args": ["-y", "@supabase/mcp"],
+      "args": ["@supabase/mcp-server-supabase@latest"],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
       }
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@context/mcp-server-context7"],
-      "env": {}
-    },
-    "design-reference": {
-      "command": "npx",
-      "args": ["-y", "mcp-server-design-reference"],
+      "args": ["-y", "@upstash/context7-mcp@latest"],
       "env": {}
     },
     "obsidian": {
@@ -34,12 +29,12 @@
       "args": ["mcp-obsidian"],
       "env": {
         "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}",
-        "OBSIDIAN_HOST": "${OBSIDIAN_HOST:-localhost:27123}"
+        "OBSIDIAN_HOST": "${OBSIDIAN_HOST}"
       }
     },
     "line-bot": {
       "command": "npx",
-      "args": ["-y", "@line-bot/mcp-server"],
+      "args": ["@line/line-bot-mcp-server"],
       "env": {
         "LINE_CHANNEL_ACCESS_TOKEN": "${LINE_CHANNEL_ACCESS_TOKEN}",
         "DESTINATION_USER_ID": "${DESTINATION_USER_ID}"

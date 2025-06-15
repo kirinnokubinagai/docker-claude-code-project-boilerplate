@@ -84,6 +84,7 @@ export USER=developer
 
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
+# su -（ハイフン付き）は環境をリセットするので、su（ハイフンなし）を使用
 su developer -c "/workspace/docker/scripts/setup-mcp.fish" || {
     echo "[WARNING] MCP設定に失敗しましたが、続行します..."
 }

@@ -11,72 +11,96 @@ set -g BOLD (set_color --bold 2>/dev/null; or echo "")
 set -g NC (set_color normal 2>/dev/null; or echo "")
 
 echo ""
-echo "$BLUE$BOLD======================================$NC"
-echo "$BLUE$BOLD    MCP Server Setup for Claude Code$NC"
-echo "$BLUE$BOLD======================================$NC"
+echo $BLUE$BOLD"======================================"$NC
+echo $BLUE$BOLD"    MCP Server Setup for Claude Code"$NC
+echo $BLUE$BOLD"======================================"$NC
 echo ""
 
 # テンプレートファイルから設定を読み込む
 set -l template_file "/workspace/docker/config/mcp-servers.json"
 
 if not test -f $template_file
-    echo "$RED[ERROR]$NC テンプレートファイルが見つかりません: $template_file"
+    echo $RED"[ERROR]"$NC" テンプレートファイルが見つかりません: $template_file"
     exit 1
 end
 
 # 既存のMCPサーバーを削除
-echo "$BLUE[INFO]$NC 既存のMCPサーバーを削除中..."
-for server in (claude mcp list -s user | grep -E '^[a-zA-Z0-9-]+$')
+echo $BLUE"[INFO]"$NC" 既存のMCPサーバーを削除中..."
+for server in (claude mcp list -s user 2>/dev/null | grep -E '^[a-zA-Z0-9-]+:' | cut -d':' -f1)
     echo "  - $server を削除中..."
     claude mcp remove -s user $server >/dev/null 2>&1
 end
 
 # MCPサーバーを追加
-echo "$BLUE[INFO]$NC MCPサーバーを追加中..."
+echo $BLUE"[INFO]"$NC" MCPサーバーを追加中..."
 echo ""
 
 # jqを使ってサーバー情報を解析し、claude mcp addコマンドを実行
 set -l servers (jq -r '.mcpServers | to_entries[] | select(.value.disabled != true) | .key' $template_file)
 
 for server in $servers
-    echo "$YELLOW[INFO]$NC $server を追加中..."
+    echo $YELLOW"[INFO]"$NC" $server を追加中..."
     
-    # サーバー情報を取得
-    set -l command (jq -r ".mcpServers.$server.command" $template_file)
-    set -l args (jq -r ".mcpServers.$server.args[]" $template_file)
-    set -l env_vars (jq -r ".mcpServers.$server.env | to_entries[] | \"\(.key)=\(.value)\"" $template_file)
+    # サーバー情報を取得（ハイフンを含む名前に対応）
+    set -l command (jq -r ".mcpServers[\"$server\"].command" $template_file)
+    set -l args (jq -r ".mcpServers[\"$server\"].args[]" $template_file)
+    set -l env_vars (jq -r ".mcpServers[\"$server\"].env | to_entries[] | \"\(.key)=\(.value)\"" $template_file)
     
     # コマンドを構築
     set -l cmd "claude mcp add -s user"
     
+    # サーバー名を追加
+    set cmd $cmd $server
+    
     # 環境変数を追加
     for env_var in $env_vars
-        # 環境変数を展開
-        set -l expanded_var (echo $env_var | envsubst)
-        set cmd $cmd "-e" $expanded_var
+        # キーと値を分離
+        set -l key (echo $env_var | cut -d'=' -f1)
+        set -l value (echo $env_var | cut -d'=' -f2-)
+        
+        # 環境変数の値を取得（デフォルト値の処理）
+        if test "$key" = "OBSIDIAN_HOST"
+            if test -z "$OBSIDIAN_HOST"
+                set -l expanded_value "localhost:27123"
+            else
+                set -l expanded_value "$OBSIDIAN_HOST"
+            end
+            set cmd $cmd "-e" "$key=$expanded_value"
+        else
+            # 通常の環境変数展開
+            set -l expanded_var (echo $env_var | envsubst)
+            # デバッグ出力
+            echo "  環境変数: $env_var -> $expanded_var"
+            # 空でない値のみ追加（$が含まれていない場合）
+            if not string match -q "*=\$*" $expanded_var
+                set cmd $cmd "-e" $expanded_var
+            else
+                echo "  警告: 環境変数が展開されませんでした"
+            end
+        end
     end
     
-    # 環境変数がある場合は -- を追加
-    if test (count $env_vars) -gt 0
-        set cmd $cmd "--"
-    end
+    # -- を追加（コマンドとの区切り）
+    set cmd $cmd "--"
     
-    # サーバー名とコマンドを追加
-    set cmd $cmd $server $command $args
+    # コマンドと引数を追加
+    set cmd $cmd $command $args
     
     # コマンドを実行
+    # デバッグ: 実行するコマンドを表示
+    echo "実行コマンド: $cmd"
     eval $cmd
     
     if test $status -eq 0
-        echo "$GREEN[SUCCESS]$NC $server を追加しました"
+        echo $GREEN"[SUCCESS]"$NC" $server を追加しました"
     else
-        echo "$RED[ERROR]$NC $server の追加に失敗しました"
+        echo $RED"[ERROR]"$NC" $server の追加に失敗しました"
     end
     echo ""
 end
 
 # 環境変数の確認
-echo "$BLUE[INFO]$NC 環境変数の設定状況:"
+echo $BLUE"[INFO]"$NC" 環境変数の設定状況:"
 echo ""
 
 if test -n "$GITHUB_TOKEN"
@@ -105,7 +129,7 @@ else
 end
 
 echo ""
-echo "$BLUE[INFO]$NC 追加されたMCPサーバー:"
+echo $BLUE"[INFO]"$NC" 追加されたMCPサーバー:"
 echo ""
 
 # 追加されたサーバーを表示
@@ -134,7 +158,7 @@ end
 echo ""
 
 # 無効化されているMCPサーバーの確認
-echo "$YELLOW[INFO]$NC 利用可能な追加MCPサーバー（現在無効）:"
+echo $YELLOW"[INFO]"$NC" 利用可能な追加MCPサーバー（現在無効）:"
 echo ""
 
 # テンプレートから無効化されているサーバーを表示
@@ -156,18 +180,18 @@ for server in $disabled_servers
 end
 
 echo ""
-echo "$YELLOW[TIP]$NC 追加のMCPサーバーを有効にするには:"
+echo $YELLOW"[TIP]"$NC" 追加のMCPサーバーを有効にするには:"
 echo "  1. /workspace/docker/config/mcp-servers.json を編集"
 echo "  2. 使いたいサーバーの 'disabled: true' を削除"
 echo "  3. setup-mcp を再実行"
 echo ""
 
 # 設定の確認
-echo "$BLUE[INFO]$NC MCPサーバーの状態を確認するには:"
+echo $BLUE"[INFO]"$NC" MCPサーバーの状態を確認するには:"
 echo "  claude mcp list -s user"
 echo "  または"
 echo "  check_mcp"
 echo ""
 
-echo "$GREEN[SUCCESS]$NC MCP設定が完了しました！"
+echo $GREEN"[SUCCESS]"$NC" MCP設定が完了しました！"
 echo ""
