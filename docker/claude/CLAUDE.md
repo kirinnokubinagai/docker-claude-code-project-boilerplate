@@ -9,7 +9,7 @@
 **ユーザーが「〇〇を作りたい」と言った瞬間に自動実行：**
 
 **⚡ 実行フロー:**
-1. プロジェクト分析 → 2. タスク分割 → 3. teams.json生成 → 4. タスクファイル生成 → **🛑 停止！**
+1. プロジェクト分析 → 2. VibeCodingにおいて実装しやすい最新の技術から技術スタックを検討する → 3. 最低限の開発環境の構築 → 4. タスク分割 → 5. teams.json生成 → 6. タスクファイル生成 → **🛑 停止！**
 
 **絶対に実装は開始しないでください。チーム構成の準備のみです。**
 
@@ -37,7 +37,34 @@
    - [ ] データ処理ロジック
    ```
 
-3. **teams.json自動生成**
+3. **最低限の環境構築とGit worktree準備**
+   ```bash
+   # プロジェクトの基本構造を作成
+   mkdir -p src docs tests
+   touch README.md .gitignore .env.example
+   
+   # Gitリポジトリを初期化
+   git init
+   git add .
+   git commit -m "Initial project setup"
+   
+   # worktreesディレクトリを作成（チーム用）
+   mkdir -p worktrees
+   
+   # 各チーム用のブランチとworktreeを作成
+   git branch team/frontend
+   git branch team/backend
+   git branch team/database
+   git branch team/devops
+   
+   # worktreeを追加（masterコマンド実行時に自動で行われる）
+   # git worktree add worktrees/frontend team/frontend
+   # git worktree add worktrees/backend team/backend
+   # git worktree add worktrees/database team/database
+   # git worktree add worktrees/devops team/devops
+   ```
+
+4. **teams.json自動生成**
    必ず以下の形式でdocker/config/teams.jsonを作成（**形式を厳密に守ること！**）：
    ```bash
    mkdir -p docker/config
@@ -45,14 +72,14 @@
    {
      "project_name": "プロジェクト名",
      "project_type": "タイプ",
-     "analyzed_at": "2024-01-01T00:00:00Z",
+     "analyzed_at": "現在日",
      "teams": [
        {
          "id": "frontend",
          "name": "Frontend Team",
          "description": "UI/UX開発",
          "member_count": 3,
-         "tech_stack": "Next.js 14, React 18, TypeScript",
+         "tech_stack": "◯◯◯◯◯◯◯",
          "branch": "team/frontend",
          "active": true,
          "justification": "モダンなUIが必要なため"
@@ -69,8 +96,20 @@
    - `active`: true（必須）
    - `branch`: "team/[id]"の形式
 
-4. **タスクファイル生成**
+5. **タスクファイル生成**
    `tasks/`ディレクトリに各チームのタスクファイルを作成
+
+6. **環境構築完了後のGit worktree作成**
+   最低限の環境構築が完了してから：
+   ```bash
+   # 各チーム用のworktreeを作成
+   git worktree add worktrees/frontend team/frontend
+   git worktree add worktrees/backend team/backend
+   git worktree add worktrees/database team/database
+   git worktree add worktrees/devops team/devops
+   
+   # 各worktreeで独立した開発が可能に
+   ```
 
 ## 📋 プロジェクトタイプ別チーム構成
 
@@ -139,18 +178,18 @@
 - [ ] 通知システム
 - [ ] WebSocket実装
 
-### Database (2名)
+### Database (3名)
 - [ ] ユーザーテーブル設計
 - [ ] 投稿テーブル設計
 - [ ] リレーション最適化
 - [ ] インデックス設計
 
-### DevOps (1名)
+### DevOps (3名)
 - [ ] CI/CD パイプライン
 - [ ] 本番環境構築
 - [ ] 監視・アラート設定
 
-**各チームでアサインするメンバーの人数はタスク数で判断**
+**超重要: 各チームでアサインするメンバーの人数はタスク数で判断**
 
 次のコマンドを実行してteams.jsonを生成します:
 

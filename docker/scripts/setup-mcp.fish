@@ -36,7 +36,7 @@ echo $BLUE"[INFO]"$NC" MCPサーバーを追加中..."
 echo ""
 
 # jqを使ってサーバー情報を解析し、claude mcp addコマンドを実行
-set -l servers (jq -r '.mcpServers | to_entries[] | select(.value.disabled != true) | .key' $template_file)
+set -l servers (jq -r '.mcpServers | to_entries[] | .key' $template_file)
 
 for server in $servers
     echo $YELLOW"[INFO]"$NC" $server を追加中..."
@@ -180,33 +180,11 @@ echo ""
 
 # 無効化されているMCPサーバーの確認
 echo $YELLOW"[INFO]"$NC" 利用可能な追加MCPサーバー（現在無効）:"
-echo ""
-
-# テンプレートから無効化されているサーバーを表示
-set -l disabled_servers (jq -r '.mcpServers | to_entries[] | select(.value.disabled == true) | .key' $template_file)
-
-for server in $disabled_servers
-    switch $server
-        case "supabase"
-            echo "  🗄️  supabase    - Supabase操作（要: SUPABASE_ACCESS_TOKEN）"
-        case "context7"
-            echo "  📚 context7    - ドキュメント検索"
-        case "design-reference"
-            echo "  🎨 design-ref  - デザインリファレンス"
-        case "obsidian"
-            echo "  📝 obsidian    - Obsidianノート操作（要: OBSIDIAN_API_KEY）"
-        case "line-bot"
-            echo "  💬 line-bot    - LINE Bot操作（要: CHANNEL_ACCESS_TOKEN）"
-        case "stripe"
-            echo "  💳 stripe      - Stripe決済操作（要: STRIPE_SECRET_KEY）"
-    end
-end
 
 echo ""
 echo $YELLOW"[TIP]"$NC" 追加のMCPサーバーを有効にするには:"
 echo "  1. /workspace/docker/config/mcp-servers.json を編集"
-echo "  2. 使いたいサーバーの 'disabled: true' を削除"
-echo "  3. setup-mcp を再実行"
+echo "  2. setup-mcp を再実行"
 echo ""
 
 # 設定の確認

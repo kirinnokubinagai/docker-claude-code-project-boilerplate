@@ -8,7 +8,7 @@
       "name": "Frontend Team",
       "description": "〇〇開発",
       "member_count": 3,
-      "tech_stack": "Next.js 15, React 18, TypeScript, Gantt Chart Library",
+      "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
       "branch": "team/frontend",
       "active": true,
       "justification": "複雑なUIとインタラクティブな機能が必要"
@@ -18,7 +18,7 @@
       "name": "Backend Team",
       "description": "〇〇開発",
       "member_count": 2,
-      "tech_stack": "Node.js, Express, Google APIs, Socket.io",
+      "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
       "branch": "team/backend",
       "active": true,
       "justification": "外部API連携とリアルタイム同期が必要"
@@ -28,7 +28,7 @@
       "name": "Database Team",
       "description": "データ設計、最適化",
       "member_count": 2,
-      "tech_stack": "PostgreSQL, Prisma ORM, Redis",
+      "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
       "branch": "team/database",
       "active": true,
       "justification": "複雑なリレーション設計とリアルタイム同期のためのキャッシュ設計が必要"
@@ -38,7 +38,7 @@
       "name": "DevOps Team",
       "description": "インフラ構築、デプロイ",
       "member_count": 1,
-      "tech_stack": "Docker, GitHub Actions, Google Cloud",
+      "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
       "branch": "team/devops",
       "active": true,
       "justification": "環境構築が必要"

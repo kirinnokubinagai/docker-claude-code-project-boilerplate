@@ -1,6 +1,6 @@
 {
   "master": {
-    "initial_prompt": "私はMaster Claudeです。タスク管理アプリプロジェクト全体を統括します。"
+    "initial_prompt": "私はMaster Claudeです。各チームメンバーに以下の役割とタスクを割り当ててください:\n\n【pane配置】\n- pane 1: Master (あなた)\n- pane 2: Frontend ボス\n- pane 3: Frontend #2\n- pane 4: Frontend #3\n- pane 5: Backend ボス\n- pane 6: Backend #2\n- pane 7: Backend #3\n- pane 8: Database ボス\n- pane 9: Database #2\n- pane 10: Database #3\n- pane 11: DevOps ボス\n- pane 12: DevOps #2\n- pane 13: DevOps #3\n\n【Frontend部】\n- Frontend部長 (pane 2): UI/UX開発とガントチャート実装を統括\n- Frontendメンバー1 (pane 3): タスク一覧表示UIとタスク追加フォームの実装\n- Frontendメンバー2 (pane 4): タスク編集・削除機能とフィルタリング機能の実装\n\n【Backend部】\n- Backend部長 (pane 5): API開発とGoogle Calendar連携を統括\n- Backendメンバー1 (pane 6): タスクCRUD APIとデータベース連携の実装\n- Backendメンバー2 (pane 7): 認証システムとGoogle Calendar API統合の実装\n\n【Database部】\n- Database部長 (pane 8): データ設計と最適化を統括\n- Databaseメンバー1 (pane 9): データベーススキーマ設計とマイグレーション実装\n- Databaseメンバー2 (pane 10): インデックス最適化とクエリパフォーマンス改善\n\n【DevOps部】\n- DevOps部長 (pane 11): インフラ構築とデプロイを統括\n- DevOpsメンバー1 (pane 12): Docker環境構築とCI/CDパイプライン設定\n- DevOpsメンバー2 (pane 13): 本番環境デプロイと監視システム構築\n\n各チームのworktreeディレクトリで作業を進めてください。"
   },
   "frontend": {
     "boss": {

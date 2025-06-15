@@ -42,11 +42,15 @@
     },
     "stripe": {
       "command": "npx",
-      "args": ["-y", "@stripe/mcp", "--tools=all", "--api-key=${STRIPE_SECRET_KEY}"],
+      "args": [
+        "-y",
+        "@stripe/mcp",
+        "--tools=all",
+        "--api-key=${STRIPE_SECRET_KEY}"
+      ],
       "env": {
         "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
-      },
-      "disabled": true
+      }
     }
   }
 }

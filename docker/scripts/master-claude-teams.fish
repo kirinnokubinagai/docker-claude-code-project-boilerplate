@@ -83,9 +83,9 @@ function assign_tasks
     
     # Claude Codeの起動完了を待つ（プロンプトが表示されるまで）
     log_info "Claude Codeの起動を待機中..."
-    sleep 8
+    sleep 15  # Claude Codeが完全に起動するまで十分に待つ
     
-    # Master Claudeにタスクを送信
+    # Master Claudeに役割とタスクを送信
     set -l master_prompt (jq -r '.master.initial_prompt // ""' $TASKS_CONFIG_FILE 2>/dev/null)
     if test -n "$master_prompt"
         send_task_to_pane 1 "$master_prompt"
@@ -99,25 +99,8 @@ function assign_tasks
         set -l team_name (jq -r ".teams[] | select(.id == \"$team\") | .name" $TEAMS_CONFIG_FILE 2>/dev/null)
         set -l member_count (jq -r ".teams[] | select(.id == \"$team\") | .member_count // 1" $TEAMS_CONFIG_FILE 2>/dev/null)
         
-        # ボス（最初のメンバー）にタスクを送信
-        set -l boss_prompt (jq -r ".$team.boss.initial_prompt // \"\"" $TASKS_CONFIG_FILE 2>/dev/null)
-        if test -n "$boss_prompt"
-            set -l boss_pane_idx (get_pane_index_for_team $team 1)
-            send_task_to_pane $boss_pane_idx "$boss_prompt"
-            log_success "$team_name ボス: タスク送信完了"
-        end
-        
-        # メンバータスクを送信（member1, member2等の個別オブジェクトから取得）
-        for i in (seq 2 $member_count)
-            set -l member_key "member"(math $i - 1)  # member1, member2...
-            set -l member_prompt (jq -r ".$team.$member_key.initial_prompt // \"\"" $TASKS_CONFIG_FILE 2>/dev/null)
-            
-            if test -n "$member_prompt"
-                set -l member_pane_idx (get_pane_index_for_team $team $i)
-                send_task_to_pane $member_pane_idx "$member_prompt"
-                log_success "$team_name メンバー $i: タスク送信完了"
-            end
-        end
+        # 各チームメンバーへのタスク送信はMasterが行うため、ここではスキップ
+        log_info "$team_name チーム: Masterからの指示を待機中..."
     end
     
     log_success "全てのタスク割り当てが完了しました"
@@ -237,6 +220,30 @@ function main
         set final_panes $pane_index
     end
     log_success "合計 $final_panes ペインを作成しました"
+    
+    # 各ペインの名前を再設定（Claude Code起動前に確実に設定）
+    log_info "ペイン名を設定中..."
+    set -l pane_idx 1
+    tmux select-pane -t $SESSION_NAME:1.1 -T "Master"
+    set pane_idx 2
+    
+    if test -f $TEAMS_CONFIG_FILE
+        set -l teams (jq -r '.teams[] | select(.active == true) | .id' $TEAMS_CONFIG_FILE 2>/dev/null)
+        
+        for team in $teams
+            set -l team_name (jq -r ".teams[] | select(.id == \"$team\") | .name" $TEAMS_CONFIG_FILE 2>/dev/null)
+            set -l member_count (jq -r ".teams[] | select(.id == \"$team\") | .member_count // 1" $TEAMS_CONFIG_FILE 2>/dev/null)
+            
+            for member in (seq 1 $member_count)
+                if test $member -eq 1
+                    tmux select-pane -t $SESSION_NAME:1.$pane_idx -T "$team_name ボス"
+                else
+                    tmux select-pane -t $SESSION_NAME:1.$pane_idx -T "$team_name #$member"
+                end
+                set pane_idx (math $pane_idx + 1)
+            end
+        end
+    end
     
     # 各ペインでClaude Codeを起動
     log_info "各ペインでClaude Codeを起動中..."
