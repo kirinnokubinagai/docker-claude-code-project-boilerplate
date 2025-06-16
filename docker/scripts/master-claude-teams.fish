@@ -186,13 +186,21 @@ function main
                     log_success "  → メンバー $member のペイン作成"
                     
                     # ペインの名前を設定（作成直後に設定）
-                    sleep 0.1
+                    sleep 0.2
                     if test $member -eq 1
                         # ボス（部長）
                         tmux select-pane -t $SESSION_NAME:1.$pane_index -T "$team_name ボス"
                     else
                         # メンバー
                         tmux select-pane -t $SESSION_NAME:1.$pane_index -T "$team_name #$member"
+                    end
+                    
+                    # 名前設定を確実にするため再度実行
+                    sleep 0.1
+                    if test $member -eq 1
+                        tmux set-option -t $SESSION_NAME:1.$pane_index pane-border-format " $team_name ボス "
+                    else
+                        tmux set-option -t $SESSION_NAME:1.$pane_index pane-border-format " $team_name #$member "
                     end
                     
                     # 3ペイン以上の場合はレイアウトを調整
