@@ -3,7 +3,9 @@
 # Docker Entrypoint Script
 # Master Claude System環境準備
 
+# エラーハンドリング（読み取り専用マウントでの権限エラーを許可）
 set -e
+set +e  # 一時的にerrexitを無効化（権限関連エラーのため）
 
 # 環境変数の設定
 export WORKSPACE="/workspace"
@@ -62,17 +64,14 @@ fi
 
 # 必要なディレクトリを作成（developerユーザー用）
 mkdir -p /home/developer/.npm /home/developer/.local /home/developer/.config /home/developer/.cache
-chown -R developer:developer /home/developer
+
+# 読み取り専用マウントを除いてchown実行
+find /home/developer -type d -writable -exec chown developer:developer {} \; 2>/dev/null || true
+find /home/developer -type f -writable -exec chown developer:developer {} \; 2>/dev/null || true
 
 # 環境変数を設定
 export HOME=/home/developer
 export USER=developer
-
-# Claude初期設定
-echo "Claude初期設定中..."
-su developer -c "/opt/claude-system/scripts/setup-claude-config.sh" || {
-    echo "[WARNING] Claude初期設定に失敗しましたが、続行します..."
-}
 
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
@@ -80,6 +79,9 @@ echo "MCPサーバーを設定中..."
 su developer -c "/opt/claude-system/scripts/setup-mcp.sh" || {
     echo "[WARNING] MCP設定に失敗しましたが、続行します..."
 }
+
+# 最終段階でエラーハンドリングを再有効化
+set -e
 
 # 引数があればそのコマンドを、なければbashシェルを起動
 if [ $# -eq 0 ]; then
