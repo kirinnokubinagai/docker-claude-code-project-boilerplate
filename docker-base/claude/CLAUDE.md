@@ -80,7 +80,8 @@
 
 3. **要件定義書とタスクファイル作成**
    ```bash
-   # documentsディレクトリとtasksサブディレクトリを作成
+   # 必須: documentsディレクトリとtasksサブディレクトリを作成
+   # worktreesではなく、必ずdocuments/tasks/に作成すること
    mkdir -p documents/tasks
    
    # documents/requirements.mdを作成（人間が確認する要件定義書）
@@ -115,6 +116,7 @@
    EOF
    
    # タスクファイルを個別に作成（Masterが参照）
+   # 必ずdocuments/tasks/ディレクトリに作成すること
    # Frontend Tasks
    cat > documents/tasks/frontend_tasks.md << 'EOF'
    # Frontend Tasks
@@ -234,19 +236,16 @@ EOF
    - **必須: teams.jsonを以下のコマンドで作成**
    ```bash
    # ディレクトリが存在することを確認
-   sudo mkdir -p /opt/claude-system/config
+   mkdir -p /opt/claude-system/config
    
    # teams.jsonを直接作成（必ずこのパスに作成）
-   sudo tee /opt/claude-system/config/teams.json << 'EOF'
+   cat > /opt/claude-system/config/teams.json << 'EOF'
    {
      "project_name": "プロジェクト名",
      "project_type": "タイプ",
      "teams": [...]
    }
    EOF
-   
-   # 権限を設定
-   sudo chown developer:developer /opt/claude-system/config/teams.json
    
    # 作成確認（必須）
    ls -la /opt/claude-system/config/teams.json
@@ -259,7 +258,7 @@ EOF
 
 ```bash
 # 実際の作成コマンド例（Webアプリの場合）
-sudo tee /opt/claude-system/config/teams.json << 'EOF'
+cat > /opt/claude-system/config/teams.json << 'EOF'
 {
   "project_name": "YourProjectName",
   "project_type": "web-app",
@@ -300,8 +299,7 @@ sudo tee /opt/claude-system/config/teams.json << 'EOF'
 }
 EOF
 
-# 必ず実行: 権限設定と確認
-sudo chown developer:developer /opt/claude-system/config/teams.json
+# 必ず実行: 作成確認
 ls -la /opt/claude-system/config/teams.json
 echo "teams.json created at: /opt/claude-system/config/teams.json"
 ```
@@ -703,7 +701,7 @@ test('ログイン機能', async ({ page }) => {
 4. **フェーズ分けせず一発で全機能実装**
 5. **開発中に必要なタスクは随時追加**
 6. **「今後の展開」「ロードマップ」等は作成しない（完成品を一発で作る）**
-7. **teams.jsonは必ず `/opt/claude-system/config/teams.json` に保存（sudo teeコマンド使用）**
+7. **teams.jsonは必ず `/opt/claude-system/config/teams.json` に保存（catコマンド使用）**
 8. **生成後は必ず停止（Masterがtmuxで指示を出す）**
 9. **UIデザイン作成時は必ずMagic MCPを使用**
 
