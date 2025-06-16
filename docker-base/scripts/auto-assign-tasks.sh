@@ -17,9 +17,9 @@ NC='\033[0m' # No Color
 # 設定
 SESSION_NAME="claude-teams"
 WORKSPACE="/workspace"
-TEAMS_CONFIG_FILE="$WORKSPACE/docker-base/config/teams.json"
-TASKS_CONFIG_FILE="$WORKSPACE/docker-base/config/team-tasks.json"
-WORKFLOW_STATE_FILE="$WORKSPACE/docker-base/config/workflow_state.json"
+TEAMS_CONFIG_FILE="/opt/claude-system/config/teams.json"
+TASKS_CONFIG_FILE="/opt/claude-system/config/team-tasks.json"
+WORKFLOW_STATE_FILE="/opt/claude-system/config/workflow_state.json"
 
 # ヘルプメッセージ
 show_help() {

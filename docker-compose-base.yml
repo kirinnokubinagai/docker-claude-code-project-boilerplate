@@ -10,12 +10,15 @@ services:
     # ENTRYPOINTはrootで実行、その後developerに切り替え
     # user: "${USER_UID:-1000}:${USER_GID:-1000}"
     volumes:
-      # プロジェクトファイル
-      - .:/workspace
-      - ./docker-base/claude/CLAUDE.md:/workspace/CLAUDE.md
+      # プロジェクトファイル（docker-base以外）
+      - .:/workspace:delegated
+      - /workspace/docker-base
       
-      # configディレクトリを直置き
-      - ./docker-base/config:/workspace/config
+      # docker-baseディレクトリを別の場所にマウント
+      - ./docker-base:/opt/claude-system
+      
+      # CLAUDE.mdはworkspaceに配置
+      - ./docker-base/claude/CLAUDE.md:/workspace/CLAUDE.md
 
       # Claude Code設定
       - ~/.anthropic:/home/developer/.anthropic

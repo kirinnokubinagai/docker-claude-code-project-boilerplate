@@ -33,7 +33,7 @@ create_project() {
     
     # docker-compose.ymlを生成（プロジェクト名を反映）
     echo "3. docker-compose.ymlを生成中..."
-    sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" docker-compose.yml.template > docker-compose.yml
+    sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" docker-compose-base.yml > docker-compose.yml
     
     # Dockerfileを生成
     echo "4. Dockerfileを生成中..."

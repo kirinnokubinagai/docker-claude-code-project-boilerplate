@@ -18,7 +18,7 @@ echo -e "${BLUE}${BOLD}======================================${NC}"
 echo ""
 
 # テンプレートファイルから設定を読み込む
-template_file="/workspace/docker-base/config/mcp-servers.json"
+template_file="/opt/claude-system/config/mcp-servers.json"
 
 if [ ! -f "$template_file" ]; then
     echo -e "${RED}[ERROR]${NC} テンプレートファイルが見つかりません: $template_file"
