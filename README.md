@@ -1,105 +1,301 @@
-# Master Claude Teams System
+# 🚀 Claude Code Docker Boilerplate
 
-A streamlined Docker environment for running Claude Code with team-based development workflow.
+プロダクションレディな開発環境を即座に構築。Claude Code + Master Claude Teams System搭載。
 
-## 🚀 Quick Start
+## ✨ 特徴
 
-### 1. Create New Project (Recommended)
+- **🐳 完全Dockerized環境** - ローカル環境を汚さない
+- **🤖 Claude Code統合** - 最新のAI開発支援
+- **👥 Master Claude Teams** - 複数のClaudeが協調する革新的チーム開発
+- **🔧 MCP (Model Context Protocol)** - 外部サービスとの連携
+- **📦 プロジェクトテンプレート** - すぐに開発開始可能
 
-#### Setup (one-time)
+## 📋 必要な環境
 
-**For Fish shell users:**
-```fish
-# Add to ~/.config/fish/config.fish
-alias create-project='sh ~/Project/docker-claude-code-boiler-plate/create-project.sh'
-```
+- Docker Desktop
 
-**For Bash shell users:**
+## 🚀 クイックスタート
+
+### 1. インストール（初回のみ）
+
 ```bash
-# Add to ~/.bashrc
-source ~/Project/docker-claude-code-boiler-plate/create-project.sh
+# リポジトリをクローン
+git clone https://github.com/yourusername/docker-claude-code-boilerplate.git ~/docker-claude-code-boiler-plate
+
+# Fish shellユーザー
+echo "alias create-project='sh ~/docker-claude-code-boiler-plate/create-project.sh'" >> ~/.config/fish/config.fish
+
+# Bash/Zshユーザー  
+echo "source ~/docker-claude-code-boiler-plate/create-project.sh" >> ~/.bashrc
 ```
 
-#### Create and Start Project
+### 2. プロジェクト作成
+
 ```bash
-create-project my-app
-# This will:
-# 1. Copy boilerplate to ~/Project/my-app
-# 2. cd to the project directory
-# 3. Run docker compose up -d
-# 4. Connect as developer user automatically
+# 新規プロジェクトを作成（自動でDockerコンテナに接続）
+create-project my-awesome-app
 ```
 
-### 2. Manual Setup (Alternative)
+これだけで開発環境が整います！
+
+### 3. アプリ開発開始
+
 ```bash
-./init-project.sh my-project
-cd my-project
-docker compose up -d
-docker exec -it -u developer my-project-app-1 bash
+# コンテナ内で実行
+ccd  # AIと対話しながら開発
 ```
 
-### 3. Create Your App (with Claude)
+## 🏗️ アーキテクチャ
+
+```
+my-project/
+├── docker-base/          # システム設定（workspaceには表示されない）
+│   ├── config/          # 実行時設定
+│   ├── templates/       # チーム開発用テンプレート
+│   └── scripts/         # 各種スクリプト
+├── /workspace/          # プロジェクトファイル（クリーンな作業環境）
+└── /opt/claude-system/  # システムファイル（分離されたシステム領域）
+```
+
+## 🛠️ 主要コマンド
+
+| コマンド    | 説明                                         |
+| ----------- | -------------------------------------------- |
+| `cc`        | Claude CLIを起動（権限確認自動スキップなし） |
+| `ccd`       | Claude CLIを起動（権限確認自動スキップ）     |
+| `master`    | Master Claude Teamsを起動                    |
+| `setup-mcp` | MCPサーバーを設定/更新                       |
+| `check_mcp` | MCPサーバーの状態確認                        |
+| `pcd`       | ディレクトリ選択（peco）                     |
+| `pgb`       | Gitブランチ選択（peco）                      |
+| `help`      | コマンド一覧とtmux操作ガイド                 |
+
+## 👥 Master Claude Teams System
+
+複数のClaude AIが協調して開発を進める革新的なシステム。
+
+### 基本的な使い方
+
+1. **要件定義**
+   ```bash
+   cc  # 「SNSアプリを作りたい」と伝える
+   ```
+
+2. **チーム起動**
+   ```bash
+   master  # 自動的にチーム構成に基づいてClaude達が起動
+   ```
+
+### メモリ最適化（16GBマシン向け）
+
 ```bash
-ccd  # Describe your app to Claude
+# 段階的起動でメモリ負荷を分散
+master --phased
+
+# バックグラウンドで起動
+master --no-attach
 ```
 
-### 4. Launch Team
+### 推奨チーム構成
+
+| メモリ | チーム数    | 人数  | 起動方法          |
+| ------ | ----------- | ----- | ----------------- |
+| 8GB    | 1-2チーム   | 3-6人 | `master`          |
+| 16GB   | 2-3チーム   | 6-9人 | `master`          |
+| 16GB   | 4チーム     | 12人  | `master --phased` |
+| 32GB+  | 5チーム以上 | 15人+ | `master --phased` |
+
+## 🔌 MCP (Model Context Protocol)
+
+事前設定済みのMCPサーバー：
+
+- **GitHub** - リポジトリ操作、PR/Issue管理
+- **Supabase** - データベース操作
+- **Obsidian** - ドキュメント管理
+- **LINE Bot** - 通知送信
+- **Stripe** - 決済統合（要API Key）
+- **Playwright** - ブラウザ自動操作
+- **Magic MCP** - AI駆動UIコンポーネント生成（要API Key）
+- その他多数...
+
+### MCPサーバーの追加
+
 ```bash
-master  # Teams will be created based on team-tasks.json
+# docker-base/config/mcp-servers.json を編集
+setup-mcp  # 設定を反映
+check_mcp  # 状態確認
 ```
 
-## 📋 Workflow
+## 🎯 開発フロー
 
-1. **Init** → Creates project structure
-2. **Docker** → Starts development environment  
-3. **Claude (cc)** → Describe app requirements
-4. **Master** → Launches team based on tasks
-5. **Development** → Teams work hierarchically
+1. **プロジェクト作成**
+   ```bash
+   create-project my-app
+   ```
 
-## 📁 Structure
+2. **要件定義**
+   ```bash
+   cc  # AIと対話しながら要件を定義、要件定義と基本的に開発環境の構築が完了したら終了する
+   ```
 
+3. **チーム開発**（オプション）
+   ```bash
+   master  # 複数のClaude AIによる並行開発
+   ```
+
+4. **デプロイ**
+   ```bash
+   # プロジェクトに応じた方法でデプロイ
+   ```
+
+## 📝 環境変数
+
+`cp .env.example .env`で`.env`ファイルを作成：
+
+```bash
+# 必須
+ANTHROPIC_API_KEY=your_api_key_here
+
+# オプション（MCP用）
+GITHUB_TOKEN=
+SUPABASE_ACCESS_TOKEN=
+STRIPE_SECRET_KEY=
+CHANNEL_ACCESS_TOKEN=
+DESTINATION_USER_ID=
+OBSIDIAN_API_KEY=
+MAGIC_API_KEY=
+# ... その他のAPI Keys
 ```
-project/
-├── config/
-│   ├── teams.json        # Team configuration
-│   └── team-tasks.json   # Tasks per team/member
-├── docker/               # Docker configuration
-├── lib/                  # Core libraries
-├── scripts/              # Main scripts
-└── team-templates/       # Team templates
+
+### 各MCPサーバーの詳細説明
+
+#### GitHub MCP
+GitHubリポジトリの操作を自動化：
+- **リポジトリ管理** - 作成、フォーク、ブランチ操作
+- **PR/Issue管理** - 作成、更新、レビュー、マージ
+- **コード検索** - リポジトリ内のコード検索
+- **ファイル操作** - ファイルの作成、更新、削除
+
+#### Supabase MCP
+Supabaseプロジェクトの完全な管理：
+- **プロジェクト管理** - 作成、一時停止、復元
+- **データベース操作** - テーブル作成、SQL実行、マイグレーション
+- **Edge Functions** - サーバーレス関数のデプロイ
+- **セキュリティ監査** - RLSポリシーチェック、パフォーマンス最適化提案
+
+#### Obsidian MCP
+ナレッジベースとドキュメント管理：
+- **ノート操作** - 作成、読み取り、更新、削除
+- **検索機能** - セマンティック検索、Dataview/JsonLogic検索
+- **テンプレート実行** - Templaterテンプレートの実行
+- **リアルタイム同期** - Obsidian UIとの双方向同期
+
+#### LINE Bot MCP
+LINE通知とメッセージング：
+- **メッセージ送信** - テキスト、Flexメッセージ
+- **ブロードキャスト** - 全フォロワーへの一斉送信
+- **プロフィール取得** - ユーザー情報の取得
+- **配信状況確認** - メッセージ配信枠の確認
+
+#### Stripe MCP
+決済システムの統合：
+- **顧客管理** - 顧客の作成、更新、検索
+- **支払い処理** - 請求書、サブスクリプション管理
+- **製品管理** - 製品・価格の作成と管理
+- **レポート** - 売上分析、決済履歴
+
+#### Playwright MCP
+ブラウザ自動操作とテスト：
+- **ブラウザ操作** - ナビゲーション、クリック、入力
+- **スクリーンショット** - ページ全体、要素単位の撮影
+- **テスト生成** - 操作を記録してテストコード生成
+- **ネットワーク監視** - リクエスト/レスポンスの監視
+
+#### Context7 MCP
+ライブラリドキュメントの検索：
+- **最新ドキュメント取得** - npm/pip等のパッケージドキュメント
+- **バージョン指定** - 特定バージョンのドキュメント取得
+- **トピック検索** - 関数、クラス、概念の検索
+- **コード例** - 実装例とベストプラクティス
+
+#### Magic MCP
+AI駆動UIコンポーネント生成：
+- **自然言語でUIコンポーネント生成** - 「ログインボタンを作って」など
+- **TypeScript対応** - 型安全なコンポーネント生成
+- **リアルタイムプレビュー** - 生成したコンポーネントをすぐに確認
+- **プロジェクト統合** - 既存のコードスタイルに合わせて生成
+
+### API Key取得方法まとめ
+
+| サービス | 取得方法 | URL |
+|----------|----------|-----|
+| GitHub | Personal Access Tokens | https://github.com/settings/tokens |
+| Supabase | Project Settings > API | https://supabase.com/dashboard |
+| Stripe | Dashboard > API Keys | https://dashboard.stripe.com/apikeys |
+| LINE | LINE Developers Console | https://developers.line.biz/ |
+| Obsidian | Local REST API plugin | Obsidian内で設定 |
+| Magic MCP | 21st.dev Console | https://21st.dev/magic/console |
+
+## 🐛 トラブルシューティング
+
+### メモリ不足
+
+```bash
+# Docker Desktopでメモリを増やす
+# Mac: Preferences → Resources → Memory
+# Windows: Settings → Resources → Memory
+
+# または段階的起動を使用
+master --phased
 ```
 
-## 🔧 Commands
+### コンテナが起動しない
 
-- `cc` / `claude` - Claude CLI with full permissions
-- `master` - Launch team system
-- `check_mcp` - Check MCP server status
-- `setup-mcp` - Setup MCP servers
-- `create-project` - Create new project from boilerplate
+```bash
+# ログを確認
+docker compose logs
 
-### Project Creation Notes
+# 再ビルド
+docker compose down
+docker compose up -d --build
+```
 
-- Project name should not contain spaces or special characters
-- Container name will be `projectname-app-1`
-- Existing projects with the same name will cause an error
+### Claude CLIエラー
 
-## 📝 Team Structure
+```bash
+# API Keyを確認
+echo $ANTHROPIC_API_KEY
 
-Each team consists of:
-- **Boss** - Team leader, coordinates work
-- **Pro1-3** - Team members with specific roles
+# MCPサーバーをリセット
+setup-mcp
+```
 
-Teams communicate hierarchically:
-- Master ↔ Boss
-- Boss ↔ Team Members
+## 🤝 コントリビューション
 
-## 🛠️ Requirements
+1. このリポジトリをフォーク
+2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add amazing feature'`)
+4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
+5. プルリクエストを作成
 
-- Docker & Docker Compose
-- Bash shell (default in container)
-- Claude API key in `.env`
-- Fish shell (optional, for host machine)
+## 📄 ライセンス
 
-## 📄 License
+MIT License - 詳細は[LICENSE](LICENSE)ファイルを参照
 
-MIT
+## 🙏 謝辞
+
+- [Anthropic](https://anthropic.com) - Claude AI
+- [Model Context Protocol](https://github.com/anthropics/mcp) - MCP仕様
+- すべてのコントリビューター
+
+---
+
+<p align="center">
+  Made with ❤️ by the Claude Code Community
+</p>
+
+<p align="center">
+  <a href="https://github.com/yourusername/docker-claude-code-boilerplate/issues">Issues</a> •
+  <a href="https://github.com/yourusername/docker-claude-code-boilerplate/discussions">Discussions</a> •
+  <a href="https://claude.ai">Claude AI</a>
+</p>

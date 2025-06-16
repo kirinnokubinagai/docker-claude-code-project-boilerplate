@@ -53,6 +53,7 @@ services:
       - DESTINATION_USER_ID=${DESTINATION_USER_ID}
       - OBSIDIAN_API_KEY=${OBSIDIAN_API_KEY}
       - OBSIDIAN_HOST=${OBSIDIAN_HOST:-localhost:27123}
+      - MAGIC_API_KEY=${MAGIC_API_KEY}
 
       # Playwright
       - PLAYWRIGHT_HEADLESS=${PLAYWRIGHT_HEADLESS:-true}
@@ -65,6 +66,16 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
+    
+    # リソース制限の設定（必要に応じてコメントアウトを解除）
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 16G
+    #       cpus: '8.0'
+    #     reservations:
+    #       memory: 8G
+    #       cpus: '4.0'
 
     # カスタムネットワーク使用（コンテナ間通信用）
     networks:

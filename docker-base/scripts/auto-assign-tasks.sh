@@ -20,6 +20,9 @@ WORKSPACE="/workspace"
 TEAMS_CONFIG_FILE="/opt/claude-system/config/teams.json"
 TASKS_CONFIG_FILE="/opt/claude-system/config/team-tasks.json"
 WORKFLOW_STATE_FILE="/opt/claude-system/config/workflow_state.json"
+TEAMS_TEMPLATE_FILE="/opt/claude-system/templates/teams.json.example"
+TASKS_TEMPLATE_FILE="/opt/claude-system/templates/team-tasks.json.example"
+WORKFLOW_TEMPLATE_FILE="/opt/claude-system/templates/workflow_state.json.example"
 
 # ヘルプメッセージ
 show_help() {
@@ -144,13 +147,26 @@ main() {
     
     # 必要なファイルの確認
     if [ ! -f "$TEAMS_CONFIG_FILE" ]; then
-        log_error "teams.json が見つかりません"
-        echo "master コマンドを先に実行してください"
+        if [ -f "$TEAMS_TEMPLATE_FILE" ]; then
+            log_error "teams.json が見つかりません"
+            log_info "以下のコマンドでテンプレートファイルをコピーしてください："
+            log_info "cp $TEAMS_TEMPLATE_FILE $TEAMS_CONFIG_FILE"
+            log_info "その後、プロジェクトに合わせて編集してください"
+        else
+            log_error "teams.json およびテンプレートファイルが見つかりません"
+        fi
         exit 1
     fi
     
     if [ ! -f "$TASKS_CONFIG_FILE" ]; then
-        log_error "team-tasks.json が見つかりません"
+        if [ -f "$TASKS_TEMPLATE_FILE" ]; then
+            log_error "team-tasks.json が見つかりません"
+            log_info "以下のコマンドでテンプレートファイルをコピーしてください："
+            log_info "cp $TASKS_TEMPLATE_FILE $TASKS_CONFIG_FILE"
+            log_info "その後、プロジェクトに合わせて編集してください"
+        else
+            log_error "team-tasks.json およびテンプレートファイルが見つかりません"
+        fi
         exit 1
     fi
     

@@ -22,6 +22,11 @@ RUN apk add --no-cache \
     ncurses \
     vim
 
+# pecoのインストール（Go製のインタラクティブフィルタ）
+RUN curl -L https://github.com/peco/peco/releases/download/v0.5.11/peco_linux_amd64.tar.gz | tar xz \
+    && mv peco_linux_amd64/peco /usr/local/bin/ \
+    && rm -rf peco_linux_amd64
+
 # developerユーザーを作成（既存のGID/UIDを考慮）
 RUN addgroup -g 1001 developer || true && \
     adduser -D -u 1001 -G developer -s /bin/bash -h /home/developer developer && \

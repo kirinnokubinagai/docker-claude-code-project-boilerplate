@@ -41,19 +41,6 @@ if [ -d "/opt/claude-system/scripts" ]; then
     chmod +x /opt/claude-system/scripts/*.sh
 fi
 
-# rootユーザー用のbashエイリアス設定
-if [ ! -f "/root/.bashrc" ]; then
-    cat > /root/.bashrc << 'EOF'
-# エイリアス設定（rootユーザー用）
-alias cc='claude --dangerously-skip-permissions'
-alias ccd='claude --dangerously-skip-permissions'
-alias master='env -u TMUX /opt/claude-system/scripts/master-claude-teams.sh'
-alias check_mcp='claude mcp list'
-alias setup-mcp='/opt/claude-system/scripts/setup-mcp.sh'
-alias ll='ls -la'
-EOF
-fi
-
 # tmux設定ファイルをコピー（権限を修正してから）
 if [ -f "/opt/claude-system/config/.tmux.conf" ]; then
     # rootユーザーとして実行されているので、直接操作

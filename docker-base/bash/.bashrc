@@ -20,6 +20,30 @@ if [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
     source /usr/share/doc/fzf/examples/key-bindings.bash
 fi
 
+# peco設定 - Ctrl+Rでpeco履歴検索を有効化（fzfと併用可能）
+function peco-history-selection() {
+    BUFFER=$(history | cut -c 8- | sort | uniq | peco --query "$LBUFFER")
+    CURSOR=$#BUFFER
+    zle clear-screen
+}
+# pecoを使った履歴検索 - Ctrl+Alt+Rで起動
+bind '"\e\C-r": "\C-a\C-kpeco-history-selection\n"'
+
+# peco便利関数
+function peco-cd() {
+    local selected_dir=$(find . -type d | peco)
+    if [ -n "$selected_dir" ]; then
+        cd "$selected_dir"
+    fi
+}
+
+function peco-git-branch() {
+    local selected_branch=$(git branch -a | peco | sed 's/^..//g' | sed 's/remotes\/origin\///g')
+    if [ -n "$selected_branch" ]; then
+        git checkout "$selected_branch"
+    fi
+}
+
 # z設定 - ディレクトリジャンプ
 if [ -f /usr/local/bin/z.sh ]; then
     . /usr/local/bin/z.sh
@@ -39,8 +63,7 @@ alias vi='vim'
 alias v='vim'
 
 # Claude Code aliases
-alias claude='claude --dangerously-skip-permissions'
-alias cc='claude --dangerously-skip-permissions'
+alias cc='claude'
 alias ccd='claude --dangerously-skip-permissions'
 alias check_mcp='claude mcp list'
 alias setup-mcp='/opt/claude-system/scripts/setup-mcp.sh'
@@ -48,6 +71,10 @@ alias master='/opt/claude-system/scripts/master-claude-teams.sh'
 alias auto-assign='/opt/claude-system/scripts/auto-assign-tasks.sh'
 alias help='/opt/claude-system/scripts/show-help.sh'
 alias h='/opt/claude-system/scripts/show-help.sh'
+
+# peco aliases
+alias pcd='peco-cd'
+alias pgb='peco-git-branch'
 
 # Git aliases
 alias gs='git status'
@@ -89,20 +116,22 @@ echo "🚀 Claude Code Development Environment"
 echo "==============================================="
 echo ""
 echo "📋 ショートカット:"
-echo "  claude/cc/ccd（権限確認スキップ） - Claude CLIを起動"
+echo "  cc              - Claude CLIを起動"
+echo "  ccd             - Claude CLI（権限確認スキップ）"
 echo "  master          - Master Claude Teamsを起動"
 echo "  setup-mcp       - MCPサーバーを設定"
 echo "  check_mcp       - MCPサーバーの状態確認"
 echo "  help / h        - ヘルプとコマンド一覧を表示"
 echo ""
 echo "📝 次のステップ:"
-echo "  1. claude または ccd と入力してアプリの要件を説明"
+echo "  1. cc または ccd と入力してアプリの要件を説明"
 echo "  2. teams.jsonが生成されたら master を実行"
 echo "  3. 各チームが並行開発を開始"
 echo ""
 echo "💡 Tips:"
 echo "  - 初回実行時の質問は自動でスキップされます"
-echo "  - Ctrl+R で履歴検索（fzf）"
+echo "  - Ctrl+R で履歴検索（fzf）、Ctrl+Alt+R で履歴検索（peco）"
+echo "  - pcd でディレクトリ選択、pgb でブランチ選択"
 echo "  - z [directory] でディレクトリジャンプ"
 echo "  - tmux attach -t claude-teams でチーム画面に接続"
 echo "  - help でtmuxコマンドの詳細を確認"

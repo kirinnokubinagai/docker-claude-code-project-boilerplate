@@ -65,10 +65,10 @@
    ```
 
 4. **teams.json自動生成**
-   必ず以下の形式でdocker/config/teams.jsonを作成（**形式を厳密に守ること！**）：
+   必ず以下の形式で/opt/claude-system/config/teams.jsonを作成（**形式を厳密に守ること！**）：
    ```bash
-   mkdir -p docker/config
-   cat > docker/config/teams.json << 'EOF'
+   mkdir -p /opt/claude-system/config
+   cat > /opt/claude-system/config/teams.json << 'EOF'
    {
      "project_name": "プロジェクト名",
      "project_type": "タイプ",
@@ -193,8 +193,8 @@
 
 次のコマンドを実行してteams.jsonを生成します:
 
-mkdir -p docker/config
-cat > docker/config/teams.json << 'EOF'
+mkdir -p /opt/claude-system/config
+cat > /opt/claude-system/config/teams.json << 'EOF'
 {
   "project_name": "SNSアプリ",
   "project_type": "web-app",
@@ -209,8 +209,8 @@ cat > docker/config/teams.json << 'EOF'
 EOF
 
 タスクファイルも生成します:
-# team-tasks.jsonをdocker/configディレクトリに生成
-cat > docker/config/team-tasks.json << 'EOF'
+# team-tasks.jsonを/opt/claude-system/configディレクトリに生成
+cat > /opt/claude-system/config/team-tasks.json << 'EOF'
 {
   "master": {
     "initial_prompt": "私はMaster Claudeです。プロジェクト全体を統括します。"
@@ -553,7 +553,7 @@ while (productExists) {
 
 **重要: ユーザーが「〇〇を作りたい」と言ったら、必ず最初にタスク分割とチーム構成を実行**
 
-**超重要: teams.jsonは必ずbashコマンドで `docker/config/teams.json` に作成すること！JSONを表示するだけでは動作しません！**
+**超重要: teams.jsonは必ずbashコマンドで `/opt/claude-system/config/teams.json` に作成すること！JSONを表示するだけでは動作しません！**
 
 **🛑 最重要: teams.json生成後は実装に着手せず、チーム構成の準備完了で停止すること！**
 

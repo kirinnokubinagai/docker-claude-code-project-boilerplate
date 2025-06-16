@@ -12,6 +12,7 @@ NC='\033[0m' # No Color
 # 設定
 SESSION_NAME="claude-teams"
 TEAMS_CONFIG_FILE="/opt/claude-system/config/teams.json"
+TEAMS_TEMPLATE_FILE="/opt/claude-system/templates/teams.json.example"
 
 echo -e "${BLUE}[INFO]${NC} ペインタイトルを設定中..."
 

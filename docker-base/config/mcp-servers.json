@@ -51,6 +51,13 @@
       "env": {
         "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
       }
+    },
+    "magic-mcp": {
+      "command": "npx",
+      "args": ["-y", "@21st-dev/mcp-server@latest"],
+      "env": {
+        "MAGIC_API_KEY": "${MAGIC_API_KEY}"
+      }
     }
   }
 }
