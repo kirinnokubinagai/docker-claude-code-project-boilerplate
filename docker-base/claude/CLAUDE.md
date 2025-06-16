@@ -231,28 +231,91 @@ EOF
 5. **タスク分割とチーム編成**
    - documents/tasks/内のタスクファイルに基づいてタスクを詳細分割
    - 必要なチーム数とメンバー数を決定
-   - teams.jsonを `/opt/claude-system/config/teams.json` に生成
+   - **必須: teams.jsonを以下のコマンドで作成**
+   ```bash
+   # ディレクトリが存在することを確認
+   sudo mkdir -p /opt/claude-system/config
+   
+   # teams.jsonを直接作成（必ずこのパスに作成）
+   sudo tee /opt/claude-system/config/teams.json << 'EOF'
+   {
+     "project_name": "プロジェクト名",
+     "project_type": "タイプ",
+     "teams": [...]
+   }
+   EOF
+   
+   # 権限を設定
+   sudo chown developer:developer /opt/claude-system/config/teams.json
+   
+   # 作成確認（必須）
+   ls -la /opt/claude-system/config/teams.json
+   cat /opt/claude-system/config/teams.json
+   ```
 
 6. **🛑 ここで必ず停止！**
 
-### teams.json形式（厳守）
+### teams.json作成の具体例（厳守）
 
-```json
+```bash
+# 実際の作成コマンド例（Webアプリの場合）
+sudo tee /opt/claude-system/config/teams.json << 'EOF'
 {
-  "project_name": "プロジェクト名",
+  "project_name": "YourProjectName",
   "project_type": "web-app",
   "teams": [
     {
-      "id": "frontend",          // 必須: frontend/backend/database/devops等
-      "name": "Frontend Team",    // 必須: チーム表示名
+      "id": "frontend",
+      "name": "Frontend Team",
       "description": "UI/UX開発",
-      "member_count": 3,          // 必須: 1-4の整数（1人目が必ずBoss）
-      "tech_stack": "Next.js, TypeScript",
-      "branch": "team/frontend"   // 必須: team/[id]形式
+      "member_count": 4,
+      "tech_stack": "Next.js, TypeScript, Tailwind CSS",
+      "branch": "team/frontend"
+    },
+    {
+      "id": "backend",
+      "name": "Backend Team",
+      "description": "API開発",
+      "member_count": 4,
+      "tech_stack": "Node.js, Express, PostgreSQL",
+      "branch": "team/backend"
+    },
+    {
+      "id": "database",
+      "name": "Database Team",
+      "description": "データベース設計",
+      "member_count": 3,
+      "tech_stack": "PostgreSQL, Redis",
+      "branch": "team/database"
+    },
+    {
+      "id": "devops",
+      "name": "DevOps Team",
+      "description": "インフラ構築",
+      "member_count": 3,
+      "tech_stack": "Docker, GitHub Actions, AWS",
+      "branch": "team/devops"
     }
   ]
 }
+EOF
+
+# 必ず実行: 権限設定と確認
+sudo chown developer:developer /opt/claude-system/config/teams.json
+ls -la /opt/claude-system/config/teams.json
+echo "teams.json created at: /opt/claude-system/config/teams.json"
 ```
+
+### teams.jsonの必須フィールド
+
+| フィールド | 型 | 説明 | 例 |
+|----------|---|------|---|
+| id | string | チームID（英小文字） | "frontend" |
+| name | string | チーム表示名 | "Frontend Team" |
+| description | string | チームの役割 | "UI/UX開発" |
+| member_count | number | メンバー数（1-4） | 4 |
+| tech_stack | string | 使用技術 | "Next.js, TypeScript" |
+| branch | string | ブランチ名 | "team/frontend" |
 
 ### Master Claudeの動作フロー（指示待ちゼロシステム）
 
@@ -639,10 +702,10 @@ test('ログイン機能', async ({ page }) => {
 3. **documents/requirements.mdは人間用要件定義、documents/tasks/は詳細タスクリスト**
 4. **フェーズ分けせず一発で全機能実装**
 5. **開発中に必要なタスクは随時追加**
-9. **「今後の展開」「ロードマップ」等は作成しない（完成品を一発で作る）**
-6. **teams.jsonは `/opt/claude-system/config/` に保存**
-7. **生成後は必ず停止（Masterがtmuxで指示を出す）**
-8. **UIデザイン作成時は必ずMagic MCPを使用**
+6. **「今後の展開」「ロードマップ」等は作成しない（完成品を一発で作る）**
+7. **teams.jsonは必ず `/opt/claude-system/config/teams.json` に保存（sudo teeコマンド使用）**
+8. **生成後は必ず停止（Masterがtmuxで指示を出す）**
+9. **UIデザイン作成時は必ずMagic MCPを使用**
 
 ---
 

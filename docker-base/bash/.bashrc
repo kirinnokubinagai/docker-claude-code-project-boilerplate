@@ -20,19 +20,27 @@ export HISTFILESIZE=20000
 export HISTCONTROL=ignoreboth:erasedups
 shopt -s histappend
 
-# fzf設定 - Ctrl+Rで高度な履歴検索
-if [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
-    source /usr/share/doc/fzf/examples/key-bindings.bash
+# インタラクティブシェルでのみキーバインド設定
+# PS1が設定されていることも確認（インタラクティブシェルの確実な判定）
+if [[ $- == *i* ]] && [[ -t 0 ]] && [[ ! -z "$PS1" ]]; then
+    # fzf設定 - Ctrl+Rで高度な履歴検索
+    if [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
+        source /usr/share/doc/fzf/examples/key-bindings.bash 2>/dev/null || true
+    fi
+    
+    # peco履歴検索機能
+    function peco-history-selection() {
+        BUFFER=$(history | cut -c 8- | sort | uniq | peco --query "$LBUFFER")
+        CURSOR=$#BUFFER
+        zle clear-screen
+    }
+    
+    # bindコマンドが利用可能か確認してから実行
+    if type bind &>/dev/null; then
+        # pecoを使った履歴検索 - Ctrl+Alt+Rで起動
+        bind '"\e\C-r": "\C-a\C-kpeco-history-selection\n"' 2>/dev/null || true
+    fi
 fi
-
-# peco設定 - Ctrl+Rでpeco履歴検索を有効化（fzfと併用可能）
-function peco-history-selection() {
-    BUFFER=$(history | cut -c 8- | sort | uniq | peco --query "$LBUFFER")
-    CURSOR=$#BUFFER
-    zle clear-screen
-}
-# pecoを使った履歴検索 - Ctrl+Alt+Rで起動
-bind '"\e\C-r": "\C-a\C-kpeco-history-selection\n"'
 
 # peco便利関数
 function peco-cd() {
