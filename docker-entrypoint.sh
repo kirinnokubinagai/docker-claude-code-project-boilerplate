@@ -38,19 +38,18 @@ find /workspace -user root -exec chown developer:developer {} \; 2>/dev/null || 
 
 # scriptsファイルの実行権限
 if [ -d "/workspace/docker/scripts" ]; then
-    chmod +x /workspace/docker/scripts/*.fish
+    chmod +x /workspace/docker/scripts/*.sh
 fi
 
-# rootユーザー用のfishエイリアス設定
-if [ ! -f "/root/.config/fish/config.fish" ]; then
-    mkdir -p /root/.config/fish
-    cat > /root/.config/fish/config.fish << 'EOF'
+# rootユーザー用のbashエイリアス設定
+if [ ! -f "/root/.bashrc" ]; then
+    cat > /root/.bashrc << 'EOF'
 # エイリアス設定（rootユーザー用）
 alias cc='claude --dangerously-skip-permissions'
 alias ccd='claude --dangerously-skip-permissions'
-alias master='env -u TMUX /workspace/docker/scripts/master-claude-teams.fish'
+alias master='env -u TMUX /workspace/docker/scripts/master-claude-teams.sh'
 alias check_mcp='claude mcp list'
-alias setup-mcp='/workspace/docker/scripts/setup-mcp.fish'
+alias setup-mcp='/workspace/docker/scripts/setup-mcp.sh'
 alias ll='ls -la'
 EOF
 fi
@@ -82,17 +81,23 @@ chown -R developer:developer /home/developer
 export HOME=/home/developer
 export USER=developer
 
+# Claude初期設定
+echo "Claude初期設定中..."
+su developer -c "/workspace/docker/scripts/setup-claude-config.sh" || {
+    echo "[WARNING] Claude初期設定に失敗しましたが、続行します..."
+}
+
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
 # su -（ハイフン付き）は環境をリセットするので、su（ハイフンなし）を使用
-su developer -c "/workspace/docker/scripts/setup-mcp.fish" || {
+su developer -c "/workspace/docker/scripts/setup-mcp.sh" || {
     echo "[WARNING] MCP設定に失敗しましたが、続行します..."
 }
 
-# 引数があればそのコマンドを、なければfishシェルを起動
+# 引数があればそのコマンドを、なければbashシェルを起動
 if [ $# -eq 0 ]; then
-    # デフォルト: fishシェル
-    exec su developer -c "cd /workspace && exec fish"
+    # デフォルト: bashシェル
+    exec su developer -c "cd /workspace && exec bash"
 else
     # 引数がある場合: そのコマンドを実行
     exec su developer -c "cd /workspace && exec $*"

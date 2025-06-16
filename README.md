@@ -4,16 +4,38 @@ A streamlined Docker environment for running Claude Code with team-based develop
 
 ## 🚀 Quick Start
 
-### 1. Initialize Project
+### 1. Create New Project (Recommended)
+
+#### Setup (one-time)
+
+**For Fish shell users:**
+```fish
+# Add to ~/.config/fish/config.fish
+alias create-project='sh ~/Project/docker-claude-code-boiler-plate/create-project.sh'
+```
+
+**For Bash shell users:**
+```bash
+# Add to ~/.bashrc
+source ~/Project/docker-claude-code-boiler-plate/create-project.sh
+```
+
+#### Create and Start Project
+```bash
+create-project my-app
+# This will:
+# 1. Copy boilerplate to ~/Project/my-app
+# 2. cd to the project directory
+# 3. Run docker compose up -d
+# 4. Connect as developer user automatically
+```
+
+### 2. Manual Setup (Alternative)
 ```bash
 ./init-project.sh my-project
 cd my-project
-```
-
-### 2. Start Docker Environment
-```bash
-docker-compose up -d
-docker exec -it claude-dev fish
+docker compose up -d
+docker exec -it -u developer my-project-app-1 bash
 ```
 
 ### 3. Create Your App (with Claude)
@@ -49,9 +71,17 @@ project/
 
 ## 🔧 Commands
 
-- `cc` - Claude CLI with full permissions
+- `cc` / `claude` - Claude CLI with full permissions
 - `master` - Launch team system
 - `check_mcp` - Check MCP server status
+- `setup-mcp` - Setup MCP servers
+- `create-project` - Create new project from boilerplate
+
+### Project Creation Notes
+
+- Project name should not contain spaces or special characters
+- Container name will be `projectname-app-1`
+- Existing projects with the same name will cause an error
 
 ## 📝 Team Structure
 
@@ -66,8 +96,9 @@ Teams communicate hierarchically:
 ## 🛠️ Requirements
 
 - Docker & Docker Compose
-- Fish shell (included in container)
+- Bash shell (default in container)
 - Claude API key in `.env`
+- Fish shell (optional, for host machine)
 
 ## 📄 License
 

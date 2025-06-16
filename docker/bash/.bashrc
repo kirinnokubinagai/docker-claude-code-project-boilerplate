@@ -1,0 +1,101 @@
+#!/bin/bash
+# .bashrc for developer user
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+    . /etc/bashrc
+fi
+
+# User specific environment
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+
+# History settings - Ctrl+Rで履歴検索を有効化
+export HISTSIZE=10000
+export HISTFILESIZE=20000
+export HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend
+
+# fzf設定 - Ctrl+Rで高度な履歴検索
+if [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
+    source /usr/share/doc/fzf/examples/key-bindings.bash
+fi
+
+# z設定 - ディレクトリジャンプ
+if [ -f /usr/local/bin/z.sh ]; then
+    . /usr/local/bin/z.sh
+fi
+
+# Prompt customization
+export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+
+# Aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias grep='grep --color=auto'
+alias vi='vim'
+alias v='vim'
+
+# Claude Code aliases
+alias claude='claude --dangerously-skip-permissions'
+alias cc='claude --dangerously-skip-permissions'
+alias ccd='claude --dangerously-skip-permissions'
+alias check_mcp='claude mcp list'
+alias setup-mcp='/workspace/docker/scripts/setup-mcp.sh'
+alias master='/workspace/docker/scripts/master-claude-teams.sh'
+alias auto-assign='/workspace/docker/scripts/auto-assign-tasks.sh'
+alias help='/workspace/docker/scripts/show-help.sh'
+alias h='/workspace/docker/scripts/show-help.sh'
+
+# Git aliases
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git log --oneline --graph --all'
+alias gd='git diff'
+
+# tmux
+alias ta='tmux attach -t'
+alias tl='tmux list-sessions'
+alias tn='tmux new -s'
+
+# Environment variables
+export EDITOR='vim'
+export VISUAL='vim'
+
+# Bashのviモードを無効化（emacsモードを使用）
+set -o emacs
+
+# Set working directory
+cd /workspace 2>/dev/null || true
+
+# Welcome message and shortcuts
+echo ""
+echo "==============================================="
+echo "🚀 Claude Code Development Environment"
+echo "==============================================="
+echo ""
+echo "📋 ショートカット:"
+echo "  claude/cc/ccd（権限確認スキップ） - Claude CLIを起動"
+echo "  master          - Master Claude Teamsを起動"
+echo "  setup-mcp       - MCPサーバーを設定"
+echo "  check_mcp       - MCPサーバーの状態確認"
+echo "  help / h        - ヘルプとコマンド一覧を表示"
+echo ""
+echo "📝 次のステップ:"
+echo "  1. claude または ccd と入力してアプリの要件を説明"
+echo "  2. teams.jsonが生成されたら master を実行"
+echo "  3. 各チームが並行開発を開始"
+echo ""
+echo "💡 Tips:"
+echo "  - 初回実行時の質問は自動でスキップされます"
+echo "  - Ctrl+R で履歴検索（fzf）"
+echo "  - z [directory] でディレクトリジャンプ"
+echo "  - tmux attach -t claude-teams でチーム画面に接続"
+echo "  - help でtmuxコマンドの詳細を確認"
+echo ""
+echo "==============================================="
+echo ""

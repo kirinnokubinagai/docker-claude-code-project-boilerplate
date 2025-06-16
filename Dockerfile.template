@@ -2,12 +2,12 @@ FROM node:alpine
 
 # 必要なパッケージをインストール
 RUN apk add --no-cache \
-    fish \
+    bash \
+    bash-completion \
     git \
     curl \
     fzf \
     tmux \
-    bash \
     python3 \
     py3-pip \
     nodejs \
@@ -18,32 +18,29 @@ RUN apk add --no-cache \
     perl \
     gettext \
     chromium \
-    chromium-chromedriver
+    chromium-chromedriver \
+    ncurses \
+    vim
 
 # developerユーザーを作成（既存のGID/UIDを考慮）
 RUN addgroup -g 1001 developer || true && \
-    adduser -D -u 1001 -G developer -s /usr/bin/fish -h /home/developer developer && \
+    adduser -D -u 1001 -G developer -s /bin/bash -h /home/developer developer && \
     echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # developerユーザーの環境ディレクトリを作成
-RUN mkdir -p /home/developer/.config/fish/functions \
-    /home/developer/.config/fish/conf.d \
+RUN mkdir -p /home/developer/.config \
     /home/developer/.npm \
     /home/developer/.local/share \
     /home/developer/.cache \
     /home/developer/.anthropic \
     && chown -R developer:developer /home/developer
 
-# zのインストール（fishプラグインマネージャー不要の単独インストール）
-RUN mkdir -p /home/developer/.local/share/z \
-    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/z.fish -o /home/developer/.config/fish/functions/z.fish \
-    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/__z.fish -o /home/developer/.config/fish/functions/__z.fish \
-    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/__z_add.fish -o /home/developer/.config/fish/functions/__z_add.fish \
-    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/__z_clean.fish -o /home/developer/.config/fish/functions/__z_clean.fish \
-    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/functions/__z_complete.fish -o /home/developer/.config/fish/functions/__z_complete.fish \
-    && curl -sSL https://raw.githubusercontent.com/jethrokuan/z/main/conf.d/z.fish -o /home/developer/.config/fish/conf.d/z.fish \
-    && touch /home/developer/.local/share/z/data \
-    && chown -R developer:developer /home/developer/.config/fish /home/developer/.local/share/z
+# zのインストール（bash用のディレクトリジャンプツール）
+RUN curl -sSL https://raw.githubusercontent.com/rupa/z/master/z.sh -o /usr/local/bin/z.sh \
+    && chmod +x /usr/local/bin/z.sh \
+    && mkdir -p /home/developer/.local/share \
+    && touch /home/developer/.z \
+    && chown developer:developer /home/developer/.z
 
 # tmux-xpanesのインストール
 RUN curl -L https://raw.githubusercontent.com/greymd/tmux-xpanes/master/bin/xpanes -o /usr/local/bin/xpanes \
@@ -62,7 +59,7 @@ RUN npm install -g @anthropic-ai/claude-code
 RUN pip3 install --break-system-packages uv
 
 # tmux設定
-RUN echo "set -g default-shell /usr/bin/fish" > /home/developer/.tmux.conf && \
+RUN echo "set -g default-shell /bin/bash" > /home/developer/.tmux.conf && \
     echo "set -g mouse on" >> /home/developer/.tmux.conf && \
     echo "set -g base-index 1" >> /home/developer/.tmux.conf && \
     echo "set -g pane-base-index 1" >> /home/developer/.tmux.conf && \
@@ -94,6 +91,9 @@ RUN chown -R developer:developer /home/developer
 # envsubstツールを追加（環境変数展開用）
 RUN apk add --no-cache gettext
 
+# luaをインストール（z.shの代わりにz.luaを使う場合）
+RUN apk add --no-cache lua5.3
+
 # Playwright用の環境変数を設定
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
@@ -102,11 +102,10 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-# Fish設定ファイルをコピー
-COPY docker/fish/config.fish /tmp/config.fish
-RUN cp /tmp/config.fish /home/developer/.config/fish/config.fish && \
-    chown developer:developer /home/developer/.config/fish/config.fish && \
-    rm /tmp/config.fish
+# Bash設定ファイルをコピー
+COPY docker/bash/.bashrc /home/developer/.bashrc
+COPY docker/bash/.bash_profile /home/developer/.bash_profile
+RUN chown developer:developer /home/developer/.bashrc /home/developer/.bash_profile
 
 # 作業ディレクトリを設定
 WORKDIR /workspace

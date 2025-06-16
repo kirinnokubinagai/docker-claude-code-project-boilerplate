@@ -1,12 +1,12 @@
 version: "3.8"
 
-name: claude-code-${PROJECT_NAME:-default}
+name: claude-code-{{PROJECT_NAME}}
 
 services:
   # Claude Code Company 環境
   claude-code:
     build: .
-    container_name: claude-code-${PROJECT_NAME:-default}
+    container_name: claude-code-{{PROJECT_NAME}}
     # ENTRYPOINTはrootで実行、その後developerに切り替え
     # user: "${USER_UID:-1000}:${USER_GID:-1000}"
     volumes:
@@ -21,11 +21,8 @@ services:
       - ~/.anthropic:/home/developer/.anthropic
       - ~/.claude:/home/developer/.claude
 
-      # Fish設定
-      - ./docker/fish/config.fish:/home/developer/.config/fish/config.fish
-
       # データ永続化（プロジェクト別）
-      - fish_history:/home/developer/.local/share/fish
+      - bash_history:/home/developer/.bash_history
       - z_data:/home/developer
       - tmux_data:/home/developer/.tmux
 
@@ -46,7 +43,6 @@ services:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
       - CHANNEL_ACCESS_TOKEN=${CHANNEL_ACCESS_TOKEN}
       - DESTINATION_USER_ID=${DESTINATION_USER_ID}
       - OBSIDIAN_API_KEY=${OBSIDIAN_API_KEY}
@@ -76,17 +72,17 @@ services:
 
 
 volumes:
-  fish_history:
+  bash_history:
     external: true
-    name: ${PROJECT_NAME:-default}_fish_history
+    name: {{PROJECT_NAME}}_bash_history
   z_data:
     external: true
-    name: ${PROJECT_NAME:-default}_z_data
+    name: {{PROJECT_NAME}}_z_data
   tmux_data:
     external: true
-    name: ${PROJECT_NAME:-default}_tmux_data
+    name: {{PROJECT_NAME}}_tmux_data
 
 networks:
   claude-network:
     driver: bridge
-    name: ${PROJECT_NAME:-default}_network
+    name: {{PROJECT_NAME}}_network
