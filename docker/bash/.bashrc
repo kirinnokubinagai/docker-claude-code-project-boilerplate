@@ -57,6 +57,16 @@ alias gp='git push'
 alias gl='git log --oneline --graph --all'
 alias gd='git diff'
 
+# GitHub CLI aliases
+alias ghpr='gh pr create'
+alias ghprl='gh pr list'
+alias ghprv='gh pr view'
+alias ghprc='gh pr checkout'
+alias ghissue='gh issue create'
+alias ghissuel='gh issue list'
+alias ghrepo='gh repo view --web'
+alias ghbrowse='gh browse'
+
 # tmux
 alias ta='tmux attach -t'
 alias tl='tmux list-sessions'
