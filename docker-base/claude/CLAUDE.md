@@ -388,15 +388,21 @@
    - 必要なチーム数とメンバー数を決定
    - **必須: teams.jsonを以下のコマンドで作成**
    ```bash
-   # ディレクトリが存在することを確認
+   # ディレクトリが存在することを確認（必須）
    mkdir -p /opt/claude-system/config
    
+   # 権限を確認
+   ls -la /opt/claude-system/
+   
    # teams.jsonを直接作成（必ずこのパスに作成）
+   # 以下の {...} 部分を実際の内容に置き換えること
    cat > /opt/claude-system/config/teams.json << 'EOF'
    {
-     "project_name": "プロジェクト名",
-     "project_type": "タイプ",
-     "teams": [...]
+     "project_name": "実際のプロジェクト名に変更",
+     "project_type": "web-app",
+     "teams": [
+       実際のチーム構成をここに記載
+     ]
    }
    EOF
    
@@ -409,8 +415,11 @@
 
 ### teams.json作成の具体例（厳守）
 
+**重要: 以下のコマンドをそのままコピー＆ペーストして実行**
+
 ```bash
 # 実際の作成コマンド例（Webアプリの場合）
+# このコマンドを実行すると teams.json が作成されます
 cat > /opt/claude-system/config/teams.json << 'EOF'
 {
   "project_name": "YourProjectName",
