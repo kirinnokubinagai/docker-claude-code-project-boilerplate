@@ -59,23 +59,52 @@ create_project() {
     echo "7. コンテナの起動を待機中..."
     CONTAINER_NAME="claude-code-${PROJECT_NAME}"
     
-    # コンテナが起動するまで最大30秒待機
-    for i in $(seq 1 30); do
+    local wait_count=0
+    local dot_count=0
+    
+    while true; do
         if docker ps | grep -q "$CONTAINER_NAME"; then
-            echo "コンテナが起動しました！"
+            echo ""
+            echo "✅ コンテナが起動しました！（${wait_count}秒）"
             break
         fi
-        echo -n "."
+        
+        # プログレス表示
+        if [ $((wait_count % 5)) -eq 0 ]; then
+            printf "."
+            dot_count=$((dot_count + 1))
+            
+            # 60秒ごとに経過時間を表示
+            if [ $((wait_count % 60)) -eq 0 ] && [ $wait_count -gt 0 ]; then
+                printf " [${wait_count}秒経過]"
+            fi
+            
+            # 20個のドットで改行
+            if [ $dot_count -eq 20 ]; then
+                echo ""
+                echo "                      "
+                dot_count=0
+            fi
+        fi
+        
+        # 初回のイメージダウンロードの可能性を通知
+        if [ $wait_count -eq 30 ]; then
+            echo ""
+            echo "ℹ️  初回実行時はDockerイメージのダウンロードに時間がかかる場合があります"
+            echo "   継続して待機中"
+        fi
+        
         sleep 1
+        wait_count=$((wait_count + 1))
+        
+        # 5分以上かかっている場合は警告
+        if [ $wait_count -eq 300 ]; then
+            echo ""
+            echo "⚠️  警告: 5分以上経過しています。別のターミナルで以下を確認してください："
+            echo "   docker compose logs -f"
+            echo "   待機を継続中"
+        fi
     done
-    echo ""
-    
-    # コンテナの状態を確認
-    if ! docker ps | grep -q "$CONTAINER_NAME"; then
-        echo "エラー: コンテナが起動していません"
-        echo "docker compose logs で詳細を確認してください"
-        return 1
-    fi
     
     # developerユーザーでコンテナに入る
     echo "8. コンテナに接続中..."
