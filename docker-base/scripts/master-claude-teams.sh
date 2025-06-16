@@ -181,7 +181,7 @@ setup_master() {
     # requirements.mdの確認
     local master_prompt
     if [ -f "$REQUIREMENTS_FILE" ]; then
-        master_prompt="私はMaster Claudeです。requirements.mdを確認して、各チームのBossに適切なタスクを割り当てます。Bossを常に監視し、指示待ち状態を作らず、完了報告を受けたら即座に次のタスクを投入します。Bossは部下を同様に監視し、メンバーは必ずBossに確認を取り、Bossは必ず私に確認を取ります。重要: 各タスク完了時には必ずテスト(Playwright E2E/ユニットテスト)を作成・実行し、全テスト通過後のみコミットを許可します。"
+        master_prompt="私はMaster Claudeです。requirements.mdを確認して、各チームのBossに適切なタスクを割り当てます。私は無限ループで全Bossを5秒ごとに監視し、タスク完了・指示待ち・問題発生を即座に検知して対応します。指示待ち状態は絶対に作りません。Bossは部下を同様に監視し、メンバーは必ずBossに確認を取り、Bossは必ず私に確認を取ります。重要: 各タスク完了時には必ずテスト(Playwright E2E/ユニットテスト)を作成・実行し、全テスト通過後のみコミットを許可します。監視ループ: while true; do check_all_bosses; sleep 5; done"
     else
         master_prompt="私はMaster Claudeです。プロジェクト全体を統括します。まず requirements.md を作成して要件定義を行います。"
     fi
@@ -204,11 +204,19 @@ setup_master() {
     
     send_task_to_pane 1 "echo -e \"$team_info\""
     
-    log_info "Masterは各チームのBossに指示を出し、常に監視します"
-    log_info "指示待ちゼロシステム: タスク完了を検知したら即座に次のタスクを投入"
+    log_info "Masterは無限ループで各チームのBossを常時監視します"
+    log_info "監視サイクル: 5秒ごとに全Bossの状態をチェック"
+    log_info "検知項目: タスク完了、指示待ち、問題発生、質問"
     log_info "例: "
     log_info "  tmux send-keys -t claude-teams:1.2 \"Frontend Boss、認証UIを実装してください\""
     log_info "  tmux send-keys -t claude-teams:1.2 Enter"
+    log_info ""
+    log_info "Masterの監視ループ:"
+    log_info "  while true; do"
+    log_info "    各Bossの状態確認"
+    log_info "    必要に応じて即座に指示"
+    log_info "    sleep 5"
+    log_info "  done"
     log_info ""
     log_info "確認体制: メンバー→Boss、Boss→Masterの確認フローを徹底"
     log_info "テスト必須: 各タスク完了時にテスト作成・実行（tests/e2e/, tests/backend/, tests/unit/）"

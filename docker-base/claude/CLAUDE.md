@@ -216,11 +216,30 @@
    tmux send-keys -t claude-teams:1.2 "認証システムのタスクを進めてください"
    tmux send-keys -t claude-teams:1.2 Enter
 
-5. Masterは常にBossを監視（ループ処理）
-   - 各Bossの進捗を定期的に確認
-   - タスクが完了したら即座に次のタスクを割り当て
-   - 指示待ち状態を検知したら新しいタスクを投入
-   - 問題発生時は代替タスクを指示
+5. Masterは常にBossを監視（無限ループ処理）
+   ```
+   while true:
+       for boss in all_bosses:
+           # 各Bossの状態をチェック
+           status = check_boss_status(boss)
+           
+           if status == "タスク完了":
+               assign_next_task(boss)
+           elif status == "指示待ち":
+               assign_new_task(boss)
+           elif status == "問題発生":
+               provide_alternative_task(boss)
+           elif status == "質問あり":
+               answer_question(boss)
+               
+       # 5秒ごとに監視ループ
+       sleep(5)
+   ```
+   - 各Bossの進捗を5秒ごとに確認
+   - タスク完了を検知したらミリ秒で次のタスクを割り当て
+   - 指示待ち状態を検知したら即座に新しいタスクを投入
+   - 問題発生時は代替タスクを提供
+   - Bossからの質問にリアルタイムで対応
 
 6. Bossは部下を常に監視
    - メンバーの作業状況を継続的にチェック
@@ -231,7 +250,7 @@
 7. 確認フロー（重要）
    - メンバー → Boss: タスク完了報告、質問、レビュー依頼
    - Boss → Master: チームタスク完了報告、方針確認、コミット準備
-   - Master → Boss: マージ指示、次のタスク指示
+   - Master → Boss: マージ、次のタスク指示
 
 8. テスト実施（必須）
    - 各タスク完了時に必ずテストを作成・実行
@@ -264,19 +283,26 @@
 
 ```
 Master: "Frontend Teamのboss、認証システムの実装を開始してください"
+（Masterは監視ループ継続中...）
 ↓
 Frontend Boss: "了解しました。メンバーにタスクを割り当てます"
+
+Master: （監視中 - 5秒後） "Frontend Bossのステータス: タスク割り当て中。問題なし。"
 ↓
 Frontend Boss → Member1: "ログインフォームのUI実装をお願いします"
 Frontend Boss → Member2: "バリデーション処理を実装してください"
 Frontend Boss → Member3: "エラーメッセージ表示機能を実装してください"
 ↓
 Member1 → Boss: "ログインフォーム完成しました。テストも作成済みです。レビューお願いします"
+
+Master: （監視中 - 即検知） "Frontend Bossにタスク完了検知。次のタスクを準備中..."
 Boss: "テストを実行して確認します... （プロジェクトのテストコマンドを実行）"
 Boss: "テスト通過確認。次はパスワードリセット画面を実装してください"
 （指示待ちゼロ、Member1に即座に次タスク）
 ↓
 Frontend Boss → Master: "認証システムの基本機能完了しました。全テスト通過確認済み。コミット準備OKです"
+
+Master: （監視ループで即検知） "報告受領。コミット許可。次のタスクセットを準備済みです"
 Master: "テストカバレッジを確認... 了解。コミットしてください"
 ↓
 Frontend Boss: 
@@ -286,7 +312,7 @@ Frontend Boss:
 ↓
 Master: "テストカバレッジ確認。メインブランチにマージします"
 Master: "次はダッシュボード機能を実装してください"
-（指示待ちゼロ、即座に次のタスクへ）
+（Masterは監視ループを継続し、各Bossの状態を5秒ごとにチェック）
 ```
 
 #### タスク管理のベストプラクティス
