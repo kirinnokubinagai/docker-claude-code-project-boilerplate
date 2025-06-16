@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Master Claude Teams System - v6.0
-# 改善版：エラーハンドリング強化、パフォーマンス最適化、テンプレート対応
+# Master Claude Teams System - v7.0
+# 改善版：team-tasks.json廃止、Masterがrequirements.mdを参照してtmuxで指示
 
 # カラー定義
 RED='\033[0;31m'
@@ -16,9 +16,9 @@ NC='\033[0m' # No Color
 SESSION_NAME="claude-teams"
 WORKSPACE="/workspace"
 TEAMS_CONFIG_FILE="/opt/claude-system/config/teams.json"
-TASKS_CONFIG_FILE="/opt/claude-system/config/team-tasks.json"
 TEAMS_TEMPLATE_FILE="/opt/claude-system/templates/teams.json.example"
-TASKS_TEMPLATE_FILE="/opt/claude-system/templates/team-tasks.json.example"
+REQUIREMENTS_FILE="$WORKSPACE/requirements.md"
+TEAM_LOG_FILE="$WORKSPACE/team-communication.log"
 
 # デバッグモード
 DEBUG=${DEBUG:-false}
@@ -72,19 +72,11 @@ check_config_files() {
         fi
     fi
     
-    # team-tasks.jsonのチェック（オプショナル）
-    if [ ! -f "$TASKS_CONFIG_FILE" ]; then
-        if [ -f "$TASKS_TEMPLATE_FILE" ]; then
-            log_warning "team-tasks.json が見つかりません（オプショナル）"
-            echo "タスク自動割り当てを使用する場合は："
-            echo -e "${CYAN}cp $TASKS_TEMPLATE_FILE $TASKS_CONFIG_FILE${NC}"
-        fi
-    else
-        # JSONの妥当性チェック
-        if ! jq empty "$TASKS_CONFIG_FILE" 2>/dev/null; then
-            log_error "team-tasks.json の形式が正しくありません"
-            has_error=true
-        fi
+    # requirements.mdのチェック（オプショナル）
+    if [ ! -f "$REQUIREMENTS_FILE" ]; then
+        log_warning "requirements.md が見つかりません"
+        echo "Masterが参照する要件定義書がありません。"
+        echo "プロジェクトの要件定義を $REQUIREMENTS_FILE に作成してください。"
     fi
     
     if [ "$has_error" = "true" ]; then
@@ -111,8 +103,6 @@ validate_teams_config() {
         # 必須フィールドチェック
         local name=$(jq -r ".teams[] | select(.id == \"$id\") | .name" "$TEAMS_CONFIG_FILE")
         local member_count=$(jq -r ".teams[] | select(.id == \"$id\") | .member_count" "$TEAMS_CONFIG_FILE")
-        local active=$(jq -r ".teams[] | select(.id == \"$id\") | .active" "$TEAMS_CONFIG_FILE")
-        
         if [ -z "$name" ] || [ "$name" = "null" ]; then
             log_error "チーム $id: name フィールドが必須です"
             validation_errors=$((validation_errors + 1))
@@ -123,11 +113,6 @@ validate_teams_config() {
             validation_errors=$((validation_errors + 1))
         elif ! [[ "$member_count" =~ ^[1-4]$ ]]; then
             log_error "チーム $id: member_count は1-4の数値である必要があります"
-            validation_errors=$((validation_errors + 1))
-        fi
-        
-        if [ -z "$active" ] || [ "$active" = "null" ]; then
-            log_error "チーム $id: active フィールドが必須です"
             validation_errors=$((validation_errors + 1))
         fi
     done
@@ -148,8 +133,8 @@ get_pane_index_for_team() {
     # 累積インデックスを計算
     local pane_idx=1  # Masterペインが1
     
-    # アクティブなチームのみを対象
-    local teams=$(jq -r '.teams[] | select(.active == true) | .id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+    # すべてのチームを対象
+    local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
     
     for t in $teams; do
         if [ "$t" = "$team_id" ]; then
@@ -181,14 +166,9 @@ send_task_to_pane() {
     return 0
 }
 
-# タスクを割り当て（改善版）
-assign_tasks() {
-    if [ ! -f "$TASKS_CONFIG_FILE" ]; then
-        log_info "タスク設定ファイルがないため、タスク割り当てをスキップします"
-        return 0
-    fi
-    
-    log_info "タスクを各Claude Codeに割り当て中..."
+# Masterの初期設定（改善版）
+setup_master() {
+    log_info "Master Claudeを設定中..."
     
     # Claude Codeの起動を待つ（プログレスバー付き）
     echo -n "Claude Codeの起動を待機中 "
@@ -198,44 +178,39 @@ assign_tasks() {
     done
     echo " 完了"
     
-    # Master Claudeに役割とタスクを送信
-    local master_prompt=$(jq -r '.master.initial_prompt // ""' "$TASKS_CONFIG_FILE" 2>/dev/null)
-    if [ -n "$master_prompt" ] && [ "$master_prompt" != "null" ]; then
-        if send_task_to_pane 1 "$master_prompt"; then
-            log_success "Master: タスク送信完了"
-        fi
+    # requirements.mdの確認
+    local master_prompt
+    if [ -f "$REQUIREMENTS_FILE" ]; then
+        master_prompt="私はMaster Claudeです。requirements.mdを確認して、各チームのBossに適切なタスクを割り当てます。Bossは部下に具体的なタスクを振り分け、完了後にコミットを行います。"
+    else
+        master_prompt="私はMaster Claudeです。プロジェクト全体を統括します。まず requirements.md を作成して要件定義を行います。"
     fi
     
-    # 各チームのタスクを送信
-    local teams=$(jq -r '.teams[] | select(.active == true) | .id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+    # Master Claudeに初期プロンプトを送信
+    if send_task_to_pane 1 "$master_prompt"; then
+        log_success "Master: 初期設定完了"
+    fi
+    
+    # チーム情報をMasterに送信
+    sleep 2
+    local team_info="現在のチーム構成:"
+    local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
     
     for team in $teams; do
         local team_name=$(jq -r ".teams[] | select(.id == \"$team\") | .name" "$TEAMS_CONFIG_FILE" 2>/dev/null)
         local member_count=$(jq -r ".teams[] | select(.id == \"$team\") | .member_count // 1" "$TEAMS_CONFIG_FILE" 2>/dev/null)
-        
-        # Bossのタスク
-        local boss_prompt=$(jq -r ".[\"$team\"].boss.initial_prompt // \"\"" "$TASKS_CONFIG_FILE" 2>/dev/null)
-        if [ -n "$boss_prompt" ] && [ "$boss_prompt" != "null" ]; then
-            local pane_idx=$(get_pane_index_for_team "$team" 0)
-            if send_task_to_pane "$pane_idx" "$boss_prompt"; then
-                log_success "$team_name Boss: タスク送信完了"
-            fi
-        fi
-        
-        # メンバーのタスク
-        for member in $(seq 2 "$member_count"); do
-            local member_key="member$((member-1))"
-            local member_prompt=$(jq -r ".[\"$team\"].[\"$member_key\"].initial_prompt // \"\"" "$TASKS_CONFIG_FILE" 2>/dev/null)
-            if [ -n "$member_prompt" ] && [ "$member_prompt" != "null" ]; then
-                local pane_idx=$(get_pane_index_for_team "$team" $((member-1)))
-                if send_task_to_pane "$pane_idx" "$member_prompt"; then
-                    log_success "$team_name Member$((member-1)): タスク送信完了"
-                fi
-            fi
-        done
+        team_info="$team_info\\n- $team_name: $member_count 人（1人目がBoss）"
     done
     
-    log_success "タスク割り当てが完了しました"
+    send_task_to_pane 1 "echo -e \"$team_info\""
+    
+    log_info "Masterは各チームのBossに指示を出します"
+    log_info "例: "
+    log_info "  tmux send-keys -t claude-teams:1.2 \"Frontend Boss、認証UIを実装してください\""
+    log_info "  tmux send-keys -t claude-teams:1.2 Enter"
+    
+    # ログファイルの初期化
+    echo "[$(date)] Master Claude Teams System 起動" > "$TEAM_LOG_FILE"
 }
 
 # ペイン作成（改善版）
@@ -285,8 +260,8 @@ create_team_panes() {
 main() {
     echo ""
     echo -e "${CYAN}${BOLD}======================================${NC}"
-    echo -e "${CYAN}${BOLD} Master Claude Teams System v6.0${NC}"
-    echo -e "${CYAN}${BOLD} 改善版${NC}"
+    echo -e "${CYAN}${BOLD} Master Claude Teams System v7.0${NC}"
+    echo -e "${CYAN}${BOLD} Dynamic Task Assignment${NC}"
     echo -e "${CYAN}${BOLD}======================================${NC}"
     echo ""
     
@@ -337,7 +312,7 @@ main() {
     
     # 総メンバー数を計算
     local total_members=1  # Master分
-    local teams=$(jq -r '.teams[] | select(.active == true) | .id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+    local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
     for team in $teams; do
         local member_count=$(jq -r ".teams[] | select(.id == \"$team\") | .member_count // 1" "$TEAMS_CONFIG_FILE" 2>/dev/null)
         total_members=$((total_members + member_count))
@@ -435,7 +410,7 @@ main() {
         
         # チームごとに段階的に起動
         local current_pane=2
-        local teams=$(jq -r '.teams[] | select(.active == true) | .id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+        local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
         
         for team in $teams; do
             local team_name=$(jq -r ".teams[] | select(.id == \"$team\") | .name" "$TEAMS_CONFIG_FILE" 2>/dev/null)
@@ -461,16 +436,14 @@ main() {
     
     log_success "全てのClaude Codeを起動しました"
     
-    # タスクの自動割り当て
-    if [ -f "$TASKS_CONFIG_FILE" ]; then
-        # --phasedオプションの場合は全起動完了を待つ
-        if [[ " $@ " == *" --phased "* ]]; then
-            log_info "段階的起動が完了するまで待機中..."
-            # 追加で10秒待機してからタスク割り当て
-            sleep 10
-        fi
-        assign_tasks
+    # Masterの初期設定
+    # --phasedオプションの場合は全起動完了を待つ
+    if [[ " $@ " == *" --phased "* ]]; then
+        log_info "段階的起動が完了するまで待機中..."
+        # 追加で10秒待機
+        sleep 10
     fi
+    setup_master
     
     # サマリー表示
     echo ""
@@ -478,7 +451,7 @@ main() {
     echo ""
     echo "📋 チーム構成："
     echo "  - Master: 1人（統括）"
-    jq -r '.teams[] | select(.active == true) | "  - \(.name): \(.member_count // 1)人"' "$TEAMS_CONFIG_FILE" 2>/dev/null
+    jq -r '.teams[] | "  - \(.name): \(.member_count // 1)人（1人目:Boss）"' "$TEAMS_CONFIG_FILE" 2>/dev/null
     echo ""
     echo "📊 システム情報："
     echo "  - 総ペイン数: $final_panes"

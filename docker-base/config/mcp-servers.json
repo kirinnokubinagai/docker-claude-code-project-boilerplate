@@ -46,17 +46,17 @@
         "-y",
         "@stripe/mcp",
         "--tools=all",
-        "--api-key=${STRIPE_SECRET_KEY}"
+        "--api-key=${STRIPE_SEC_KEY}"
       ],
       "env": {
-        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
+        "STRIPE_SEC_KEY": "${STRIPE_SECRET_KEY}"
       }
     },
     "magic-mcp": {
       "command": "npx",
-      "args": ["-y", "@21st-dev/mcp-server@latest"],
+      "args": ["-y", "@21st-dev/magic@latest"],
       "env": {
-        "MAGIC_API_KEY": "${MAGIC_API_KEY}"
+        "API_KEY": "${MAGIC_API_KEY}"
       }
     }
   }

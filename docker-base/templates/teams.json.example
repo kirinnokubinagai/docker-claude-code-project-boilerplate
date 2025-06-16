@@ -1,47 +1,38 @@
 {
   "project_name": "〇〇アプリ",
   "project_type": "web-app",
-  "analyzed_at": "yyyy-mm-ddT00:00:00Z",
   "teams": [
     {
       "id": "frontend",
       "name": "Frontend Team",
       "description": "〇〇開発",
-      "member_count": 3,
+      "member_count": 4,
       "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
-      "branch": "team/frontend",
-      "active": true,
-      "justification": "複雑なUIとインタラクティブな機能が必要"
+      "branch": "team/frontend"
     },
     {
       "id": "backend",
       "name": "Backend Team",
       "description": "〇〇開発",
-      "member_count": 2,
+      "member_count": 4,
       "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
-      "branch": "team/backend",
-      "active": true,
-      "justification": "外部API連携とリアルタイム同期が必要"
+      "branch": "team/backend"
     },
     {
       "id": "database",
       "name": "Database Team",
       "description": "データ設計、最適化",
-      "member_count": 2,
+      "member_count": 3,
       "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
-      "branch": "team/database",
-      "active": true,
-      "justification": "複雑なリレーション設計とリアルタイム同期のためのキャッシュ設計が必要"
+      "branch": "team/database"
     },
     {
       "id": "devops",
       "name": "DevOps Team",
       "description": "インフラ構築、デプロイ",
-      "member_count": 1,
+      "member_count": 3,
       "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
-      "branch": "team/devops",
-      "active": true,
-      "justification": "環境構築が必要"
+      "branch": "team/devops"
     }
   ]
 }
