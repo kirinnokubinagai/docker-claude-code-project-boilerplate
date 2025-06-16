@@ -20,9 +20,8 @@ services:
       # docker-baseディレクトリを別の場所にマウント
       - ./docker-base:/opt/claude-system
 
-      # Claude Code設定（ホスト側の設定を使用）
+      # Claude Code設定
       - ~/.anthropic:/home/developer/.anthropic
-      - ~/.claude:/home/developer/.claude
 
       # Git設定をホストから引き継ぎ
       - ~/.gitconfig:/home/developer/.gitconfig:ro
