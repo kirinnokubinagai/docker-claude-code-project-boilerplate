@@ -15,8 +15,8 @@ NC='\033[0m' # No Color
 # 設定
 SESSION_NAME="claude-teams"
 WORKSPACE="/workspace"
-TEAMS_CONFIG_FILE="$WORKSPACE/docker/config/teams.json"
-TASKS_CONFIG_FILE="$WORKSPACE/docker/config/team-tasks.json"
+TEAMS_CONFIG_FILE="$WORKSPACE/docker-base/config/teams.json"
+TASKS_CONFIG_FILE="$WORKSPACE/docker-base/config/team-tasks.json"
 
 # ログ関数
 log_info() {

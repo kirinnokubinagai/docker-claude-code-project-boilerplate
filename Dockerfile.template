@@ -106,8 +106,8 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 # Bash設定ファイルをコピー
-COPY docker/bash/.bashrc /home/developer/.bashrc
-COPY docker/bash/.bash_profile /home/developer/.bash_profile
+COPY docker-base/bash/.bashrc /home/developer/.bashrc
+COPY docker-base/bash/.bash_profile /home/developer/.bash_profile
 RUN chown developer:developer /home/developer/.bashrc /home/developer/.bash_profile
 
 # 作業ディレクトリを設定

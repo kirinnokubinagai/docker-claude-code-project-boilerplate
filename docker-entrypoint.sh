@@ -37,8 +37,8 @@ find /workspace -mindepth 1 -maxdepth 1 ! -name '.git' -exec chown -R developer:
 find /workspace -user root -exec chown developer:developer {} \; 2>/dev/null || true
 
 # scriptsファイルの実行権限
-if [ -d "/workspace/docker/scripts" ]; then
-    chmod +x /workspace/docker/scripts/*.sh
+if [ -d "/workspace/docker-base/scripts" ]; then
+    chmod +x /workspace/docker-base/scripts/*.sh
 fi
 
 # rootユーザー用のbashエイリアス設定
@@ -47,20 +47,20 @@ if [ ! -f "/root/.bashrc" ]; then
 # エイリアス設定（rootユーザー用）
 alias cc='claude --dangerously-skip-permissions'
 alias ccd='claude --dangerously-skip-permissions'
-alias master='env -u TMUX /workspace/docker/scripts/master-claude-teams.sh'
+alias master='env -u TMUX /workspace/docker-base/scripts/master-claude-teams.sh'
 alias check_mcp='claude mcp list'
-alias setup-mcp='/workspace/docker/scripts/setup-mcp.sh'
+alias setup-mcp='/workspace/docker-base/scripts/setup-mcp.sh'
 alias ll='ls -la'
 EOF
 fi
 
 # tmux設定ファイルをコピー（権限を修正してから）
-if [ -f "/workspace/docker/config/.tmux.conf" ]; then
+if [ -f "/workspace/docker-base/config/.tmux.conf" ]; then
     # rootユーザーとして実行されているので、直接操作
     if [ -f "/home/developer/.tmux.conf" ]; then
         rm -f /home/developer/.tmux.conf 2>/dev/null || true
     fi
-    cp /workspace/docker/config/.tmux.conf /home/developer/.tmux.conf 2>/dev/null || true
+    cp /workspace/docker-base/config/.tmux.conf /home/developer/.tmux.conf 2>/dev/null || true
     chown developer:developer /home/developer/.tmux.conf 2>/dev/null || true
 fi
 
@@ -83,14 +83,14 @@ export USER=developer
 
 # Claude初期設定
 echo "Claude初期設定中..."
-su developer -c "/workspace/docker/scripts/setup-claude-config.sh" || {
+su developer -c "/workspace/docker-base/scripts/setup-claude-config.sh" || {
     echo "[WARNING] Claude初期設定に失敗しましたが、続行します..."
 }
 
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
 # su -（ハイフン付き）は環境をリセットするので、su（ハイフンなし）を使用
-su developer -c "/workspace/docker/scripts/setup-mcp.sh" || {
+su developer -c "/workspace/docker-base/scripts/setup-mcp.sh" || {
     echo "[WARNING] MCP設定に失敗しましたが、続行します..."
 }
 

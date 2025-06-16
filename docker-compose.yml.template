@@ -12,10 +12,10 @@ services:
     volumes:
       # プロジェクトファイル
       - .:/workspace
-      - ./docker/claude/CLAUDE.md:/workspace/CLAUDE.md
+      - ./docker-base/claude/CLAUDE.md:/workspace/CLAUDE.md
       
       # configディレクトリを直置き
-      - ./docker/config:/workspace/config
+      - ./docker-base/config:/workspace/config
 
       # Claude Code設定
       - ~/.anthropic:/home/developer/.anthropic
