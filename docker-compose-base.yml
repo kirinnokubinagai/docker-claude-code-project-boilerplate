@@ -1,3 +1,6 @@
+# yaml-language-server: $schema=
+# This is a template file with {{PROJECT_NAME}} placeholders
+# YAML validation is intentionally disabled for this template
 version: "3.8"
 
 name: claude-code-{{PROJECT_NAME}}
@@ -18,7 +21,7 @@ services:
       - ./docker-base:/opt/claude-system
       
       # CLAUDE.mdはworkspaceに配置
-      - ./docker-base/claude/CLAUDE.md:/workspace/CLAUDE.md
+      - ./docker-base/claude:/workspace/.claude
 
       # Claude Code設定
       - ~/.anthropic:/home/developer/.anthropic

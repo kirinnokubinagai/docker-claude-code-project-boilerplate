@@ -105,6 +105,9 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
+# システム設定ディレクトリを作成
+RUN mkdir -p /opt/claude-system
+
 # Bash設定ファイルをコピー
 COPY docker-base/bash/.bashrc /home/developer/.bashrc
 COPY docker-base/bash/.bash_profile /home/developer/.bash_profile
