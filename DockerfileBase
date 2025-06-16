@@ -1,26 +1,41 @@
 FROM node:alpine
 
-# 必要なパッケージをインストール
+# パッケージリポジトリを更新
+RUN apk update
+
+# 基本パッケージをインストール
 RUN apk add --no-cache \
     bash \
     bash-completion \
     git \
     curl \
+    coreutils \
+    sudo
+
+# 開発ツールをインストール
+RUN apk add --no-cache \
     fzf \
     tmux \
-    python3 \
-    py3-pip \
-    nodejs \
-    npm \
-    coreutils \
-    sudo \
     jq \
     perl \
     gettext \
-    chromium \
-    chromium-chromedriver \
     ncurses \
     vim
+
+# Python関連をインストール（分離してネットワーク問題を回避）
+RUN apk add --no-cache \
+    python3 \
+    py3-pip
+
+# Node.js関連をインストール
+RUN apk add --no-cache \
+    nodejs \
+    npm
+
+# Chromium関連をインストール（重いパッケージを分離）
+RUN apk add --no-cache \
+    chromium \
+    chromium-chromedriver
 
 # pecoのインストール（Go製のインタラクティブフィルタ）
 RUN curl -L https://github.com/peco/peco/releases/download/v0.5.11/peco_linux_amd64.tar.gz | tar xz \
