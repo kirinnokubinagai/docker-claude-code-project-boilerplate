@@ -10,6 +10,9 @@ set +e  # 一時的にerrexitを無効化（権限関連エラーのため）
 # 環境変数の設定
 export WORKSPACE="/workspace"
 
+# Playwright MCPはコンテナ内での実行が複雑なため、
+# 通常のPlaywrightテストコードを書くことを推奨
+
 # USER_UID/USER_GIDが環境変数で指定されている場合は、developerユーザーのUID/GIDを変更
 if [ ! -z "$USER_UID" ] && [ ! -z "$USER_GID" ] && [ "$USER_UID" != "0" ]; then
     # 現在のdeveloperユーザーのUID/GIDを取得
@@ -73,6 +76,12 @@ find /home/developer -type f -writable -exec chown developer:developer {} \; 2>/
 export HOME=/home/developer
 export USER=developer
 
+# Playwright用の環境変数（developerユーザーに引き継がれるよう設定）
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+export CI=true
+# ヘッドレスモードを強制
+export PLAYWRIGHT_BROWSERS_PATH=/home/developer/.cache/ms-playwright
+
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
 # su -（ハイフン付き）は環境をリセットするので、su（ハイフンなし）を使用
@@ -83,11 +92,14 @@ su developer -c "/opt/claude-system/scripts/setup-mcp.sh" || {
 # 最終段階でエラーハンドリングを再有効化
 set -e
 
+# Playwright環境変数をdeveloperユーザーに渡す
+PLAYWRIGHT_ENV="PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD CI=$CI PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH"
+
 # 引数があればそのコマンドを、なければbashシェルを起動
 if [ $# -eq 0 ]; then
     # デフォルト: bashシェル
-    exec su developer -c "cd /workspace && exec bash"
+    exec su developer -c "cd /workspace && $PLAYWRIGHT_ENV exec bash"
 else
     # 引数がある場合: そのコマンドを実行
-    exec su developer -c "cd /workspace && exec $*"
+    exec su developer -c "cd /workspace && $PLAYWRIGHT_ENV exec $*"
 fi

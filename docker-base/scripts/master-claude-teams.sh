@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Master Claude Teams System - v7.0
-# 改善版：team-tasks.json廃止、Masterがrequirements.mdを参照してtmuxで指示
+# 改善版：team-tasks.json廃止、Masterがdocuments/tasks/を参照してtmuxで指示
 
 # カラー定義
 RED='\033[0;31m'
@@ -17,7 +17,7 @@ SESSION_NAME="claude-teams"
 WORKSPACE="/workspace"
 TEAMS_CONFIG_FILE="/opt/claude-system/config/teams.json"
 TEAMS_TEMPLATE_FILE="/opt/claude-system/templates/teams.json.example"
-REQUIREMENTS_FILE="$WORKSPACE/requirements.md"
+TASKS_DIR="$WORKSPACE/documents/tasks"
 TEAM_LOG_FILE="$WORKSPACE/team-communication.log"
 
 # デバッグモード
@@ -52,17 +52,7 @@ check_config_files() {
     
     # teams.jsonのチェック
     if [ ! -f "$TEAMS_CONFIG_FILE" ]; then
-        if [ -f "$TEAMS_TEMPLATE_FILE" ]; then
-            log_error "teams.json が見つかりません"
-            echo ""
-            echo "以下のコマンドでテンプレートファイルをコピーして開始できます："
-            echo -e "${CYAN}cp $TEAMS_TEMPLATE_FILE $TEAMS_CONFIG_FILE${NC}"
-            echo ""
-            echo "その後、プロジェクトに合わせてファイルを編集してください。"
-            echo ""
-        else
-            log_error "teams.json およびテンプレートファイルが見つかりません"
-        fi
+        log_error "teams.json およびテンプレートファイルが見つかりません"
         has_error=true
     else
         # JSONの妥当性チェック
@@ -72,11 +62,19 @@ check_config_files() {
         fi
     fi
     
-    # requirements.mdのチェック（オプショナル）
-    if [ ! -f "$REQUIREMENTS_FILE" ]; then
-        log_warning "requirements.md が見つかりません"
-        echo "Masterが参照する要件定義書がありません。"
-        echo "プロジェクトの要件定義を $REQUIREMENTS_FILE に作成してください。"
+    # タスクディレクトリのチェック（オプショナル）
+    if [ ! -d "$TASKS_DIR" ]; then
+        log_warning "documents/tasks/ ディレクトリが見つかりません"
+        echo "Masterが参照するタスクファイルがありません。"
+        echo "プロジェクトのタスクファイルを $TASKS_DIR に作成してください。"
+    else
+        # タスクファイルの存在チェック
+        task_count=$(find "$TASKS_DIR" -name "*.md" -type f 2>/dev/null | wc -l)
+        if [ "$task_count" -eq 0 ]; then
+            log_warning "タスクファイルが見つかりません"
+            echo "$TASKS_DIR ディレクトリ内に .md ファイルを作成してください。"
+            echo "例: frontend_tasks.md, backend_tasks.md, database_tasks.md, devops_tasks.md"
+        fi
     fi
     
     if [ "$has_error" = "true" ]; then
@@ -178,12 +176,12 @@ setup_master() {
     done
     echo " 完了"
     
-    # requirements.mdの確認
+    # タスクディレクトリの確認
     local master_prompt
-    if [ -f "$REQUIREMENTS_FILE" ]; then
-        master_prompt="私はMaster Claudeです。requirements.mdを確認して、各チームのBossに適切なタスクを割り当てます。私は無限ループで全Bossを5秒ごとに監視し、タスク完了・指示待ち・問題発生を即座に検知して対応します。指示待ち状態は絶対に作りません。Bossは部下を同様に監視し、メンバーは必ずBossに確認を取り、Bossは必ず私に確認を取ります。重要: 各タスク完了時には必ずテスト(Playwright E2E/ユニットテスト)を作成・実行し、全テスト通過後のみコミットを許可します。監視ループ: while true; do check_all_bosses; sleep 5; done"
+    if [ -d "$TASKS_DIR" ] && [ "$(find "$TASKS_DIR" -name "*.md" -type f 2>/dev/null | wc -l)" -gt 0 ]; then
+        master_prompt="私はMaster Claudeです。documents/tasks/ディレクトリ内のタスクファイルを確認して、各チームのBossに適切なタスクを割り当てます。私は無限ループで全Bossを5秒ごとに監視し、タスク完了・指示待ち・問題発生を即座に検知して対応します。指示待ち状態は絶対に作りません。Bossへの指示はtmux send-keysで行います。例: tmux send-keys -t claude-teams:1.2 \"認証システムのUIを実装してください\" Enter。Bossも同様に部下をtmux send-keysで監視・指示します。例: Boss→Member: tmux send-keys -t claude-teams:1.3 \"ログインフォームを実装してください\" Enter。重要: 各タスク完了時には必ずテスト(Playwright E2E/ユニットテスト)を作成・実行し、全テスト通過後のみコミットを許可します。監視ループ: while true; do check_all_bosses; sleep 5; done"
     else
-        master_prompt="私はMaster Claudeです。プロジェクト全体を統括します。まず requirements.md を作成して要件定義を行います。"
+        master_prompt="私はMaster Claudeです。プロジェクト全体を統括します。まず documents/requirements.md（人間用要件定義）とdocuments/tasks/ディレクトリ内のタスクファイル（frontend_tasks.md, backend_tasks.md等）を作成して、タスク管理を開始します。"
     fi
     
     # Master Claudeに初期プロンプトを送信

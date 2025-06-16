@@ -9,6 +9,11 @@ fi
 # User specific environment
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
+# Playwright環境変数（ヘッドレステスト用）
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+export CI=true
+export PLAYWRIGHT_BROWSERS_PATH=/home/developer/.cache/ms-playwright
+
 # History settings - Ctrl+Rで履歴検索を有効化
 export HISTSIZE=10000
 export HISTFILESIZE=20000

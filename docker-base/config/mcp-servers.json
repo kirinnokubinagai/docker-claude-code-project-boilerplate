@@ -7,11 +7,6 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
     },
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"],
-      "env": {}
-    },
     "supabase": {
       "command": "npx",
       "args": ["@supabase/mcp-server-supabase@latest"],
