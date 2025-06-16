@@ -233,11 +233,81 @@
 5. **開発環境構築**
    ```bash
    # 選定した技術スタックに基づいて開発環境を構築
-   # 例: Next.jsプロジェクトの場合
-   npx create-next-app@latest . --typescript --tailwind --app
+   # 例: Next.js + Supabase + TypeScriptプロジェクトの場合
+   npx create-next-app@latest . --typescript --tailwind --app --eslint
    
-   # 依存関係のインストール
+   # 基本的な依存関係のインストール
    npm install
+   
+   # ESLint + Prettierの設定
+   npm install --save-dev prettier eslint-config-prettier eslint-plugin-prettier @typescript-eslint/eslint-plugin @typescript-eslint/parser
+   
+   # .eslintrc.json作成
+   cat > .eslintrc.json << 'EOF'
+   {
+     "extends": [
+       "next/core-web-vitals",
+       "prettier"
+     ],
+     "plugins": ["prettier"],
+     "rules": {
+       "prettier/prettier": "error",
+       "@typescript-eslint/no-unused-vars": "error",
+       "@typescript-eslint/no-explicit-any": "warn"
+     }
+   }
+   EOF
+   
+   # .prettierrc作成
+   cat > .prettierrc << 'EOF'
+   {
+     "semi": true,
+     "trailingComma": "es5",
+     "singleQuote": true,
+     "printWidth": 100,
+     "tabWidth": 2,
+     "useTabs": false
+   }
+   EOF
+   
+   # Supabaseのセットアップ
+   npm install @supabase/supabase-js @supabase/ssr @supabase/auth-ui-react @supabase/auth-ui-shared
+   
+   # 環境変数ファイル作成
+   cat > .env.local << 'EOF'
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   EOF
+   
+   # Supabaseクライアント作成
+   mkdir -p lib
+   cat > lib/supabase.ts << 'EOF'
+   import { createBrowserClient } from '@supabase/ssr'
+   
+   export function createClient() {
+     return createBrowserClient(
+       process.env.NEXT_PUBLIC_SUPABASE_URL!,
+       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+     )
+   }
+   EOF
+   
+   # その他の便利な開発ツール
+   npm install --save-dev husky lint-staged
+   npx husky init
+   
+   # pre-commitフック設定
+   cat > .husky/pre-commit << 'EOF'
+   #!/usr/bin/env sh
+   . "$(dirname -- "$0")/_/husky.sh"
+   
+   npx lint-staged
+   EOF
+   chmod +x .husky/pre-commit
+   
+   # lint-staged設定をpackage.jsonに追加
+   npm pkg set "lint-staged[*.{js,jsx,ts,tsx}]"="eslint --fix"
+   npm pkg set "lint-staged[*.{js,jsx,ts,tsx,json,css,md}]"="prettier --write"
    
    # 開発サーバーの起動
    npm run dev
@@ -247,6 +317,7 @@
    npx playwright install chromium --with-deps
    
    # 起動確認テスト
+   mkdir -p tests/e2e
    cat > tests/e2e/startup.spec.ts << 'EOF'
    import { test, expect } from '@playwright/test';
    
@@ -256,11 +327,53 @@
    });
    EOF
    
+   # playwright.config.ts作成
+   cat > playwright.config.ts << 'EOF'
+   import { defineConfig, devices } from '@playwright/test';
+   
+   export default defineConfig({
+     testDir: './tests/e2e',
+     fullyParallel: true,
+     forbidOnly: !!process.env.CI,
+     retries: process.env.CI ? 2 : 0,
+     workers: process.env.CI ? 1 : undefined,
+     reporter: 'html',
+     use: {
+       baseURL: 'http://localhost:3000',
+       trace: 'on-first-retry',
+       headless: true,
+     },
+     projects: [
+       {
+         name: 'chromium',
+         use: { ...devices['Desktop Chrome'] },
+       },
+     ],
+     webServer: {
+       command: 'npm run dev',
+       port: 3000,
+       reuseExistingServer: !process.env.CI,
+     },
+   });
+   EOF
+   
    # テスト実行
-   npx playwright test tests/e2e/startup.spec.ts --headed=false
+   npx playwright test --headed=false
    
    # 起動確認ができたら開発サーバーを停止
    # Ctrl+C または pkill -f "next dev"
+   
+   # VSCode設定（オプション）
+   mkdir -p .vscode
+   cat > .vscode/settings.json << 'EOF'
+   {
+     "editor.formatOnSave": true,
+     "editor.defaultFormatter": "esbenp.prettier-vscode",
+     "editor.codeActionsOnSave": {
+       "source.fixAll.eslint": true
+     }
+   }
+   EOF
    
    # 環境構築完了をコミット
    git add .
