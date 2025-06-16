@@ -59,16 +59,17 @@ my-project/
 
 ## 🛠️ 主要コマンド
 
-| コマンド    | 説明                                         |
-| ----------- | -------------------------------------------- |
-| `cc`        | Claude CLIを起動（権限確認自動スキップなし） |
-| `ccd`       | Claude CLIを起動（権限確認自動スキップ）     |
-| `master`    | Master Claude Teamsを起動                    |
-| `setup-mcp` | MCPサーバーを設定/更新                       |
-| `check_mcp` | MCPサーバーの状態確認                        |
-| `pcd`       | ディレクトリ選択（peco）                     |
-| `pgb`       | Gitブランチ選択（peco）                      |
-| `help`      | コマンド一覧とtmux操作ガイド                 |
+| コマンド      | 説明                                         |
+| ------------- | -------------------------------------------- |
+| `cc`          | Claude CLIを起動（権限確認自動スキップなし） |
+| `ccd`         | Claude CLIを起動（権限確認自動スキップ）     |
+| `master`      | Master Claude Teamsを起動                    |
+| `setup-mcp`   | MCPサーバーを設定/更新                       |
+| `check_mcp`   | MCPサーバーの状態確認                        |
+| `create-repo` | GitHubリポジトリを作成                       |
+| `pcd`         | ディレクトリ選択（peco）                     |
+| `pgb`         | Gitブランチ選択（peco）                      |
+| `help`        | コマンド一覧とtmux操作ガイド                 |
 
 ## 👥 Master Claude Teams System
 
@@ -135,7 +136,8 @@ check_mcp  # 状態確認
 
 2. **要件定義**
    ```bash
-   cc  # AIと対話しながら要件を定義、要件定義と基本的に開発環境の構築が完了したら終了する
+   cc  # AIと対話しながら要件を定義
+       # → 技術選定、開発環境構築、GitHubリポジトリ作成まで自動実行
    ```
 
 3. **チーム開発**（オプション）

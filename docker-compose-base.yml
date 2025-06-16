@@ -27,6 +27,13 @@ services:
       - ~/.anthropic:/home/developer/.anthropic
       - ~/.claude:/home/developer/.claude
 
+      # Git設定をホストから引き継ぎ
+      - ~/.gitconfig:/home/developer/.gitconfig:ro
+      - ~/.ssh:/home/developer/.ssh:ro
+      
+      # GitHub CLI設定を引き継ぎ
+      - ~/.config/gh:/home/developer/.config/gh:ro
+
       # データ永続化（プロジェクト別）
       - bash_history:/home/developer/.bash_history
       - z_data:/home/developer

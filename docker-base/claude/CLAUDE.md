@@ -9,7 +9,7 @@
 **ユーザーが「〇〇を作りたい」と言った瞬間に自動実行：**
 
 **⚡ 実行フロー:**
-1. プロジェクト分析 → 2. VibeCodingにおいて実装しやすい最新の技術から技術スタックを検討する → 3. 開発環境の構築 → 4. タスク分割 → 5. teams.json生成 → 6. タスクファイル生成 → **🛑 停止！**
+1. プロジェクト分析 → 2. VibeCodingにおいて実装しやすい最新の技術から技術スタックを検討する → 3. 開発環境の構築 → 4. GitHubリポジトリ作成 → 5. タスク分割 → 6. teams.json生成 → 7. タスクファイル生成 → **🛑 停止！**
 
 **絶対にこれ以上は進めないこと。チーム構成の準備のみです。**
 
@@ -37,17 +37,89 @@
    - [ ] データ処理ロジック
    ```
 
-3. **環境構築とGit worktree準備**
+3. **開発環境の構築**
    ```bash
    # プロジェクトの開発環境を構築
    # 採用した技術に合わせて環境構築
-   touch README.md .gitignore .env.example
+   touch .gitignore .env.example
    
+   # プロジェクト用README.md作成
+   cat > README.md << 'EOF'
+   # [プロジェクト名]
+
+   [プロジェクトの説明]
+
+   ## 技術スタック
+
+   - Frontend: [採用技術]
+   - Backend: [採用技術] 
+   - Database: [採用技術]
+   - Infrastructure: [採用技術]
+
+   ## Getting Started
+
+   ```bash
+   # 依存関係のインストール
+   npm install
+
+   # 開発サーバー起動
+   npm run dev
+   ```
+
+   ## 開発フロー
+
+   1. 要件定義完了 ✅
+   2. 技術選定完了 ✅
+   3. チーム構成決定 ✅
+   4. 実装開始予定
+
+   EOF
+
+   # .gitignore作成
+   cat > .gitignore << 'EOF'
+   node_modules/
+   .env
+   .env.local
+   .DS_Store
+   *.log
+   dist/
+   build/
+   .next/
+   .nuxt/
+   coverage/
+   EOF
+   ```
+
+4. **GitHubリポジトリ作成**
+   **重要: この段階で必ずGitHubリポジトリを作成すること**
+   ```bash
    # Gitリポジトリを初期化
    git init
    git add .
-   git commit -m "Initial project setup"
-   
+   git commit -m "feat: プロジェクト初期セットアップ
+
+   ## プロジェクト概要
+   - プロジェクト名: [プロジェクト名]
+   - タイプ: [プロジェクトタイプ]
+   - 技術スタック: [主要技術]
+
+   ## セットアップ完了項目
+   - ✅ 要件定義
+   - ✅ 技術選定  
+   - ✅ 基本ファイル構成
+   - ✅ チーム構成決定
+
+   🤖 Generated with [Claude Code](https://claude.ai/code)
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+
+   # GitHubリポジトリを作成（インタラクティブ）
+   echo "GitHubリポジトリを作成します..."
+   /opt/claude-system/scripts/create-repo.sh
+   ```
+
+5. **Git worktree準備**
+   ```bash
    # worktreesディレクトリを作成（チーム用）
    mkdir -p worktrees
    
@@ -64,7 +136,7 @@
    # git worktree add worktrees/devops team/devops
    ```
 
-4. **teams.json自動生成**
+6. **teams.json自動生成**
    必ず以下の形式で/opt/claude-system/config/teams.jsonを作成（**形式を厳密に守ること！**）：
    ```bash
    mkdir -p /opt/claude-system/config
@@ -96,10 +168,10 @@
    - `active`: true（必須）
    - `branch`: "team/[id]"の形式
 
-5. **タスクファイル生成**
+7. **タスクファイル生成**
    `tasks/`ディレクトリに各チームのタスクファイルを作成
 
-6. **環境構築完了後のGit worktree作成**
+8. **環境構築完了後のGit worktree作成**
    最低限の環境構築が完了してから：
    ```bash
    # 各チーム用のworktreeを作成
@@ -188,6 +260,82 @@
 - [ ] CI/CD パイプライン
 - [ ] 本番環境構築
 - [ ] 監視・アラート設定
+
+## 技術スタック選定
+- Frontend: Next.js 15 + TypeScript + Tailwind CSS
+- Backend: Node.js + Express + Socket.io  
+- Database: PostgreSQL + Prisma ORM
+- Infrastructure: Docker + GitHub Actions
+
+## 開発環境構築
+
+プロジェクトファイルを作成します:
+
+# README.md作成
+cat > README.md << 'EOF'
+# SNSアプリ
+
+リアルタイム投稿・フォロー機能を持つSNSアプリケーション
+
+## 技術スタック
+
+- Frontend: Next.js 15, TypeScript, Tailwind CSS
+- Backend: Node.js, Express, Socket.io
+- Database: PostgreSQL, Prisma ORM
+- Infrastructure: Docker, GitHub Actions
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+## 開発フロー
+
+1. 要件定義完了 ✅
+2. 技術選定完了 ✅
+3. チーム構成決定 ✅
+4. 実装開始予定
+
+EOF
+
+# .gitignore作成
+cat > .gitignore << 'EOF'
+node_modules/
+.env
+.env.local
+.DS_Store
+*.log
+dist/
+build/
+.next/
+EOF
+
+## GitHubリポジトリ作成
+
+git init
+git add .
+git commit -m "feat: SNSアプリ初期セットアップ
+
+## プロジェクト概要
+- プロジェクト名: SNSアプリ
+- タイプ: web-app
+- 技術スタック: Next.js, Node.js, PostgreSQL
+
+## セットアップ完了項目
+- ✅ 要件定義
+- ✅ 技術選定  
+- ✅ 基本ファイル構成
+- ✅ チーム構成決定
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# GitHubリポジトリを作成
+echo "GitHubリポジトリを作成します..."
+/opt/claude-system/scripts/create-repo.sh
 
 **超重要: 各チームでアサインするメンバーの人数はタスク数で判断**
 
