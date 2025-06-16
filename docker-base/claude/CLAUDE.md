@@ -63,8 +63,11 @@
    #### 認証システム
    - [ ] ログイン画面のデザイン作成（Magic MCP使用）
    - [ ] ログインフォームコンポーネント実装（Magic MCP使用）
+   - [ ] ログインフォームのE2Eテスト作成 (tests/e2e/login_test.spec.ts)
    - [ ] バリデーション処理実装
+   - [ ] バリデーションのユニットテスト作成 (tests/unit/validation_test.ts)
    - [ ] エラーメッセージ表示機能（Magic MCP使用）
+   - [ ] エラー表示のE2Eテスト作成 (tests/e2e/error_display_test.spec.ts)
    - [ ] パスワードリセット画面実装（Magic MCP使用）
    - [ ] 新規登録画面実装（Magic MCP使用）
    - [ ] メールアドレス確認フロー実装
@@ -101,8 +104,11 @@
    #### 認証API
    - [ ] ユーザーモデル定義
    - [ ] JWT実装
+   - [ ] JWTユニットテスト作成 (tests/backend/jwt_test.py)
    - [ ] ログインエンドポイント作成
+   - [ ] ログインAPIテスト作成 (tests/backend/login_api_test.py)
    - [ ] ログアウトエンドポイント作成
+   - [ ] ログアウトAPIテスト作成 (tests/backend/logout_api_test.py)
    - [ ] トークンリフレッシュ機能
    - [ ] パスワードハッシュ化実装
    - [ ] メール送信機能実装
@@ -227,16 +233,27 @@
    - Boss → Master: チームタスク完了報告、方針確認、コミット準備
    - Master → Boss: マージ指示、次のタスク指示
 
-8. Bossがチームタスク完了後、ブランチでコミット
+8. テスト実施（必須）
+   - 各タスク完了時に必ずテストを作成・実行
+   - UIタスク: PlaywrightでE2Eテスト (tests/e2e/auth_test.spec.ts)
+   - APIタスク: ユニットテスト (tests/backend/auth_test.py)
+   - ロジック: ユニットテスト (tests/unit/validation_test.ts)
+   - テストが全て通過するまでコミット禁止
+
+9. Bossがチームタスク完了後、ブランチでコミット
+   # テスト実行
+   npm test または pytest tests/
+   # 全テスト通過後
    git add . && git commit -m "feat: 認証システム実装"
 
-9. MasterがBossからの報告を受けてマージ
-   - requirements.mdを更新（完了: - [ ] を - [x] に変更）
-   - 新規タスク発生: 適切な場所に追加
-   - ブランチをメインにマージ
-   - 即座に次のタスクセットをBossに割り当て
+10. MasterがBossからの報告を受けてマージ
+    - テストの実行確認（テストなしのコミットは却下）
+    - requirements.mdを更新（完了: - [ ] を - [x] に変更）
+    - 新規タスク発生: 適切な場所に追加
+    - ブランチをメインにマージ
+    - 即座に次のタスクセットをBossに割り当て
 
-10. 全タスクが完了するまで4-9を繰り返す
+11. 全タスクが完了するまで4-10を繰り返す
     目標: requirements.mdの全項目が [x] になること
 ```
 
@@ -251,14 +268,18 @@ Frontend Boss → Member1: "ログインフォームのUI実装をお願いし�
 Frontend Boss → Member2: "バリデーション処理を実装してください"
 Frontend Boss → Member3: "エラーメッセージ表示機能を実装してください"
 ↓
-Member1 → Boss: "ログインフォーム完成しました。レビューお願いします"
-Boss: "確認しました。次はパスワードリセット画面を実装してください"
+Member1 → Boss: "ログインフォーム完成しました。テストも作成済みです。レビューお願いします"
+Boss: "テストを実行して確認します... npm test tests/e2e/login_test.spec.ts"
+Boss: "テスト通過確認。次はパスワードリセット画面を実装してください"
 （指示待ちゼロ、Member1に即座に次タスク）
 ↓
-Frontend Boss → Master: "認証システムの基本機能完了しました。コミット準備OKです"
-Master: "了解。コミットしてください"
+Frontend Boss → Master: "認証システムの基本機能完了しました。全テスト通過確認済み。コミット準備OKです"
+Master: "テストカバレッジを確認... 了解。コミットしてください"
 ↓
-Frontend Boss: "git commit -m 'feat: 認証システムのUI実装完了'"
+Frontend Boss: 
+"npm test # 全テスト実行"
+"git add ."
+"git commit -m 'feat: 認証システムのUI実装完了（テスト含む）'"
 ↓
 Master: "確認しました。メインブランチにマージします"
 Master: "次はダッシュボード機能を実装してください"
@@ -275,6 +296,7 @@ Master: "次はダッシュボード機能を実装してください"
 - **指示待ちゼロ**: Master/Bossは常に監視し、即座に次のタスクを投入
 - **プロアクティブ管理**: タスク完了前に次のタスクを準備
 - **確認体制徹底**: メンバー→Boss、Boss→Masterの確認フロー
+- **テスト必須**: 各タスク完了時にテスト作成・実行が必須
 
 ## 💻 開発原則
 
@@ -322,10 +344,36 @@ function exampleFunction(param) {
 
 ### テスト駆動開発
 
-1. **実装前にテストを書く**
-2. **Playwrightで機能テスト**
-3. **テスト失敗 → 修正 → 再テスト**
-4. **全テスト通過後にコミット**
+1. **タスク完了時に必ずテストを作成**
+2. **テストの種類と配置**
+   ```
+   tests/
+   ├── e2e/           # Playwright E2Eテスト
+   │   ├── auth_test.spec.ts
+   │   └── dashboard_test.spec.ts
+   ├── backend/       # バックエンドユニットテスト
+   │   ├── auth_test.py
+   │   └── api_test.py
+   └── unit/          # フロントエンドユニットテスト
+       ├── validation_test.ts
+       └── utils_test.ts
+   ```
+3. **テスト命名規則**
+   - E2E: `{機能名}_test.spec.ts`
+   - Backend: `{機能名}_test.py`
+   - Unit: `{機能名}_test.ts`
+4. **テスト実行コマンド**
+   ```bash
+   # Playwright E2E
+   npx playwright test tests/e2e/
+   
+   # Backend (Python)
+   pytest tests/backend/
+   
+   # Frontend Unit
+   npm test tests/unit/
+   ```
+5. **全テスト通過後にコミット**
 
 ## 🔧 技術選定基準
 
