@@ -37,7 +37,13 @@ create_project() {
     
     # Dockerfileを生成
     echo "4. Dockerfileを生成中..."
-    cp Dockerfile.template Dockerfile
+    cp DockerfileBase Dockerfile
+    
+    # Docker entrypointをコピー
+    cp docker-entrypoint.sh .
+    
+    # docker-baseディレクトリをコピー
+    cp -r docker-base .
     
     # .gitの初期化（必要に応じて）
     if [ -d .git ]; then
@@ -51,59 +57,63 @@ create_project() {
     docker volume create "${PROJECT_NAME}_z_data"
     docker volume create "${PROJECT_NAME}_tmux_data"
     
-    # Docker Composeを起動
+    # Docker Composeを起動（ビルドログを表示）
     echo "6. Docker Composeを起動中..."
-    docker compose up -d --build
+    echo "==============================================="
+    echo "📦 Dockerイメージをビルド中..."
+    echo "（初回は時間がかかる場合があります）"
+    echo "==============================================="
+    
+    # ビルドのみ実行してログを表示
+    docker compose build --progress=plain
+    
+    echo "==============================================="
+    echo "🚀 コンテナを起動中..."
+    echo "==============================================="
+    
+    # コンテナを起動
+    docker compose up -d
+    
+    echo "==============================================="
     
     # コンテナが起動するまで待機
     echo "7. コンテナの起動を待機中..."
     CONTAINER_NAME="claude-code-${PROJECT_NAME}"
     
-    local wait_count=0
     local dot_count=0
     
     while true; do
-        if docker ps | grep -q "$CONTAINER_NAME"; then
+        # コンテナが実際に稼働中かチェック
+        if docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "^${CONTAINER_NAME}\s.*Up"; then
             echo ""
-            echo "✅ コンテナが起動しました！（${wait_count}秒）"
+            echo "✅ コンテナが起動しました！"
             break
         fi
         
-        # プログレス表示
-        if [ $((wait_count % 5)) -eq 0 ]; then
-            printf "."
-            dot_count=$((dot_count + 1))
-            
-            # 60秒ごとに経過時間を表示
-            if [ $((wait_count % 60)) -eq 0 ] && [ $wait_count -gt 0 ]; then
-                printf " [${wait_count}秒経過]"
-            fi
-            
-            # 20個のドットで改行
-            if [ $dot_count -eq 20 ]; then
-                echo ""
-                echo "                      "
-                dot_count=0
-            fi
-        fi
-        
-        # 初回のイメージダウンロードの可能性を通知
-        if [ $wait_count -eq 30 ]; then
+        # コンテナの状態をチェック（デバッグ用）
+        container_status=$(docker ps -a --format "table {{.Names}}\t{{.Status}}" | grep "^${CONTAINER_NAME}" || echo "Not found")
+        if [[ "$container_status" == *"Exited"* ]]; then
             echo ""
-            echo "ℹ️  初回実行時はDockerイメージのダウンロードに時間がかかる場合があります"
-            echo "   継続して待機中"
-        fi
-        
-        sleep 1
-        wait_count=$((wait_count + 1))
-        
-        # 5分以上かかっている場合は警告
-        if [ $wait_count -eq 300 ]; then
+            echo "❌ コンテナが終了しています："
+            echo "$container_status"
             echo ""
-            echo "⚠️  警告: 5分以上経過しています。別のターミナルで以下を確認してください："
-            echo "   docker compose logs -f"
-            echo "   待機を継続中"
+            echo "ログを確認します："
+            docker logs "$CONTAINER_NAME" --tail 20
+            return 1
         fi
+        
+        # プログレス表示（3秒ごと）
+        printf "."
+        dot_count=$((dot_count + 1))
+        
+        # 15個のドットで改行
+        if [ $dot_count -eq 15 ]; then
+            echo ""
+            echo "待機中"
+            dot_count=0
+        fi
+        
+        sleep 3
     done
     
     # developerユーザーでコンテナに入る
