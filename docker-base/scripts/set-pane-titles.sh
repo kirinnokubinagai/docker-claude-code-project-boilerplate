@@ -23,7 +23,7 @@ tmux select-pane -t "$SESSION_NAME:1.1" -T "Master"
 pane_index=2
 
 if [ -f "$TEAMS_CONFIG_FILE" ]; then
-    teams=$(jq -r '.teams[] | select(.active == true) | .id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+    teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
     
     for team in $teams; do
         team_name=$(jq -r ".teams[] | select(.id == \"$team\") | .name" "$TEAMS_CONFIG_FILE" 2>/dev/null)
