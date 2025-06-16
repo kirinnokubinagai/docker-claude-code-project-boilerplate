@@ -69,7 +69,7 @@ get_pane_index_for_team() {
     local pane_idx=1  # Masterペインが1
     
     # teams.jsonから各チームのメンバー数を取得
-    local teams=$(jq -r '.teams[] | select(.active == true) | .id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+    local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
     
     for t in $teams; do
         if [ "$t" = "$team_id" ]; then
@@ -106,7 +106,7 @@ show_status() {
     fi
     
     # 各チームの状況を表示
-    local teams=$(jq -r '.teams[] | select(.active == true) | .id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+    local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
     
     for team in $teams; do
         local team_name=$(jq -r ".teams[] | select(.id == \"$team\") | .name" "$TEAMS_CONFIG_FILE" 2>/dev/null)
@@ -191,7 +191,7 @@ main() {
     # 各チームへのタスク送信
     log_info "各チームにタスクを割り当て中..."
     
-    local teams=$(jq -r '.teams[] | select(.active == true) | .id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+    local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
     
     for team in $teams; do
         local team_name=$(jq -r ".teams[] | select(.id == \"$team\") | .name" "$TEAMS_CONFIG_FILE" 2>/dev/null)

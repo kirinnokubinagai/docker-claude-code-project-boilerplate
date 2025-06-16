@@ -252,7 +252,6 @@ EOF
    cat /opt/claude-system/config/teams.json
    ```
 
-6. **🛑 ここで必ず停止！**
 
 ### teams.json作成の具体例（厳守）
 
@@ -269,8 +268,7 @@ cat > /opt/claude-system/config/teams.json << 'EOF'
       "description": "UI/UX開発",
       "member_count": 4,
       "tech_stack": "Next.js, TypeScript, Tailwind CSS",
-      "branch": "team/frontend",
-      "active": true
+      "branch": "team/frontend"
     },
     {
       "id": "backend",
@@ -278,8 +276,7 @@ cat > /opt/claude-system/config/teams.json << 'EOF'
       "description": "API開発",
       "member_count": 4,
       "tech_stack": "Node.js, Express, PostgreSQL",
-      "branch": "team/backend",
-      "active": true
+      "branch": "team/backend"
     },
     {
       "id": "database",
@@ -287,8 +284,7 @@ cat > /opt/claude-system/config/teams.json << 'EOF'
       "description": "データベース設計",
       "member_count": 3,
       "tech_stack": "PostgreSQL, Redis",
-      "branch": "team/database",
-      "active": true
+      "branch": "team/database"
     },
     {
       "id": "devops",
@@ -296,8 +292,7 @@ cat > /opt/claude-system/config/teams.json << 'EOF'
       "description": "インフラ構築",
       "member_count": 3,
       "tech_stack": "Docker, GitHub Actions, AWS",
-      "branch": "team/devops",
-      "active": true
+      "branch": "team/devops"
     }
   ]
 }
@@ -310,23 +305,25 @@ echo "teams.json created at: /opt/claude-system/config/teams.json"
 
 ### teams.jsonの必須フィールド
 
-| フィールド | 型 | 説明 | 例 |
-|----------|---|------|---|
-| project_name | string | プロジェクト名 | "〇〇アプリ" |
-| project_type | string | プロジェクトタイプ | "web-app" |
-| teams | array | チーム配列 | [] |
+| フィールド   | 型     | 説明               | 例           |
+| ------------ | ------ | ------------------ | ------------ |
+| project_name | string | プロジェクト名     | "〇〇アプリ" |
+| project_type | string | プロジェクトタイプ | "web-app"    |
+| teams        | array  | チーム配列         | []           |
 
 ### teamsオブジェクトの必須フィールド
 
-| フィールド | 型 | 説明 | 例 |
-|----------|---|------|---|
-| id | string | チームID（英小文字） | "frontend" |
-| name | string | チーム表示名 | "Frontend Team" |
-| description | string | チームの役割 | "UI/UX開発" |
-| member_count | number | メンバー数（1-4） | 4 |
-| tech_stack | string | 使用技術 | "Next.js, TypeScript" |
-| branch | string | ブランチ名 | "team/frontend" |
-| active | boolean | チームの有効/無効（省略時はtrue） | true |
+| フィールド   | 型     | 説明                 | 例                    |
+| ------------ | ------ | -------------------- | --------------------- |
+| id           | string | チームID（英小文字） | "frontend"            |
+| name         | string | チーム表示名         | "Frontend Team"       |
+| description  | string | チームの役割         | "UI/UX開発"           |
+| member_count | number | メンバー数（1-4）    | 4                     |
+| tech_stack   | string | 使用技術             | "Next.js, TypeScript" |
+| branch       | string | ブランチ名           | "team/frontend"       |
+
+6. **🛑 ここで必ず停止！**
+
 
 ### Master Claudeの動作フロー（指示待ちゼロシステム）
 
