@@ -19,11 +19,8 @@ services:
       
       # docker-baseディレクトリを別の場所にマウント
       - ./docker-base:/opt/claude-system
-      
-      # CLAUDE.mdはworkspaceに配置
-      - ./docker-base/claude:/workspace/.claude
 
-      # Claude Code設定
+      # Claude Code設定（ホスト側の設定を使用）
       - ~/.anthropic:/home/developer/.anthropic
       - ~/.claude:/home/developer/.claude
 

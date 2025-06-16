@@ -57,8 +57,14 @@ if [ -f "/opt/claude-system/config/.tmux.conf" ]; then
 fi
 
 # Claude Code用の設定ディレクトリ作成
-mkdir -p /home/developer/.anthropic /home/developer/.claude
+mkdir -p /home/developer/.anthropic /home/developer/.claude /workspace/.claude
 chown -R developer:developer /home/developer/.anthropic /home/developer/.claude
+
+# プロジェクト用CLAUDE.mdをworkspaceにコピー（ホストのCLAUDE.mdとは独立）
+if [ -f "/opt/claude-system/claude/CLAUDE.md" ]; then
+    cp /opt/claude-system/claude/CLAUDE.md /workspace/.claude/CLAUDE.md 2>/dev/null || true
+    chown developer:developer /workspace/.claude/CLAUDE.md 2>/dev/null || true
+fi
 
 # Dockerソケットの権限調整（developerユーザーが使えるように）
 if [ -S /var/run/docker.sock ]; then
