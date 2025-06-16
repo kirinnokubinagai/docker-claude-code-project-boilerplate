@@ -71,7 +71,6 @@ alias master='/opt/claude-system/scripts/master-claude-teams.sh'
 alias auto-assign='/opt/claude-system/scripts/auto-assign-tasks.sh'
 alias help='/opt/claude-system/scripts/show-help.sh'
 alias h='/opt/claude-system/scripts/show-help.sh'
-alias create-repo='/opt/claude-system/scripts/create-repo.sh'
 
 # peco aliases
 alias pcd='peco-cd'
