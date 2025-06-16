@@ -181,7 +181,7 @@ setup_master() {
     # requirements.mdの確認
     local master_prompt
     if [ -f "$REQUIREMENTS_FILE" ]; then
-        master_prompt="私はMaster Claudeです。requirements.mdを確認して、各チームのBossに適切なタスクを割り当てます。Bossは部下に具体的なタスクを振り分け、完了後にコミットを行います。"
+        master_prompt="私はMaster Claudeです。requirements.mdを確認して、各チームのBossに適切なタスクを割り当てます。Bossを常に監視し、指示待ち状態を作らず、完了報告を受けたら即座に次のタスクを投入します。Bossは部下を同様に監視し、メンバーは必ずBossに確認を取り、Bossは必ず私に確認を取ります。"
     else
         master_prompt="私はMaster Claudeです。プロジェクト全体を統括します。まず requirements.md を作成して要件定義を行います。"
     fi
@@ -204,10 +204,13 @@ setup_master() {
     
     send_task_to_pane 1 "echo -e \"$team_info\""
     
-    log_info "Masterは各チームのBossに指示を出します"
+    log_info "Masterは各チームのBossに指示を出し、常に監視します"
+    log_info "指示待ちゼロシステム: タスク完了を検知したら即座に次のタスクを投入"
     log_info "例: "
     log_info "  tmux send-keys -t claude-teams:1.2 \"Frontend Boss、認証UIを実装してください\""
     log_info "  tmux send-keys -t claude-teams:1.2 Enter"
+    log_info ""
+    log_info "確認体制: メンバー→Boss、Boss→Masterの確認フローを徹底"
     
     # ログファイルの初期化
     echo "[$(date)] Master Claude Teams System 起動" > "$TEAM_LOG_FILE"
