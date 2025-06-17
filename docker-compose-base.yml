@@ -8,20 +8,24 @@ name: claude-code-{{PROJECT_NAME}}
 services:
   # Claude Code Company 環境
   claude-code:
-    build: .
+    build:
+      context: ${CLAUDE_PROJECT_DIR}
+      dockerfile: DockerfileBase
     container_name: claude-code-{{PROJECT_NAME}}
     # ENTRYPOINTはrootで実行、その後developerに切り替え
     # user: "${USER_UID:-1000}:${USER_GID:-1000}"
     volumes:
-      # プロジェクトファイル（docker-base以外）
+      # claude-project（boilerplate）を読み取り専用でマウント
+      - ${CLAUDE_PROJECT_DIR}:/claude-project:ro
+      
+      # プロジェクトディレクトリ
       - .:/workspace:delegated
-      - /workspace/docker-base
       
       # docker-baseディレクトリを別の場所にマウント
-      - ./docker-base:/opt/claude-system
+      - ${CLAUDE_PROJECT_DIR}/docker-base:/opt/claude-system:ro
 
-      # Claude Code設定
-      - ~/.anthropic:/home/developer/.anthropic
+      # Claude Code設定（認証が含まれるためこれがないとloginが必要）
+      - ~/.claude:/home/developer/.claude:ro
 
       # Git設定をホストから引き継ぎ
       - ~/.gitconfig:/home/developer/.gitconfig:ro
@@ -35,9 +39,6 @@ services:
       - z_data:/home/developer
       - tmux_data:/home/developer/.tmux
 
-      # スクリーンショット出力
-      - ./screenshots:/workspace/screenshots
-
       # Dockerソケットマウント（Docker内Docker実行用）
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -46,7 +47,7 @@ services:
       # 設定されていない変数は無視されます
       
       # Claude Code
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
 
       # MCP Servers
       - GITHUB_TOKEN=${GITHUB_TOKEN}
@@ -57,12 +58,6 @@ services:
       - OBSIDIAN_API_KEY=${OBSIDIAN_API_KEY}
       - OBSIDIAN_HOST=${OBSIDIAN_HOST:-localhost:27123}
       - MAGIC_API_KEY=${MAGIC_API_KEY}
-
-      # Playwright
-      - PLAYWRIGHT_HEADLESS=${PLAYWRIGHT_HEADLESS:-true}
-      - PLAYWRIGHT_TIMEOUT=${PLAYWRIGHT_TIMEOUT:-30000}
-
-      # Context7
       - DEFAULT_MINIMUM_TOKENS=${DEFAULT_MINIMUM_TOKENS:-6000}
 
     working_dir: /workspace

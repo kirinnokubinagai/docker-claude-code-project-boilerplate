@@ -394,7 +394,6 @@
    # 権限を確認
    ls -la /opt/claude-system/
    
-   # teams.jsonを直接作成（必ずこのパスに作成）
    # 以下の {...} 部分を実際の内容に置き換えること
    cat > /opt/claude-system/config/teams.json << 'EOF'
    {
@@ -428,33 +427,25 @@ cat > /opt/claude-system/config/teams.json << 'EOF'
     {
       "id": "frontend",
       "name": "Frontend Team",
-      "description": "UI/UX開発",
       "member_count": 4,
-      "tech_stack": "Next.js, TypeScript, Tailwind CSS",
       "branch": "team/frontend"
     },
     {
       "id": "backend",
       "name": "Backend Team",
-      "description": "API開発",
       "member_count": 4,
-      "tech_stack": "Node.js, Express, PostgreSQL",
       "branch": "team/backend"
     },
     {
       "id": "database",
       "name": "Database Team",
-      "description": "データベース設計",
       "member_count": 3,
-      "tech_stack": "PostgreSQL, Redis",
       "branch": "team/database"
     },
     {
       "id": "devops",
       "name": "DevOps Team",
-      "description": "インフラ構築",
       "member_count": 3,
-      "tech_stack": "Docker, GitHub Actions, AWS",
       "branch": "team/devops"
     }
   ]
@@ -473,17 +464,15 @@ echo "teams.json created at: /opt/claude-system/config/teams.json"
 | project_name | string | プロジェクト名     | "〇〇アプリ" |
 | project_type | string | プロジェクトタイプ | "web-app"    |
 | teams        | array  | チーム配列         | []           |
-
+****
 ### teamsオブジェクトの必須フィールド
 
-| フィールド   | 型     | 説明                 | 例                    |
-| ------------ | ------ | -------------------- | --------------------- |
-| id           | string | チームID（英小文字） | "frontend"            |
-| name         | string | チーム表示名         | "Frontend Team"       |
-| description  | string | チームの役割         | "UI/UX開発"           |
-| member_count | number | メンバー数（1-4）    | 4                     |
-| tech_stack   | string | 使用技術             | "Next.js, TypeScript" |
-| branch       | string | ブランチ名           | "team/frontend"       |
+| フィールド   | 型     | 説明                 | 例              |
+| ------------ | ------ | -------------------- | --------------- |
+| id           | string | チームID（英小文字） | "frontend"      |
+| name         | string | チーム表示名         | "Frontend Team" |
+| member_count | number | メンバー数（1-4）    | 4               |
+| branch       | string | ブランチ名           | "team/frontend" |
 
 
 
@@ -505,6 +494,8 @@ echo "teams.json created at: /opt/claude-system/config/teams.json"
    Master → Boss → メンバーの流れで指示が伝達される
    例: 
    tmux send-keys -t claude-teams:1.2 "認証システムのタスクを進めてください"
+   sleep 0.5
+   
    tmux send-keys -t claude-teams:1.2 Enter
 
 5. Masterは常にBossを監視（無限ループ処理）

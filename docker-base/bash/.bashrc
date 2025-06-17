@@ -9,6 +9,11 @@ fi
 # User specific environment
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
+# ロケール設定（日本語文字化け対策）
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export TERM=xterm-256color
+
 # Playwright環境変数（ヘッドレステスト用）
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 export CI=true
@@ -78,6 +83,8 @@ alias v='vim'
 # Claude Code aliases
 alias cc='claude'
 alias ccd='claude --dangerously-skip-permissions'
+alias clogin='claude login'
+alias cl='claude login'
 alias check_mcp='claude mcp list'
 alias setup-mcp='/opt/claude-system/scripts/setup-mcp.sh'
 alias master='/opt/claude-system/scripts/master-claude-teams.sh'
@@ -122,23 +129,33 @@ set -o emacs
 # Set working directory
 cd /workspace 2>/dev/null || true
 
-# Welcome message and shortcuts
+# Welcome message
 echo ""
 echo "==============================================="
 echo "🚀 Claude Code Development Environment"
 echo "==============================================="
 echo ""
+
+# Claude認証状態をチェック（重複しないように条件分岐）
+if ! claude --version >/dev/null 2>&1; then
+    echo "⚠️  Claude Codeの初回認証が必要です"
+    echo ""
+fi
+
 echo "📋 ショートカット:"
 echo "  cc              - Claude CLIを起動"
 echo "  ccd             - Claude CLI（権限確認スキップ）"
+echo "  cl / clogin     - Claude Codeにログイン"
 echo "  master          - Master Claude Teamsを起動"
 echo "  setup-mcp       - MCPサーバーを設定"
 echo "  check_mcp       - MCPサーバーの状態確認"
 echo "  help / h        - ヘルプとコマンド一覧を表示"
 echo ""
 echo "📝 次のステップ:"
-echo "  1. cc または ccd と入力してアプリの要件を説明"
-echo "  2. teams.jsonが生成されたら master を実行"
+echo "  1. cl または clogin でClaude Codeにログイン（初回のみ）"
+echo "  2. master を実行してMaster Claude Teamsを起動"
+echo "     → Masterが ccd で要件定義・teams.json作成"
+echo "     → 各チームBossに詳細要件定義を指示"
 echo "  3. 各チームが並行開発を開始"
 echo ""
 echo "💡 Tips:"

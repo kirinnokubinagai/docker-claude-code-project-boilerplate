@@ -55,8 +55,8 @@ zap-reports/
 zap-rules.conf/
 *.html
 
-# Projects directory
-projects/
+# Projects directory - ignore all individual projects
+projects/*/
 
 # playwrightのscreenshots
 screenshots/

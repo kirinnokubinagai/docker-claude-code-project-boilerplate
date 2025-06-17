@@ -5,33 +5,25 @@
     {
       "id": "frontend",
       "name": "Frontend Team",
-      "description": "〇〇開発",
       "member_count": 4,
-      "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
       "branch": "team/frontend"
     },
     {
       "id": "backend",
       "name": "Backend Team",
-      "description": "〇〇開発",
       "member_count": 4,
-      "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
       "branch": "team/backend"
     },
     {
       "id": "database",
       "name": "Database Team",
-      "description": "データ設計、最適化",
       "member_count": 3,
-      "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
       "branch": "team/database"
     },
     {
       "id": "devops",
       "name": "DevOps Team",
-      "description": "インフラ構築、デプロイ",
       "member_count": 3,
-      "tech_stack": "◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯, ◯◯◯◯◯◯◯",
       "branch": "team/devops"
     }
   ]

@@ -50,10 +50,17 @@ log_debug() {
 check_config_files() {
     local has_error=false
     
-    # teams.jsonのチェック
+    # teams.jsonのチェック（新規プロジェクトの場合は後でMasterが作成）
     if [ ! -f "$TEAMS_CONFIG_FILE" ]; then
-        log_error "teams.json およびテンプレートファイルが見つかりません"
-        has_error=true
+        if [ -f "$TEAMS_TEMPLATE_FILE" ]; then
+            log_warning "teams.json が見つかりません - Masterが作成します"
+            # テンプレートをコピーして一時的なチーム構成を作成
+            cp "$TEAMS_TEMPLATE_FILE" "$TEAMS_CONFIG_FILE"
+            log_info "テンプレートから初期teams.jsonを作成しました"
+        else
+            log_error "teams.json およびテンプレートファイルが見つかりません"
+            has_error=true
+        fi
     else
         # JSONの妥当性チェック
         if ! jq empty "$TEAMS_CONFIG_FILE" 2>/dev/null; then
@@ -159,7 +166,8 @@ send_task_to_pane() {
     fi
     
     # タスクを送信
-    tmux send-keys -t "$SESSION_NAME:1.$pane_idx" "$task" Enter
+    tmux send-keys -t "$SESSION_NAME:1.$pane_idx" "$task"
+    tmux send-keys -t "$SESSION_NAME:1.$pane_idx" Enter
     
     return 0
 }
@@ -168,20 +176,12 @@ send_task_to_pane() {
 setup_master() {
     log_info "Master Claudeを設定中..."
     
-    # Claude Codeの起動を待つ（プログレスバー付き）
-    echo -n "Claude Codeの起動を待機中 "
-    for i in {1..15}; do
-        echo -n "."
-        sleep 1
-    done
-    echo " 完了"
-    
     # タスクディレクトリの確認
     local master_prompt
     if [ -d "$TASKS_DIR" ] && [ "$(find "$TASKS_DIR" -name "*.md" -type f 2>/dev/null | wc -l)" -gt 0 ]; then
-        master_prompt="私はMaster Claudeです。documents/tasks/ディレクトリ内のタスクファイルを確認して、各チームのBossに適切なタスクを割り当てます。私は無限ループで全Bossを5秒ごとに監視し、タスク完了・指示待ち・問題発生を即座に検知して対応します。指示待ち状態は絶対に作りません。Bossへの指示はtmux send-keysで行います。例: tmux send-keys -t claude-teams:1.2 \"認証システムのUIを実装してください\" Enter。Bossも同様に部下をtmux send-keysで監視・指示します。例: Boss→Member: tmux send-keys -t claude-teams:1.3 \"ログインフォームを実装してください\" Enter。重要: 各タスク完了時には必ずテスト(Playwright E2E/ユニットテスト)を作成・実行し、全テスト通過後のみコミットを許可します。監視ループ: while true; do check_all_bosses; sleep 5; done"
+        master_prompt="私はMaster Claudeです。documents/tasks/内のタスクファイルから各チームBossにタスクを割り当てます。5秒ごとに全Bossを監視し、タスク完了や問題を検知したら即座に対応します。"
     else
-        master_prompt="私はMaster Claudeです。プロジェクト全体を統括します。まず documents/requirements.md（人間用要件定義）とdocuments/tasks/ディレクトリ内のタスクファイル（frontend_tasks.md, backend_tasks.md等）を作成して、タスク管理を開始します。"
+        master_prompt="私はMaster Claudeです。まず ccd でアプリの要件定義を行い、documents/requirements.md と teams.json を作成します。その後、各チームBossに詳細な要件定義を指示し、最後に環境構築を行います。プロジェクト全体の進行を統括します。"
     fi
     
     # Master Claudeに初期プロンプトを送信
@@ -189,32 +189,27 @@ setup_master() {
         log_success "Master: 初期設定完了"
     fi
     
-    # チーム情報をMasterに送信
-    sleep 2
-    local team_info="現在のチーム構成:"
-    local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+    # チーム情報は画面に既に表示されているので、ここでは送信しない
     
-    for team in $teams; do
-        local team_name=$(jq -r ".teams[] | select(.id == \"$team\") | .name" "$TEAMS_CONFIG_FILE" 2>/dev/null)
-        local member_count=$(jq -r ".teams[] | select(.id == \"$team\") | .member_count // 1" "$TEAMS_CONFIG_FILE" 2>/dev/null)
-        team_info="$team_info\\n- $team_name: $member_count 人（1人目がBoss）"
-    done
-    
-    send_task_to_pane 1 "echo -e \"$team_info\""
-    
-    log_info "Masterは無限ループで各チームのBossを常時監視します"
-    log_info "監視サイクル: 5秒ごとに全Bossの状態をチェック"
-    log_info "検知項目: タスク完了、指示待ち、問題発生、質問"
+    if [ -d "$TASKS_DIR" ] && [ "$(find "$TASKS_DIR" -name "*.md" -type f 2>/dev/null | wc -l)" -gt 0 ]; then
+        log_info "既存のタスクファイルを検出 - タスク割り当てモード"
+        log_info "Masterは無限ループで各チームのBossを常時監視します"
+        log_info "監視サイクル: 5秒ごとに全Bossの状態をチェック"
+        log_info "検知項目: タスク完了、指示待ち、問題発生、質問"
+    else
+        log_info "新規プロジェクト - 要件定義モード"
+        log_info "Masterのワークフロー:"
+        log_info "  1. ccd でアプリの要件定義"
+        log_info "  2. documents/requirements.md 作成"
+        log_info "  3. teams.json 作成"
+        log_info "  4. 各チームBossに詳細要件定義を指示"
+        log_info "  5. 環境構築の指示"
+        log_info "  6. その後は無限ループで監視"
+    fi
+    log_info ""
     log_info "例: "
     log_info "  tmux send-keys -t claude-teams:1.2 \"Frontend Boss、認証UIを実装してください\""
     log_info "  tmux send-keys -t claude-teams:1.2 Enter"
-    log_info ""
-    log_info "Masterの監視ループ:"
-    log_info "  while true; do"
-    log_info "    各Bossの状態確認"
-    log_info "    必要に応じて即座に指示"
-    log_info "    sleep 5"
-    log_info "  done"
     log_info ""
     log_info "確認体制: メンバー→Boss、Boss→Masterの確認フローを徹底"
     log_info "テスト必須: 各タスク完了時にテスト作成・実行（tests/e2e/, tests/backend/, tests/unit/）"
@@ -246,10 +241,9 @@ create_team_panes() {
                 pane_title="$team_name #$member"
             fi
             
-            # タイトル設定（複数の方法で確実に設定）
+            # タイトル設定
             sleep 0.1
             tmux select-pane -t "$SESSION_NAME:1.$current_pane_index" -T "$pane_title" 2>/dev/null
-            tmux set-option -t "$SESSION_NAME:1.$current_pane_index" pane-border-format " $pane_title " 2>/dev/null
             
             log_success "  → $pane_title のペイン作成"
             
@@ -358,9 +352,9 @@ main() {
     # TMUX環境変数をクリア
     unset TMUX
     
-    # セッション作成
+    # セッション作成（UTF-8を明示的に有効化）
     log_info "tmuxセッションを作成中..."
-    tmux new-session -d -s "$SESSION_NAME" -n "All-Teams" -c "$WORKSPACE"
+    tmux -u new-session -d -s "$SESSION_NAME" -n "All-Teams" -c "$WORKSPACE"
     
     # ペインボーダーの設定
     tmux set-option -g pane-border-status top
@@ -414,7 +408,8 @@ main() {
     if [[ " $@ " == *" --phased "* ]]; then
         log_info "段階的起動モード: メモリ使用量を分散します"
         # Masterを最初に起動
-        tmux send-keys -t "$SESSION_NAME:1.1" 'claude --dangerously-skip-permissions' Enter
+        tmux send-keys -t "$SESSION_NAME:1.1" 'claude --dangerously-skip-permissions'
+        tmux send-keys -t "$SESSION_NAME:1.1" Enter
         log_success "Master Claude起動完了 (1/$final_panes)"
         sleep 5
         
@@ -428,7 +423,8 @@ main() {
             
             log_info "$team_name チームを起動中..."
             for member in $(seq 1 "$member_count"); do
-                tmux send-keys -t "$SESSION_NAME:1.$current_pane" 'claude --dangerously-skip-permissions' Enter
+                tmux send-keys -t "$SESSION_NAME:1.$current_pane" 'claude --dangerously-skip-permissions'
+                tmux send-keys -t "$SESSION_NAME:1.$current_pane" Enter
                 log_success "  → メンバー $member 起動完了 ($current_pane/$final_panes)"
                 current_pane=$((current_pane + 1))
                 sleep 3  # メモリ負荷を分散
@@ -438,7 +434,8 @@ main() {
     else
         # 通常の起動
         for i in $(seq 1 "$final_panes"); do
-            tmux send-keys -t "$SESSION_NAME:1.$i" 'claude --dangerously-skip-permissions' Enter
+            tmux send-keys -t "$SESSION_NAME:1.$i" 'claude --dangerously-skip-permissions'
+            tmux send-keys -t "$SESSION_NAME:1.$i" Enter
             # 起動を分散させる
             sleep 0.5
         done
@@ -446,13 +443,33 @@ main() {
     
     log_success "全てのClaude Codeを起動しました"
     
+    # Claude Codeの起動完了を待つ
+    log_info "Claude Codeの初期化を待機中..."
+    sleep 10  # Claude Codeの初期表示が完了するまで待つ
+    
+    # 画面をクリアして、ペイン名が見えるようにする
+    log_info "画面をクリア中..."
+    for i in $(seq 1 "$final_panes"); do
+        tmux send-keys -t "$SESSION_NAME:1.$i" "clear"
+        tmux send-keys -t "$SESSION_NAME:1.$i" Enter
+    done
+    
+    # クリア完了を待つ
+    sleep 2
+    
+    # ペイン名が確実に表示されていることを確認
+    log_info "ペイン名の表示を確認中..."
+    sleep 2
+    
     # Masterの初期設定
-    # --phasedオプションの場合は全起動完了を待つ
+    # --phasedオプションの場合は追加待機
     if [[ " $@ " == *" --phased "* ]]; then
         log_info "段階的起動が完了するまで待機中..."
-        # 追加で10秒待機
-        sleep 10
+        # 追加で5秒待機
+        sleep 5
     fi
+    
+    # ペイン名設定が完了してからMasterプロンプトを送信
     setup_master
     
     # サマリー表示

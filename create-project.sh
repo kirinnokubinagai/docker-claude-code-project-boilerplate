@@ -12,8 +12,15 @@ create_project() {
     fi
     
     PROJECT_NAME="$1"
-    BOILERPLATE_DIR="$HOME/Project/docker-claude-code-boiler-plate"
-    PROJECT_DIR="$HOME/Project/$PROJECT_NAME"
+    CLAUDE_PROJECT_DIR="$HOME/claude-project"
+    PROJECT_DIR="$CLAUDE_PROJECT_DIR/projects/$PROJECT_NAME"
+    
+    # claude-projectディレクトリが存在しない場合はエラー
+    if [ ! -d "$CLAUDE_PROJECT_DIR" ]; then
+        echo "エラー: claude-projectディレクトリが存在しません"
+        echo "先にclaude-projectのセットアップを完了してください"
+        return 1
+    fi
     
     # プロジェクトディレクトリが既に存在する場合はエラー
     if [ -d "$PROJECT_DIR" ]; then
@@ -23,49 +30,65 @@ create_project() {
     
     echo "プロジェクト '$PROJECT_NAME' を作成中..."
     
-    # boilerplateをコピー
-    echo "1. Boilerplateをコピー中..."
-    cp -r "$BOILERPLATE_DIR" "$PROJECT_DIR"
+    # projectsディレクトリが存在しない場合は作成
+    if [ ! -d "$CLAUDE_PROJECT_DIR/projects" ]; then
+        echo "1. projectsディレクトリを作成中..."
+        mkdir -p "$CLAUDE_PROJECT_DIR/projects"
+    fi
+    
+    # プロジェクトディレクトリを作成（空のディレクトリ）
+    echo "2. プロジェクトディレクトリを作成中..."
+    mkdir -p "$PROJECT_DIR"
     
     # プロジェクトディレクトリに移動
-    echo "2. プロジェクトディレクトリに移動..."
+    echo "3. プロジェクトディレクトリに移動..."
     cd "$PROJECT_DIR"
     
     # docker-compose.ymlを生成（プロジェクト名を反映）
-    echo "3. docker-compose.ymlを生成中..."
-    sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" docker-compose-base.yml > docker-compose.yml
+    echo "4. docker-compose.ymlを生成中..."
+    sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" > docker-compose.yml
     
-    # Dockerfileを生成
-    echo "4. Dockerfileを生成中..."
-    cp DockerfileBase Dockerfile
-    
-    # Docker entrypointをコピー
-    cp docker-entrypoint.sh .
-    
-    # docker-baseディレクトリをコピー
-    cp -r docker-base .
-    
-    # .gitの初期化（必要に応じて）
-    if [ -d .git ]; then
-        rm -rf .git
+    # claude-projectディレクトリの.envファイルが存在する場合はコピー
+    if [ -f "$CLAUDE_PROJECT_DIR/.env" ]; then
+        echo "5. 環境変数ファイルをコピー中..."
+        cp "$CLAUDE_PROJECT_DIR/.env" .env
+        # CLAUDE_PROJECT_DIRを追加（既存の値を上書き）
+        echo "CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR" >> .env
+    else
+        # .envファイルが存在しない場合は最小限の内容で作成
+        echo "CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR" > .env
     fi
+    
+    # .dockerignoreファイルを作成
+    echo "6. .dockerignoreファイルを作成中..."
+    cat > .dockerignore << EOF
+screenshots/
+docker-compose.yml
+.env
+.git/
+EOF
+
+    # .gitの初期化と初回コミット
+    echo "7. Gitリポジトリを初期化中..."
     git init
+    git add .
+    git commit -m "Initial commit"
     
     # Dockerボリュームを作成
-    echo "5. Dockerボリュームを作成中..."
+    echo "8. Dockerボリュームを作成中..."
     docker volume create "${PROJECT_NAME}_bash_history"
     docker volume create "${PROJECT_NAME}_z_data"
     docker volume create "${PROJECT_NAME}_tmux_data"
     
     # Docker Composeを起動（ビルドログを表示）
-    echo "6. Docker Composeを起動中..."
+    echo "9. Docker Composeを起動中..."
     echo "==============================================="
     echo "📦 Dockerイメージをビルド中..."
     echo "（初回は時間がかかる場合があります）"
     echo "==============================================="
     
     # ビルドのみ実行してログを表示
-    docker compose build --progress=plain
+    docker compose --progress=plain build
     
     echo "==============================================="
     echo "🚀 コンテナを起動中..."
@@ -77,7 +100,7 @@ create_project() {
     echo "==============================================="
     
     # コンテナが起動するまで待機
-    echo "7. コンテナの起動を待機中..."
+    echo "10. コンテナの起動を待機中..."
     CONTAINER_NAME="claude-code-${PROJECT_NAME}"
     
     local dot_count=0
@@ -117,10 +140,11 @@ create_project() {
     done
     
     # developerユーザーでコンテナに入る
-    echo "8. コンテナに接続中..."
+    echo "11. コンテナに接続中..."
     echo ""
     echo "==============================================="
     echo "プロジェクト '$PROJECT_NAME' の作成が完了しました！"
+    echo "プロジェクトパス: $PROJECT_DIR"
     echo "コンテナ '$CONTAINER_NAME' にdeveloperユーザーで接続します..."
     echo "==============================================="
     echo ""

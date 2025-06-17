@@ -92,7 +92,8 @@ send_task_to_pane() {
     local task=$2
     
     # タスクを送信（ウィンドウ番号は1）
-    tmux send-keys -t "$SESSION_NAME:1.$pane_idx" "$task" Enter
+    tmux send-keys -t "$SESSION_NAME:1.$pane_idx" "$task"
+    tmux send-keys -t "$SESSION_NAME:1.$pane_idx" Enter
 }
 
 # タスク状況を表示

@@ -10,7 +10,9 @@ RUN apk add --no-cache \
     git \
     curl \
     coreutils \
-    sudo
+    sudo \
+    musl-locales \
+    musl-locales-lang
 
 # 開発ツールをインストール
 RUN apk add --no-cache \
@@ -30,7 +32,8 @@ RUN apk add --no-cache \
 # Node.js関連をインストール
 RUN apk add --no-cache \
     nodejs \
-    npm
+    npm \
+    pnpm
 
 # Chromium関連をインストール（重いパッケージを分離）
 # Playwright用の依存関係も含む
@@ -84,28 +87,11 @@ RUN apk add --no-cache docker-cli docker-cli-compose
 # GitHub CLIのインストール
 RUN apk add --no-cache github-cli
 
-# Claude Codeをインストール（これは必要）
-RUN npm install -g @anthropic-ai/claude-code
-
-# Playwrightはプロジェクトごとにインストール
-# Alpine Linuxには一部のパッケージがないため、基本的な依存関係のみ確保
-
-# MCPサーバーはnpxで実行時に取得するため、グローバルインストール不要
-# 最小限のツールのみインストール
+# Claude Codeをインストール
+RUN pnpm install -g @anthropic-ai/claude-code
 
 # Pythonベースのツールもインストール（--break-system-packagesフラグを使用）
 RUN pip3 install --break-system-packages uv
-
-# tmux設定
-RUN echo "set -g default-shell /bin/bash" > /home/developer/.tmux.conf && \
-    echo "set -g mouse on" >> /home/developer/.tmux.conf && \
-    echo "set -g base-index 1" >> /home/developer/.tmux.conf && \
-    echo "set -g pane-base-index 1" >> /home/developer/.tmux.conf && \
-    echo "set -g pane-border-status top" >> /home/developer/.tmux.conf && \
-    echo "set -g pane-border-format '#{pane_index}: #{pane_title}'" >> /home/developer/.tmux.conf && \
-    echo "set -g status-bg colour234" >> /home/developer/.tmux.conf && \
-    echo "set -g status-fg colour137" >> /home/developer/.tmux.conf && \
-    chown developer:developer /home/developer/.tmux.conf
 
 # developerユーザーの環境設定
 USER developer
@@ -131,6 +117,10 @@ RUN apk add --no-cache gettext
 
 # luaをインストール（z.shの代わりにz.luaを使う場合）
 RUN apk add --no-cache lua5.3
+
+# ロケール環境変数を設定
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 # 環境変数はdocker-entrypoint.shで設定する（developerユーザーで実行するため）
 

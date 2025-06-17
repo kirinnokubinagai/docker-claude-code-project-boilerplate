@@ -32,7 +32,7 @@ if [ -f "$TEAMS_CONFIG_FILE" ]; then
         for member in $(seq 1 "$member_count"); do
             if [ $member -eq 1 ]; then
                 # ボス（部長）
-                tmux select-pane -t "$SESSION_NAME:1.$pane_index" -T "$team_name ボス"
+                tmux select-pane -t "$SESSION_NAME:1.$pane_index" -T "$team_name Boss"
             else
                 # メンバー
                 tmux select-pane -t "$SESSION_NAME:1.$pane_index" -T "$team_name #$member"

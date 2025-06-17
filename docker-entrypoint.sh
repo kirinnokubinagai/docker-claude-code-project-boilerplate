@@ -10,6 +10,10 @@ set +e  # 一時的にerrexitを無効化（権限関連エラーのため）
 # 環境変数の設定
 export WORKSPACE="/workspace"
 
+# ロケール設定（日本語文字化け対策）
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+
 # Playwright MCPはコンテナ内での実行が複雑なため、
 # 通常のPlaywrightテストコードを書くことを推奨
 
@@ -98,13 +102,28 @@ su developer -c "/opt/claude-system/scripts/setup-mcp.sh" || {
 # 最終段階でエラーハンドリングを再有効化
 set -e
 
-# Playwright環境変数をdeveloperユーザーに渡す
-PLAYWRIGHT_ENV="PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD CI=$CI PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH"
+# Playwright環境変数とロケール設定をdeveloperユーザーに渡す
+PLAYWRIGHT_ENV="PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD CI=$CI PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH LANG=$LANG LC_ALL=$LC_ALL"
+
+# Claude認証チェックスクリプトを作成
+cat > /tmp/check_claude_auth.sh << 'EOF'
+#!/bin/bash
+# Claude Codeの認証状態をチェック
+if ! claude --version >/dev/null 2>&1; then
+    echo ""
+    echo "========================================="
+    echo "Claude Codeの初回認証が必要です"
+    echo "========================================="
+    echo ""
+    claude login
+fi
+EOF
+chmod +x /tmp/check_claude_auth.sh
 
 # 引数があればそのコマンドを、なければbashシェルを起動
 if [ $# -eq 0 ]; then
-    # デフォルト: bashシェル
-    exec su developer -c "cd /workspace && $PLAYWRIGHT_ENV exec bash"
+    # デフォルト: bashシェル起動時にClaude認証チェック
+    exec su developer -c "cd /workspace && $PLAYWRIGHT_ENV /tmp/check_claude_auth.sh && exec bash"
 else
     # 引数がある場合: そのコマンドを実行
     exec su developer -c "cd /workspace && $PLAYWRIGHT_ENV exec $*"
