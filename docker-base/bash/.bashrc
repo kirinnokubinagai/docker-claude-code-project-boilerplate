@@ -86,7 +86,8 @@ alias v='vim'
 
 # Claude Code aliases
 alias cc='claude'
-alias ccd='claude --dangerously-skip-permissions'
+alias ccd='/opt/claude-system/scripts/claude-with-mcp.sh'
+alias ccd-nomcp='claude --dangerously-skip-permissions'
 alias clogin='claude login'
 alias cl='claude login'
 alias check_mcp='claude mcp list'
