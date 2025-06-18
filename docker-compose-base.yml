@@ -11,6 +11,8 @@ services:
     build:
       context: ${CLAUDE_PROJECT_DIR}
       dockerfile: DockerfileBase
+      args:
+        - CLAUDE_AUTH_DIR=${HOME}
     container_name: claude-code-{{PROJECT_NAME}}
     # ENTRYPOINTはrootで実行、その後developerに切り替え
     # user: "${USER_UID:-1000}:${USER_GID:-1000}"
@@ -23,9 +25,6 @@ services:
       
       # docker-baseディレクトリを別の場所にマウント
       - ${CLAUDE_PROJECT_DIR}/docker-base:/opt/claude-system:ro
-
-      # Claude Code設定（認証が含まれるためこれがないとloginが必要）
-      - ~/.claude:/home/developer/.claude:ro
 
       # Git設定をホストから引き継ぎ
       - ~/.gitconfig:/home/developer/.gitconfig:ro

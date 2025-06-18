@@ -97,6 +97,18 @@ RUN pip3 install --break-system-packages uv
 USER developer
 WORKDIR /home/developer
 
+# ビルド引数として.claudeディレクトリのパスを受け取る
+ARG CLAUDE_AUTH_DIR=/tmp/empty
+
+# 一時的にrootユーザーでコピー処理を実行
+USER root
+# ホストの.claudeディレクトリをコピー（存在する場合のみ）
+RUN mkdir -p /home/developer/.claude && chown developer:developer /home/developer/.claude
+COPY --chown=developer:developer ${CLAUDE_AUTH_DIR}/.claude/* /home/developer/.claude/ 2>/dev/null || true
+
+# developerユーザーに戻る  
+USER developer
+
 # gitの初期設定
 RUN git config --global user.name "Developer" && \
     git config --global user.email "developer@claude-teams.local" && \
