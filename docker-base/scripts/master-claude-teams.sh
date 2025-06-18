@@ -452,13 +452,6 @@ main() {
     log_info "Claude Codeの初期化を待機中..."
     sleep 10  # Claude Codeの初期表示が完了するまで待つ
     
-    # 画面をクリアして、ペイン名が見えるようにする
-    log_info "画面をクリア中..."
-    for i in $(seq 1 "$final_panes"); do
-        tmux send-keys -t "$SESSION_NAME.$i" "clear"
-        tmux send-keys -t "$SESSION_NAME:1.$i" Enter
-    done
-    
     # クリア完了を待つ
     sleep 2
     

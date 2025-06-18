@@ -47,15 +47,15 @@ services:
     tty: true
     restart: unless-stopped
 
-    # リソース制限の設定（必要に応じてコメントアウトを解除）
-    # deploy:
-    #   resources:
-    #     limits:
-    #       memory: 16G
-    #       cpus: '8.0'
-    #     reservations:
-    #       memory: 8G
-    #       cpus: '4.0'
+    # リソース制限の設定（Master Claude使用時は増やす）
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
 
     # カスタムネットワーク使用（コンテナ間通信用）
     networks:

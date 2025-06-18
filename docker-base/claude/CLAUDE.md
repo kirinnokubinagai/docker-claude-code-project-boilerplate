@@ -463,13 +463,20 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
 
 8. テスト実施（必須）
    - 各タスク完了時に必ずテストを作成・実行
-   - UIタスク: Playwright MCPを使用してE2Eテスト (tests/e2e/auth_test.spec.ts)
+   - UIタスク: Playwright MCPを使用してE2Eテスト
      ```bash
-     # オプション1: Playwright MCPサーバー経由（Chromium不要）
-     # MCPコマンドで直接ブラウザを操作
-     claude mcp mcp__mcp-playwright__browser_navigate --url "http://localhost:3000"
+     # Playwright MCPサーバー経由でブラウザを操作
+     # 開発サーバーが起動していることを確認してから実行
+     claude mcp mcp__mcp-playwright__browser_navigate --url "http://host.docker.internal:3000"
      claude mcp mcp__mcp-playwright__browser_snapshot
      claude mcp mcp__mcp-playwright__browser_click --element "Login button" --ref "button[type=submit]"
+     claude mcp mcp__mcp-playwright__browser_take_screenshot --filename "login-test.png"
+     
+     # テストケースの自動生成も可能
+     claude mcp mcp__mcp-playwright__browser_generate_playwright_test \
+       --name "ログイン機能テスト" \
+       --description "ユーザーがログインできることを確認" \
+       --steps '["ログインページにアクセス", "メールアドレスを入力", "パスワードを入力", "ログインボタンをクリック", "ダッシュボードにリダイレクトされることを確認"]'
      ```
    - APIタスク: 言語に応じたユニットテスト (tests/backend/auth_test.拡張子)
    - ロジック: 言語に応じたユニットテスト (tests/unit/validation_test.拡張子)
@@ -632,13 +639,14 @@ function exampleFunction(param) {
    - 各機能に対応するテスト必須
 5. **テスト実行コマンド（言語別）**
    ```bash
-   # Playwright E2E (ヘッドレスモード)
-   npx playwright test tests/e2e/ --headed=false
-   # またはプロジェクトでの設定
-   npm install --save-dev @playwright/test
-   npx playwright install chromium --with-deps
+   # Playwright MCP経由でE2Eテスト
+   # 開発サーバーが起動していることを確認（例: npm run dev）
+   # その後、MCP経由でブラウザを操作:
+   claude mcp mcp__mcp-playwright__browser_navigate --url "http://host.docker.internal:3000"
+   claude mcp mcp__mcp-playwright__browser_snapshot
+   # 各テストステップをMCPコマンドで実行
    
-   # JavaScript/TypeScript
+   # JavaScript/TypeScript（ユニットテスト）
    npm test
    jest tests/
    vitest
@@ -706,23 +714,15 @@ git init && git add . && git commit -m "feat: 初期化"
 npm run dev
 # 必ず終了: Ctrl+C
 
-# Playwrightテスト実行（ヘッドレス）
-# プロジェクトディレクトリで:
-npm install --save-dev @playwright/test
-npx playwright install chromium --with-deps
-npx playwright test --headed=false
-
-# テストコード例:
-# tests/e2e/example.spec.ts
-import { test, expect } from '@playwright/test';
-
-test('ログイン機能', async ({ page }) => {
-  await page.goto('http://localhost:3000');
-  await page.fill('input[name="email"]', 'test@example.com');
-  await page.fill('input[name="password"]', 'password');
-  await page.click('button[type="submit"]');
-  await expect(page).toHaveURL('/dashboard');
-});
+# Playwright MCPを使用したE2Eテスト
+# 開発サーバーを起動してから実行:
+claude mcp mcp__mcp-playwright__browser_navigate --url "http://host.docker.internal:3000"
+claude mcp mcp__mcp-playwright__browser_snapshot
+claude mcp mcp__mcp-playwright__browser_type --element "Email input" --ref "input[name='email']" --text "test@example.com"
+claude mcp mcp__mcp-playwright__browser_type --element "Password input" --ref "input[name='password']" --text "password"
+claude mcp mcp__mcp-playwright__browser_click --element "Login button" --ref "button[type='submit']"
+claude mcp mcp__mcp-playwright__browser_wait_for --text "Dashboard"
+claude mcp mcp__mcp-playwright__browser_take_screenshot --filename "dashboard-after-login.png"
 ```
 
 ### よくあるミス
