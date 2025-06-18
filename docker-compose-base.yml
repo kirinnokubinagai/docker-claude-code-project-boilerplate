@@ -32,8 +32,8 @@ services:
       - ~/.claude:/home/developer/.claude
       
       # bash履歴とz履歴は個別ファイルとしてマウント
-      - ${PROJECT_NAME}_bash_history:/home/developer/.bash_history
-      - ${PROJECT_NAME}_z:/home/developer/.z
+      - bash_history:/home/developer/.bash_history
+      - z_data:/home/developer/.z
 
       # GitHub CLI設定を引き継ぎ
       - ~/.config/gh:/home/developer/.config/gh:ro
@@ -86,10 +86,10 @@ services:
 
 volumes:
   # bash履歴ファイル用ボリューム
-  ${PROJECT_NAME}_bash_history:
+  bash_history:
     name: ${PROJECT_NAME}_bash_history
   # zディレクトリジャンプ用ボリューム  
-  ${PROJECT_NAME}_z:
+  z_data:
     name: ${PROJECT_NAME}_z
 
 networks:

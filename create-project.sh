@@ -97,7 +97,7 @@ EOF
     git init
     git commit --allow-empty -m "Initial commit"
     
-    # Dockerボリュームを作成
+    # Dockerボリュームを作成（docker-compose-base.ymlで自動作成されるが、明示的に作成）
     echo "8. Dockerボリュームを作成中..."
     docker volume create "${PROJECT_NAME}_bash_history"
     docker volume create "${PROJECT_NAME}_z"
