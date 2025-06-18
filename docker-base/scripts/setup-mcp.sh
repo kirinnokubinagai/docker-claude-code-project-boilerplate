@@ -8,6 +8,11 @@ if [ -f /workspace/.env ]; then
     export $(grep -v '^#' /workspace/.env | xargs)
 fi
 
+# .env.mcpファイルを読み込む（MCPサービスの認証情報）
+if [ -f /workspace/.env.mcp ]; then
+    export $(grep -v '^#' /workspace/.env.mcp | xargs)
+fi
+
 # カラー定義
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
