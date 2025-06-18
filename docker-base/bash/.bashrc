@@ -128,8 +128,24 @@ export EDITOR='vim'
 export VISUAL='vim'
 
 # 自動的に環境変数を読み込む
-if [ -f /opt/claude-system/bash/.env_loader ]; then
-    source /opt/claude-system/bash/.env_loader
+if [ -f /workspace/.env ]; then
+    while IFS='=' read -r key value; do
+        # コメント行と空行をスキップ
+        [[ $key =~ ^#.*$ ]] && continue
+        [[ -z $key ]] && continue
+        # 環境変数をエクスポート
+        export "$key=$value"
+    done < /workspace/.env
+fi
+
+if [ -f /workspace/.env.mcp ]; then
+    while IFS='=' read -r key value; do
+        # コメント行と空行をスキップ
+        [[ $key =~ ^#.*$ ]] && continue
+        [[ -z $key ]] && continue
+        # 環境変数をエクスポート
+        export "$key=$value"
+    done < /workspace/.env.mcp
 fi
 
 # Bashのviモードを無効化（emacsモードを使用）

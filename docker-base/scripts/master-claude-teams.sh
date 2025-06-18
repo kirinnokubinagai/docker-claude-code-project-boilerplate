@@ -130,22 +130,48 @@ validate_teams_config() {
     return 0
 }
 
+# デバッグ用: ペインマッピングを表示
+show_pane_mapping() {
+    log_info "=== ペインマッピング ==="
+    echo "ペイン 0: Master"
+    
+    local pane_idx=1
+    local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
+    
+    for team in $teams; do
+        local team_name=$(jq -r ".teams[] | select(.id == \"$team\") | .name" "$TEAMS_CONFIG_FILE" 2>/dev/null)
+        local member_count=$(jq -r ".teams[] | select(.id == \"$team\") | .member_count // 1" "$TEAMS_CONFIG_FILE" 2>/dev/null)
+        
+        for member in $(seq 1 "$member_count"); do
+            local role="Member $member"
+            if [ $member -eq 1 ]; then
+                role="Boss"
+            fi
+            echo "ペイン $pane_idx: $team_name - $role"
+            pane_idx=$((pane_idx + 1))
+        done
+    done
+    echo "=================="
+}
+
 # ペインインデックスを取得（改善版）
 get_pane_index_for_team() {
     local team_id=$1
-    local member_index=$2  # 1-based
+    local member_index=$2  # 1-based (1 = Boss)
     
-    # 累積インデックスを計算
-    local pane_idx=1  # Masterペインが1
+    # Master = 0
+    local pane_idx=1  # 最初のチームから開始
     
-    # すべてのチームを対象
+    # すべてのチームを順番に処理
     local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
     
     for t in $teams; do
         if [ "$t" = "$team_id" ]; then
-            pane_idx=$((pane_idx + member_index))
+            # 該当チームが見つかったら、メンバーインデックスを追加
+            pane_idx=$((pane_idx + member_index - 1))
             break
         else
+            # 該当チームより前のチームのメンバー数を加算
             local count=$(jq -r ".teams[] | select(.id == \"$t\") | .member_count // 1" "$TEAMS_CONFIG_FILE" 2>/dev/null)
             pane_idx=$((pane_idx + count))
         fi
@@ -469,6 +495,9 @@ main() {
     
     # ペイン名設定が完了してからMasterプロンプトを送信
     setup_master
+    
+    # デバッグ: ペインマッピングを表示
+    show_pane_mapping
     
     # サマリー表示
     echo ""
