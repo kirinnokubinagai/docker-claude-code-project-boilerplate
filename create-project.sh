@@ -44,29 +44,22 @@ create_project() {
     echo "3. プロジェクトディレクトリに移動..."
     cd "$PROJECT_DIR"
     
-    # docker-compose.ymlを生成（プロジェクト名を反映）
-    echo "4. docker-compose.ymlを生成中..."
-    sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" > docker-compose.yml
+    # PROJECT_NAMEを設定
+    echo "4. 環境変数を設定中..."
     
-    # claude-projectディレクトリの.envファイルが存在する場合はコピー
+    # .envファイルを作成
+    echo "5. 環境変数ファイルを作成中..."
+    echo "PROJECT_NAME=$PROJECT_NAME" > .env
+    echo "CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR" >> .env
+    
+    # claude-projectディレクトリの.envファイルが存在する場合は追加
     if [ -f "$CLAUDE_PROJECT_DIR/.env" ]; then
-        echo "5. 環境変数ファイルをコピー中..."
-        cp "$CLAUDE_PROJECT_DIR/.env" .env
-        # CLAUDE_PROJECT_DIRを追加（既存の値を上書き）
-        echo "CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR" >> .env
-    else
-        # .envファイルが存在しない場合は最小限の内容で作成
-        echo "CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR" > .env
+        echo "# Copied from boilerplate .env" >> .env
+        cat "$CLAUDE_PROJECT_DIR/.env" >> .env
     fi
     
-    # .dockerignoreファイルを作成
-    echo "6. .dockerignoreファイルを作成中..."
-    cat > .dockerignore << EOF
-screenshots/
-docker-compose.yml
-.env
-.git/
-EOF
+    # .dockerignoreファイルは不要（docker-compose-base.ymlはCLAUDE_PROJECT_DIRから読み込むため）
+    echo "6. Gitリポジトリ初期化の準備中..."
 
     # .gitの初期化と初回コミット
     echo "7. Gitリポジトリを初期化中..."
@@ -87,14 +80,15 @@ EOF
     echo "==============================================="
     
     # ビルドのみ実行してログを表示
-    docker compose --progress=plain build
+    export PROJECT_NAME
+    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --progress=plain build
     
     echo "==============================================="
     echo "🚀 コンテナを起動中..."
     echo "==============================================="
     
     # コンテナを起動
-    docker compose up -d
+    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" up -d
     
     echo "==============================================="
     
@@ -144,6 +138,13 @@ EOF
     echo "==============================================="
     echo "プロジェクト '$PROJECT_NAME' の作成が完了しました！"
     echo "プロジェクトパス: $PROJECT_DIR"
+    echo ""
+    echo "今後このプロジェクトで作業する場合："
+    echo "  cd $PROJECT_DIR"
+    echo "  export PROJECT_NAME=$PROJECT_NAME"
+    echo "  docker compose -f $CLAUDE_PROJECT_DIR/docker-compose-base.yml up -d"
+    echo "  docker exec -it -u developer $CONTAINER_NAME bash"
+    echo ""
     echo "コンテナ '$CONTAINER_NAME' にdeveloperユーザーで接続します..."
     echo "==============================================="
     echo ""

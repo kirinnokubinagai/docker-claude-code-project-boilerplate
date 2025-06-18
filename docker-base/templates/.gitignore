@@ -2,10 +2,6 @@
 .env
 .env.*
 
-# Docker files (managed outside of workspace)
-docker-compose.yml
-.dockerignore
-
 # Claude configuration
 CLAUDE.md
 .claude/

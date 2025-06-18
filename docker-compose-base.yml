@@ -1,9 +1,7 @@
-# yaml-language-server: $schema=
-# This is a template file with {{PROJECT_NAME}} placeholders
-# YAML validation is intentionally disabled for this template
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 version: "3.8"
 
-name: claude-code-{{PROJECT_NAME}}
+name: claude-code-${PROJECT_NAME}
 
 services:
   # Claude Code Company 環境
@@ -13,20 +11,20 @@ services:
       dockerfile: DockerfileBase
       args:
         - CLAUDE_AUTH_DIR=${HOME}
-    container_name: claude-code-{{PROJECT_NAME}}
+    container_name: claude-code-${PROJECT_NAME}
     # ENTRYPOINTはrootで実行、その後developerに切り替え
     # user: "${USER_UID:-1000}:${USER_GID:-1000}"
     volumes:
       # プロジェクトディレクトリ全体をマウント
       - .:/workspace:delegated
-      
+
       # docker-baseディレクトリを別の場所にマウント
       - ${CLAUDE_PROJECT_DIR}/docker-base:/opt/claude-system:ro
 
       # Git設定をホストから引き継ぎ
       - ~/.gitconfig:/home/developer/.gitconfig:ro
       - ~/.ssh:/home/developer/.ssh:ro
-      
+
       # GitHub CLI設定を引き継ぎ
       - ~/.config/gh:/home/developer/.config/gh:ro
 
@@ -47,7 +45,7 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
-    
+
     # リソース制限の設定（必要に応じてコメントアウトを解除）
     # deploy:
     #   resources:
@@ -64,23 +62,22 @@ services:
     # ホストのMCPサーバーにアクセスするため
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    
+
     # ホストのネットワークモードを使用（MCPサーバー接続用）
     # network_mode: "host"  # 必要に応じてコメントアウトを外す
-
 
 volumes:
   bash_history:
     external: true
-    name: {{PROJECT_NAME}}_bash_history
+    name: ${PROJECT_NAME}_bash_history
   z_data:
     external: true
-    name: {{PROJECT_NAME}}_z_data
+    name: ${PROJECT_NAME}_z_data
   tmux_data:
     external: true
-    name: {{PROJECT_NAME}}_tmux_data
+    name: ${PROJECT_NAME}_tmux_data
 
 networks:
   claude-network:
     driver: bridge
-    name: {{PROJECT_NAME}}_network
+    name: ${PROJECT_NAME}_network
