@@ -84,6 +84,12 @@ if [ ! -f "/workspace/.gitignore" ] && [ -f "/opt/claude-system/templates/.gitig
     chown developer:developer /workspace/.gitignore 2>/dev/null || true
 fi
 
+# mcp-servers.jsonをworkspaceにコピー（存在しない場合のみ）
+if [ ! -f "/workspace/mcp-servers.json" ] && [ -f "/opt/claude-system/config/mcp-servers.json" ]; then
+    cp /opt/claude-system/config/mcp-servers.json /workspace/mcp-servers.json 2>/dev/null || true
+    chown developer:developer /workspace/mcp-servers.json 2>/dev/null || true
+fi
+
 # Dockerソケットの権限調整（developerユーザーが使えるように）
 if [ -S /var/run/docker.sock ]; then
     chmod 666 /var/run/docker.sock || true
@@ -119,7 +125,7 @@ export PLAYWRIGHT_BROWSERS_PATH=/home/developer/.cache/ms-playwright
 
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
-# su -（ハイフン付き）は環境をリセットするので、su（ハイフンなし）を使用
+# setup-mcp.sh内で.envを読み込むので、そのまま実行
 su developer -c "/opt/claude-system/scripts/setup-mcp.sh" || {
     echo "[WARNING] MCP設定に失敗しましたが、続行します..."
 }

@@ -3,6 +3,10 @@
 # MCP Server Setup Script for Claude Code
 # Docker内でMCPサーバーの設定を行うスクリプト
 
+# .envファイルを読み込む
+if [ -f /workspace/.env ]; then
+    export $(grep -v '^#' /workspace/.env | xargs)
+fi
 
 # カラー定義
 BLUE='\033[0;34m'
@@ -18,11 +22,19 @@ echo -e "${BLUE}${BOLD}    MCP Server Setup for Claude Code${NC}"
 echo -e "${BLUE}${BOLD}======================================${NC}"
 echo ""
 
-# テンプレートファイルから設定を読み込む
-template_file="/opt/claude-system/config/mcp-servers.json"
+# 設定ファイルの優先順位：
+# 1. プロジェクトのmcp-servers.json
+# 2. システムのmcp-servers.json（テンプレート）
+if [ -f "/workspace/mcp-servers.json" ]; then
+    template_file="/workspace/mcp-servers.json"
+    echo -e "${BLUE}[INFO]${NC} プロジェクト固有のMCP設定を使用します"
+else
+    template_file="/opt/claude-system/config/mcp-servers.json"
+    echo -e "${BLUE}[INFO]${NC} システムのデフォルトMCP設定を使用します"
+fi
 
 if [ ! -f "$template_file" ]; then
-    echo -e "${RED}[ERROR]${NC} テンプレートファイルが見つかりません: $template_file"
+    echo -e "${RED}[ERROR]${NC} 設定ファイルが見つかりません: $template_file"
     exit 1
 fi
 

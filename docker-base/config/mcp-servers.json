@@ -40,8 +40,7 @@
       "args": [
         "-y",
         "@stripe/mcp",
-        "--tools=all",
-        "--api-key=${STRIPE_SECRET_KEY}"
+        "--tools=all"
       ],
       "env": {
         "STRIPE_SECRET_KEY": "${STRIPE_SEC_KEY}"
@@ -49,7 +48,7 @@
     },
     "mcp-playwright": {
       "transport": "sse",
-      "url": "http://playwright-mcp-${PROJECT_NAME}:${PLAYWRIGHT_MCP_PORT}/sse"
+      "url": "http://localhost:${PLAYWRIGHT_MCP_PORT}/sse"
     },
     "magic-mcp": {
       "command": "npx",

@@ -49,14 +49,35 @@ create_project() {
     
     # .envファイルを作成
     echo "5. 環境変数ファイルを作成中..."
-    echo "PROJECT_NAME=$PROJECT_NAME" > .env
-    echo "CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR" >> .env
+    # 一時ファイルを作成
+    TEMP_ENV=$(mktemp)
+    
+    # PROJECT_NAMEを最初に記載
+    echo "PROJECT_NAME=$PROJECT_NAME" > "$TEMP_ENV"
+    
+    # Playwright MCPポートを自動割り当て（8931から順番に空いているポートを探す）
+    echo "Playwright MCPの利用可能なポートを検索中..."
+    PLAYWRIGHT_PORT=8931
+    while lsof -Pi :$PLAYWRIGHT_PORT -sTCP:LISTEN -t >/dev/null 2>&1; do
+        PLAYWRIGHT_PORT=$((PLAYWRIGHT_PORT + 1))
+    done
+    echo "  → ポート $PLAYWRIGHT_PORT を使用します"
+    echo "PLAYWRIGHT_MCP_PORT=$PLAYWRIGHT_PORT" >> "$TEMP_ENV"
     
     # claude-projectディレクトリの.envファイルが存在する場合は追加
     if [ -f "$CLAUDE_PROJECT_DIR/.env" ]; then
-        echo "# Copied from boilerplate .env" >> .env
-        cat "$CLAUDE_PROJECT_DIR/.env" >> .env
+        echo "" >> "$TEMP_ENV"
+        echo "# Copied from boilerplate .env" >> "$TEMP_ENV"
+        cat "$CLAUDE_PROJECT_DIR/.env" >> "$TEMP_ENV"
     fi
+    
+    # CLAUDE_PROJECT_DIRを最後に追加
+    echo "" >> "$TEMP_ENV"
+    echo "# Project directory" >> "$TEMP_ENV"
+    echo "CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR" >> "$TEMP_ENV"
+    
+    # 一時ファイルを.envに移動
+    mv "$TEMP_ENV" .env
     
     # .dockerignoreファイルは不要（docker-compose-base.ymlはCLAUDE_PROJECT_DIRから読み込むため）
     echo "6. Gitリポジトリ初期化の準備中..."
@@ -94,7 +115,7 @@ create_project() {
     
     echo ""
     echo "📦 Playwright MCPサーバーを起動中..."
-    echo "（初回はイメージのダウンロードに時間がかかります）"
+    echo "（ARM64対応版をビルドします）"
     
     # Playwright MCPを後から起動
     docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d playwright-mcp

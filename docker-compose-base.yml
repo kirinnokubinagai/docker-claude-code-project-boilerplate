@@ -6,6 +6,7 @@ name: claude-code-${PROJECT_NAME}
 services:
   # Claude Code Company 環境
   claude-code:
+    image: claude-code-base:latest
     build:
       context: ${CLAUDE_PROJECT_DIR}
       dockerfile: DockerfileBase
@@ -63,22 +64,17 @@ services:
     # ホストのネットワークモードを使用（MCPサーバー接続用）
     # network_mode: "host"  # 必要に応じてコメントアウトを外す
 
-  # Playwright MCP Server
+  # Playwright MCP Server (ARM64 compatible)
   playwright-mcp:
-    image: mcr.microsoft.com/playwright:v1.51.1-noble
+    image: playwright-mcp-base:latest
+    build:
+      context: ${CLAUDE_PROJECT_DIR}/docker-base/playwright-mcp
+      dockerfile: Dockerfile
     container_name: playwright-mcp-${PROJECT_NAME}
-    working_dir: /app
-    command: >
-      sh -c "
-        npm install -g @playwright/mcp@latest &&
-        npx playwright install chrome &&
-        npx playwright install-deps chrome &&
-        npx @playwright/mcp@latest --port ${PLAYWRIGHT_MCP_PORT:-8931} --headless
-      "
+    command: npx @playwright/mcp@latest --port 8931 --host 0.0.0.0 --headless
     ports:
-      - "${PLAYWRIGHT_MCP_PORT:-8931}:${PLAYWRIGHT_MCP_PORT:-8931}"
+      - "${PLAYWRIGHT_MCP_PORT:-8931}:8931"
     environment:
-      - HEADLESS=true
       - PLAYWRIGHT_MCP_PORT=${PLAYWRIGHT_MCP_PORT:-8931}
     networks:
       - claude-network
