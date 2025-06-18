@@ -81,6 +81,7 @@ create_project() {
     
     # ビルドのみ実行してログを表示
     export PROJECT_NAME
+    export CLAUDE_PROJECT_DIR
     docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --progress=plain build
     
     echo "==============================================="
