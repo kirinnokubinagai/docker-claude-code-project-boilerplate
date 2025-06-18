@@ -67,7 +67,6 @@ RUN mkdir -p /home/developer/.config \
     /home/developer/.npm \
     /home/developer/.local/share \
     /home/developer/.cache \
-    /home/developer/.anthropic \
     && chown -R developer:developer /home/developer
 
 # zのインストール（bash用のディレクトリジャンプツール）
@@ -87,8 +86,14 @@ RUN apk add --no-cache docker-cli docker-cli-compose
 # GitHub CLIのインストール
 RUN apk add --no-cache github-cli
 
-# Claude Codeをインストール
-RUN pnpm install -g @anthropic-ai/claude-code
+# pnpmのグローバルディレクトリを設定
+ENV PNPM_HOME=/usr/local/share/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN mkdir -p $PNPM_HOME
+
+# Claude Codeをインストール（ビルドスクリプトを許可）
+RUN pnpm config set enable-pre-post-scripts true && \
+    pnpm install -g @anthropic-ai/claude-code
 
 # Pythonベースのツールもインストール（--break-system-packagesフラグを使用）
 RUN pip3 install --break-system-packages uv
@@ -97,16 +102,7 @@ RUN pip3 install --break-system-packages uv
 USER developer
 WORKDIR /home/developer
 
-# ビルド引数として.claudeディレクトリのパスを受け取る
-ARG CLAUDE_AUTH_DIR=/tmp/empty
-
-# 一時的にrootユーザーでコピー処理を実行
-USER root
-# ホストの.claudeディレクトリをコピー（存在する場合のみ）
-RUN mkdir -p /home/developer/.claude && chown developer:developer /home/developer/.claude
-COPY --chown=developer:developer ${CLAUDE_AUTH_DIR}/.claude/* /home/developer/.claude/ 2>/dev/null || true
-
-# developerユーザーに戻る  
+# developerユーザーとして続行
 USER developer
 
 # gitの初期設定
@@ -115,8 +111,6 @@ RUN git config --global user.name "Developer" && \
     git config --global init.defaultBranch main && \
     git config --global safe.directory /workspace
 
-# .anthropicディレクトリ作成（Claude Code設定用）
-RUN mkdir -p /home/developer/.anthropic
 
 # rootに戻る（entrypointのため）
 USER root

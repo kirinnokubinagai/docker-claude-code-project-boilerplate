@@ -41,10 +41,10 @@
         "-y",
         "@stripe/mcp",
         "--tools=all",
-        "--api-key=${STRIPE_SEC_KEY}"
+        "--api-key=${STRIPE_SECRET_KEY}"
       ],
       "env": {
-        "STRIPE_SEC_KEY": "${STRIPE_SECRET_KEY}"
+        "STRIPE_SECRET_KEY": "${STRIPE_SEC_KEY}"
       }
     },
     "magic-mcp": {

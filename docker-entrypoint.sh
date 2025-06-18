@@ -70,6 +70,12 @@ if [ -f "/opt/claude-system/claude/CLAUDE.md" ]; then
     chown developer:developer /workspace/CLAUDE.md 2>/dev/null || true
 fi
 
+# .gitignoreをworkspaceにコピー（存在しない場合のみ）
+if [ ! -f "/workspace/.gitignore" ] && [ -f "/opt/claude-system/templates/.gitignore" ]; then
+    cp /opt/claude-system/templates/.gitignore /workspace/.gitignore 2>/dev/null || true
+    chown developer:developer /workspace/.gitignore 2>/dev/null || true
+fi
+
 # Dockerソケットの権限調整（developerユーザーが使えるように）
 if [ -S /var/run/docker.sock ]; then
     chmod 666 /var/run/docker.sock || true

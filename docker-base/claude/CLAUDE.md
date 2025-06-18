@@ -386,16 +386,10 @@
 6. **タスク分割とチーム編成**
    - documents/tasks/内のタスクファイルに基づいてタスクを詳細分割
    - 必要なチーム数とメンバー数を決定
-   - **必須: teams.jsonを以下のコマンドで作成**
+   - **必須: teams.jsonをdocumentsディレクトリに作成**
    ```bash
-   # ディレクトリが存在することを確認（必須）
-   mkdir -p /opt/claude-system/config
-   
-   # 権限を確認
-   ls -la /opt/claude-system/
-   
-   # 以下の {...} 部分を実際の内容に置き換えること
-   cat > /opt/claude-system/config/teams.json << 'EOF'
+   # documentsディレクトリに teams.json を作成
+   cat > documents/teams.json << 'EOF'
    {
      "project_name": "実際のプロジェクト名に変更",
      "project_type": "web-app",
@@ -406,8 +400,8 @@
    EOF
    
    # 作成確認（必須）
-   ls -la /opt/claude-system/config/teams.json
-   cat /opt/claude-system/config/teams.json
+   ls -la documents/teams.json
+   cat documents/teams.json
    ```
 
 7. **🛑 ここで必ず停止！**
@@ -419,7 +413,7 @@
 ```bash
 # 実際の作成コマンド例（Webアプリの場合）
 # このコマンドを実行すると teams.json が作成されます
-cat > /opt/claude-system/config/teams.json << 'EOF'
+cat > documents/teams.json << 'EOF'
 {
   "project_name": "YourProjectName",
   "project_type": "web-app",
@@ -453,8 +447,8 @@ cat > /opt/claude-system/config/teams.json << 'EOF'
 EOF
 
 # 必ず実行: 作成確認
-ls -la /opt/claude-system/config/teams.json
-echo "teams.json created at: /opt/claude-system/config/teams.json"
+ls -la documents/teams.json
+echo "teams.json created at: $(pwd)/documents/teams.json"
 ```
 
 ### teams.jsonの必須フィールド
@@ -479,7 +473,7 @@ echo "teams.json created at: /opt/claude-system/config/teams.json"
 ### Master Claudeの動作フロー（指示待ちゼロシステム）
 
 ```
-1. teams.jsonを読み込んでtmuxセッションを起動
+1. documents/teams.jsonを読み込んでtmuxセッションを起動
    - 各チームのペインを作成（1人目がBoss）
    - 全員でclaude --dangerously-skip-permissionsを起動
 
@@ -864,7 +858,7 @@ test('ログイン機能', async ({ page }) => {
 4. **フェーズ分けせず一発で全機能実装**
 5. **開発中に必要なタスクは随時追加**
 6. **「今後の展開」「ロードマップ」等は作成しない（完成品を一発で作る）**
-7. **teams.jsonは必ず `/opt/claude-system/config/teams.json` に保存（catコマンド使用）**
+7. **teams.jsonは必ずdocumentsディレクトリに保存（catコマンド使用）**
 8. **生成後は必ず停止（Masterがtmuxで指示を出す）**
 9. **UIデザイン作成時は必ずMagic MCPを使用**
 
