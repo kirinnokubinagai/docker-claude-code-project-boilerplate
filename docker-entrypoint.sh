@@ -53,11 +53,17 @@ fi
 # tmux設定ファイルをコピー（権限を修正してから）
 if [ -f "/opt/claude-system/config/.tmux.conf" ]; then
     # rootユーザーとして実行されているので、直接操作
+    # 両方の場所に配置（環境によって読み込み場所が異なるため）
     if [ -f "/home/developer/.tmux.conf" ]; then
         rm -f /home/developer/.tmux.conf 2>/dev/null || true
     fi
     cp /opt/claude-system/config/.tmux.conf /home/developer/.tmux.conf 2>/dev/null || true
     chown developer:developer /home/developer/.tmux.conf 2>/dev/null || true
+    
+    # ~/.tmux/.tmux.conf にも配置
+    mkdir -p /home/developer/.tmux
+    cp /opt/claude-system/config/.tmux.conf /home/developer/.tmux/.tmux.conf 2>/dev/null || true
+    chown -R developer:developer /home/developer/.tmux 2>/dev/null || true
 fi
 
 # Claude Code用の設定ディレクトリ作成
@@ -92,6 +98,17 @@ find /home/developer -type f -writable -exec chown developer:developer {} \; 2>/
 export HOME=/home/developer
 export USER=developer
 
+# pnpmのグローバルディレクトリをPATHに追加（claudeコマンド用）
+export PNPM_HOME=/usr/local/share/pnpm
+export PATH="$PNPM_HOME:$PATH"
+
+# すべてのシェルセッションで利用できるように/etc/profile.d/に追加
+cat > /etc/profile.d/pnpm.sh << 'EOF'
+export PNPM_HOME=/usr/local/share/pnpm
+export PATH="$PNPM_HOME:$PATH"
+EOF
+chmod +x /etc/profile.d/pnpm.sh
+
 # Playwright用の環境変数（developerユーザーに引き継がれるよう設定）
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 export CI=true
@@ -108,8 +125,8 @@ su developer -c "/opt/claude-system/scripts/setup-mcp.sh" || {
 # 最終段階でエラーハンドリングを再有効化
 set -e
 
-# Playwright環境変数とロケール設定をdeveloperユーザーに渡す
-PLAYWRIGHT_ENV="PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD CI=$CI PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH LANG=$LANG LC_ALL=$LC_ALL"
+# Playwright環境変数とロケール設定、PATHをdeveloperユーザーに渡す
+PLAYWRIGHT_ENV="PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD CI=$CI PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH LANG=$LANG LC_ALL=$LC_ALL PNPM_HOME=$PNPM_HOME PATH=$PATH"
 
 # Claude認証チェックスクリプトを作成
 cat > /tmp/check_claude_auth.sh << 'EOF'

@@ -3,8 +3,6 @@
 # MCP Server Setup Script for Claude Code
 # Docker内でMCPサーバーの設定を行うスクリプト
 
-# PATHにpnpmのグローバルディレクトリを追加（claude コマンドのため）
-export PATH="/usr/local/share/pnpm:$PATH"
 
 # カラー定義
 BLUE='\033[0;34m'
@@ -107,7 +105,7 @@ done
 echo -e "${BLUE}[INFO]${NC} 環境変数の設定状況:"
 echo "  GITHUB_TOKEN: $([ -n "$GITHUB_TOKEN" ] && echo "設定済み" || echo "未設定")"
 echo "  SUPABASE_ACCESS_TOKEN: $([ -n "$SUPABASE_ACCESS_TOKEN" ] && echo "設定済み" || echo "未設定")"
-echo "  STRIPE_SECRET_KEY: $([ -n "$STRIPE_SECRET_KEY" ] && echo "設定済み" || echo "未設定")"
+echo "  STRIPE_SEC_KEY: $([ -n "$STRIPE_SEC_KEY" ] && echo "設定済み" || echo "未設定")"
 echo "  CHANNEL_ACCESS_TOKEN: $([ -n "$CHANNEL_ACCESS_TOKEN" ] && echo "設定済み" || echo "未設定")"
 echo "  DESTINATION_USER_ID: $([ -n "$DESTINATION_USER_ID" ] && echo "設定済み" || echo "未設定")"
 echo "  OBSIDIAN_API_KEY: $([ -n "$OBSIDIAN_API_KEY" ] && echo "設定済み" || echo "未設定")"

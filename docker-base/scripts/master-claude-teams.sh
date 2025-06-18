@@ -160,14 +160,14 @@ send_task_to_pane() {
     local task=$2
     
     # ペインの存在確認
-    if ! tmux list-panes -t "$SESSION_NAME:1" -F "#{pane_index}" | grep -q "^${pane_idx}$"; then
+    if ! tmux list-panes -t "$SESSION_NAME" -F "#{pane_index}" | grep -q "^${pane_idx}$"; then
         log_error "ペイン $pane_idx が存在しません"
         return 1
     fi
     
     # タスクを送信
-    tmux send-keys -t "$SESSION_NAME:1.$pane_idx" "$task"
-    tmux send-keys -t "$SESSION_NAME:1.$pane_idx" Enter
+    tmux send-keys -t "$SESSION_NAME.$pane_idx" "$task"
+    tmux send-keys -t "$SESSION_NAME.$pane_idx" Enter
     
     return 0
 }
@@ -208,8 +208,8 @@ setup_master() {
     fi
     log_info ""
     log_info "例: "
-    log_info "  tmux send-keys -t claude-teams:1.2 \"Frontend Boss、認証UIを実装してください\""
-    log_info "  tmux send-keys -t claude-teams:1.2 Enter"
+    log_info "  tmux send-keys -t claude-teams.2 \"Frontend Boss、認証UIを実装してください\""
+    log_info "  tmux send-keys -t claude-teams.2 Enter"
     log_info ""
     log_info "確認体制: メンバー→Boss、Boss→Masterの確認フローを徹底"
     log_info "テスト必須: 各タスク完了時にテスト作成・実行（tests/e2e/, tests/backend/, tests/unit/）"
@@ -243,7 +243,7 @@ create_team_panes() {
             
             # タイトル設定
             sleep 0.1
-            tmux select-pane -t "$SESSION_NAME:1.$current_pane_index" -T "$pane_title" 2>/dev/null
+            tmux select-pane -t "$SESSION_NAME.$current_pane_index" -T "$pane_title" 2>/dev/null
             
             log_success "  → $pane_title のペイン作成"
             
@@ -367,7 +367,12 @@ main() {
     fi
     
     # Masterペインの設定
-    tmux select-pane -t "$SESSION_NAME:1.1" -T "Master"
+    # ウィンドウリストを確認（デバッグ用）
+    log_debug "現在のウィンドウ: $(tmux list-windows -t "$SESSION_NAME" 2>/dev/null || echo 'なし')"
+    
+    # ウィンドウインデックスを明示的に1に設定
+    tmux select-window -t "$SESSION_NAME:1" 2>/dev/null || tmux select-window -t "$SESSION_NAME:0" 2>/dev/null
+    tmux select-pane -t "$SESSION_NAME.1" -T "Master" 2>/dev/null || log_error "Masterペインの設定に失敗"
     log_success "Master用ペイン作成完了"
     
     # worktreeディレクトリを作成
@@ -408,8 +413,8 @@ main() {
     if [[ " $@ " == *" --phased "* ]]; then
         log_info "段階的起動モード: メモリ使用量を分散します"
         # Masterを最初に起動
-        tmux send-keys -t "$SESSION_NAME:1.1" 'export PATH="/usr/local/share/pnpm:$PATH" && claude --dangerously-skip-permissions'
-        tmux send-keys -t "$SESSION_NAME:1.1" Enter
+        tmux send-keys -t "$SESSION_NAME.1" 'claude --dangerously-skip-permissions'
+        tmux send-keys -t "$SESSION_NAME.1" Enter
         log_success "Master Claude起動完了 (1/$final_panes)"
         sleep 5
         
@@ -423,8 +428,8 @@ main() {
             
             log_info "$team_name チームを起動中..."
             for member in $(seq 1 "$member_count"); do
-                tmux send-keys -t "$SESSION_NAME:1.$current_pane" 'export PATH="/usr/local/share/pnpm:$PATH" && claude --dangerously-skip-permissions'
-                tmux send-keys -t "$SESSION_NAME:1.$current_pane" Enter
+                tmux send-keys -t "$SESSION_NAME.$current_pane" 'claude --dangerously-skip-permissions'
+                tmux send-keys -t "$SESSION_NAME.$current_pane" Enter
                 log_success "  → メンバー $member 起動完了 ($current_pane/$final_panes)"
                 current_pane=$((current_pane + 1))
                 sleep 3  # メモリ負荷を分散
@@ -434,8 +439,8 @@ main() {
     else
         # 通常の起動
         for i in $(seq 1 "$final_panes"); do
-            tmux send-keys -t "$SESSION_NAME:1.$i" 'export PATH="/usr/local/share/pnpm:$PATH" && claude --dangerously-skip-permissions'
-            tmux send-keys -t "$SESSION_NAME:1.$i" Enter
+            tmux send-keys -t "$SESSION_NAME.$i" 'claude --dangerously-skip-permissions'
+            tmux send-keys -t "$SESSION_NAME.$i" Enter
             # 起動を分散させる
             sleep 0.5
         done
@@ -450,7 +455,7 @@ main() {
     # 画面をクリアして、ペイン名が見えるようにする
     log_info "画面をクリア中..."
     for i in $(seq 1 "$final_panes"); do
-        tmux send-keys -t "$SESSION_NAME:1.$i" "clear"
+        tmux send-keys -t "$SESSION_NAME.$i" "clear"
         tmux send-keys -t "$SESSION_NAME:1.$i" Enter
     done
     

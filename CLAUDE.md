@@ -18,7 +18,7 @@ This CLAUDE.md file provides comprehensive documentation for the Claude Code Doc
 ## 🏗️ Architecture
 
 ```
-claude-project/                    # Main boilerplate repository
+Claude-Project/                    # Main boilerplate repository
 ├── DockerfileBase                # Base Docker image with all tools
 ├── docker-compose-base.yml       # Template for project Docker Compose
 ├── docker-entrypoint.sh          # Container initialization script
@@ -233,7 +233,7 @@ ANTHROPIC_API_KEY=your_api_key_here
 # Optional MCP Services
 GITHUB_TOKEN=
 SUPABASE_ACCESS_TOKEN=
-STRIPE_SECRET_KEY=
+STRIPE_SEC_KEY=
 CHANNEL_ACCESS_TOKEN=
 DESTINATION_USER_ID=
 OBSIDIAN_API_KEY=

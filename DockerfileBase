@@ -89,7 +89,10 @@ RUN apk add --no-cache github-cli
 # pnpmのグローバルディレクトリを設定
 ENV PNPM_HOME=/usr/local/share/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-RUN mkdir -p $PNPM_HOME
+RUN mkdir -p $PNPM_HOME \
+    && pnpm config set global-bin-dir $PNPM_HOME \
+    && pnpm config set global-dir $PNPM_HOME \
+    && pnpm config set store-dir $PNPM_HOME/.pnpm-store
 
 # Claude Codeをインストール（ビルドスクリプトを許可）
 RUN pnpm config set enable-pre-post-scripts true && \

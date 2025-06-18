@@ -20,8 +20,8 @@ services:
       # claude-project（boilerplate）を読み取り専用でマウント
       - ${CLAUDE_PROJECT_DIR}:/claude-project:ro
       
-      # プロジェクトディレクトリ
-      - .:/workspace:delegated
+      # プロジェクトディレクトリ（workspaceサブディレクトリのみ）
+      - ./workspace:/workspace:delegated
       
       # docker-baseディレクトリを別の場所にマウント
       - ${CLAUDE_PROJECT_DIR}/docker-base:/opt/claude-system:ro
@@ -41,23 +41,10 @@ services:
       # Dockerソケットマウント（Docker内Docker実行用）
       - /var/run/docker.sock:/var/run/docker.sock
 
-    environment:
-      # 環境変数 (.envファイルから自動的に読み込まれます)
-      # 設定されていない変数は無視されます
-      
-      # Claude Code
-      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-
-      # MCP Servers
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - CHANNEL_ACCESS_TOKEN=${CHANNEL_ACCESS_TOKEN}
-      - DESTINATION_USER_ID=${DESTINATION_USER_ID}
-      - OBSIDIAN_API_KEY=${OBSIDIAN_API_KEY}
-      - OBSIDIAN_HOST=${OBSIDIAN_HOST:-localhost:27123}
-      - MAGIC_API_KEY=${MAGIC_API_KEY}
-      - DEFAULT_MINIMUM_TOKENS=${DEFAULT_MINIMUM_TOKENS:-6000}
+    # environment:
+    # すべての環境変数は.envファイルから必要に応じて
+    # docker-entrypoint.sh内で読み込まれるため、
+    # ここでの設定は不要
 
     working_dir: /workspace
     stdin_open: true

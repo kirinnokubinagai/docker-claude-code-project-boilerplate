@@ -161,7 +161,7 @@ ANTHROPIC_API_KEY=your_api_key_here
 # オプション（MCP用）
 GITHUB_TOKEN=
 SUPABASE_ACCESS_TOKEN=
-STRIPE_SECRET_KEY=
+STRIPE_SEC_KEY=
 CHANNEL_ACCESS_TOKEN=
 DESTINATION_USER_ID=
 OBSIDIAN_API_KEY=
@@ -229,14 +229,14 @@ AI駆動UIコンポーネント生成：
 
 ### API Key取得方法まとめ
 
-| サービス | 取得方法 | URL |
-|----------|----------|-----|
-| GitHub | Personal Access Tokens | https://github.com/settings/tokens |
-| Supabase | Project Settings > API | https://supabase.com/dashboard |
-| Stripe | Dashboard > API Keys | https://dashboard.stripe.com/apikeys |
-| LINE | LINE Developers Console | https://developers.line.biz/ |
-| Obsidian | Local REST API plugin | Obsidian内で設定 |
-| Magic MCP | 21st.dev Console | https://21st.dev/magic/console |
+| サービス  | 取得方法                | URL                                  |
+| --------- | ----------------------- | ------------------------------------ |
+| GitHub    | Personal Access Tokens  | https://github.com/settings/tokens   |
+| Supabase  | Project Settings > API  | https://supabase.com/dashboard       |
+| Stripe    | Dashboard > API Keys    | https://dashboard.stripe.com/apikeys |
+| LINE      | LINE Developers Console | https://developers.line.biz/         |
+| Obsidian  | Local REST API plugin   | Obsidian内で設定                     |
+| Magic MCP | 21st.dev Console        | https://21st.dev/magic/console       |
 
 ## 🐛 トラブルシューティング
 
