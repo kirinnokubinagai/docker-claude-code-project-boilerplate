@@ -231,157 +231,25 @@
    ```
 
 5. **開発環境構築**
-   ```bash
-   # 選定した技術スタックに基づいて開発環境を構築
-   # 例: Next.js + Supabase + TypeScriptプロジェクトの場合
-   npx create-next-app@latest . --typescript --tailwind --app --eslint
-   
-   # 基本的な依存関係のインストール
-   npm install
-   
-   # ESLint + Prettierの設定
-   npm install --save-dev prettier eslint-config-prettier eslint-plugin-prettier @typescript-eslint/eslint-plugin @typescript-eslint/parser
-   
-   # .eslintrc.json作成
-   cat > .eslintrc.json << 'EOF'
-   {
-     "extends": [
-       "next/core-web-vitals",
-       "prettier"
-     ],
-     "plugins": ["prettier"],
-     "rules": {
-       "prettier/prettier": "error",
-       "@typescript-eslint/no-unused-vars": "error",
-       "@typescript-eslint/no-explicit-any": "warn"
-     }
-   }
-   EOF
-   
-   # .prettierrc作成
-   cat > .prettierrc << 'EOF'
-   {
-     "semi": true,
-     "trailingComma": "es5",
-     "singleQuote": true,
-     "printWidth": 100,
-     "tabWidth": 2,
-     "useTabs": false
-   }
-   EOF
-   
-   # Supabaseのセットアップ
-   npm install @supabase/supabase-js @supabase/ssr @supabase/auth-ui-react @supabase/auth-ui-shared
-   
-   # 環境変数ファイル作成
-   cat > .env.local << 'EOF'
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   EOF
-   
-   # Supabaseクライアント作成
-   mkdir -p lib
-   cat > lib/supabase.ts << 'EOF'
-   import { createBrowserClient } from '@supabase/ssr'
-   
-   export function createClient() {
-     return createBrowserClient(
-       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-     )
-   }
-   EOF
-   
-   # その他の便利な開発ツール
-   npm install --save-dev husky lint-staged
-   npx husky init
-   
-   # pre-commitフック設定
-   cat > .husky/pre-commit << 'EOF'
-   #!/usr/bin/env sh
-   . "$(dirname -- "$0")/_/husky.sh"
-   
-   npx lint-staged
-   EOF
-   chmod +x .husky/pre-commit
-   
-   # lint-staged設定をpackage.jsonに追加
-   npm pkg set "lint-staged[*.{js,jsx,ts,tsx}]"="eslint --fix"
-   npm pkg set "lint-staged[*.{js,jsx,ts,tsx,json,css,md}]"="prettier --write"
-   
-   # 開発サーバーの起動
-   npm run dev
-   
-   # Playwrightで起動確認
-   npm install --save-dev @playwright/test
-   npx playwright install chromium --with-deps
-   
-   # 起動確認テスト
-   mkdir -p tests/e2e
-   cat > tests/e2e/startup.spec.ts << 'EOF'
-   import { test, expect } from '@playwright/test';
-   
-   test('開発サーバーが正常に起動する', async ({ page }) => {
-     await page.goto('http://localhost:3000');
-     await expect(page).toHaveTitle(/.*Next.js.*/);
-   });
-   EOF
-   
-   # playwright.config.ts作成
-   cat > playwright.config.ts << 'EOF'
-   import { defineConfig, devices } from '@playwright/test';
-   
-   export default defineConfig({
-     testDir: './tests/e2e',
-     fullyParallel: true,
-     forbidOnly: !!process.env.CI,
-     retries: process.env.CI ? 2 : 0,
-     workers: process.env.CI ? 1 : undefined,
-     reporter: 'html',
-     use: {
-       baseURL: 'http://localhost:3000',
-       trace: 'on-first-retry',
-       headless: true,
-     },
-     projects: [
-       {
-         name: 'chromium',
-         use: { ...devices['Desktop Chrome'] },
-       },
-     ],
-     webServer: {
-       command: 'npm run dev',
-       port: 3000,
-       reuseExistingServer: !process.env.CI,
-     },
-   });
-   EOF
-   
-   # テスト実行
-   npx playwright test --headed=false
-   
-   # 起動確認ができたら開発サーバーを停止
-   # Ctrl+C または pkill -f "next dev"
-   
-   # VSCode設定（オプション）
-   mkdir -p .vscode
-   cat > .vscode/settings.json << 'EOF'
-   {
-     "editor.formatOnSave": true,
-     "editor.defaultFormatter": "esbenp.prettier-vscode",
-     "editor.codeActionsOnSave": {
-       "source.fixAll.eslint": true
-     }
-   }
-   EOF
-   
-   # 環境構築完了をコミット
-   git add .
-   git commit -m "feat: 開発環境構築完了"
-   
-   # LINE通知（オプション）
-   echo "開発環境構築が完了しました" | claude mcp mcp__line-bot__push_text_message
-   ```
+   - 選定した技術スタックに基づいてプロジェクトを初期化
+     - 例: `npx create-next-app@latest .` / `npm create vite@latest .` 等
+   - package.jsonに必要なスクリプトを追加
+     - `npm run dev` - 開発サーバー起動
+     - `npm run build` - ビルド実行
+     - `npm run test` - テスト実行
+   - 基本的なディレクトリ構造を作成
+     ```
+     /workspace/
+     ├── src/           # ソースコード
+     ├── tests/         # テストコード
+     │   ├── unit/      # ユニットテスト
+     │   └── e2e/       # E2Eテスト（Playwright）
+     ├── documents/     # ドキュメント（既存）
+     └── worktrees/     # チーム別作業ディレクトリ（後で作成）
+     ```
+   - ESLint/Prettier等の開発ツールを設定
+   - 開発サーバーを起動（`npm run dev`）してPlaywrightで動作確認
+   - git initとgit commitで初期状態を保存
 
 6. **タスク分割とチーム編成**
    - documents/tasks/内のタスクファイルに基づいてタスクを詳細分割
@@ -404,7 +272,27 @@
    cat documents/teams.json
    ```
 
-7. **🛑 ここで必ず停止！**
+7. **git worktreeとブランチの準備**
+   ```bash
+   # teams.jsonに基づいてブランチとworktreeを作成
+   # 例（teams.jsonの内容に応じて調整）:
+   git branch team/frontend
+   git branch team/backend
+   git branch team/database
+   git branch team/devops
+   
+   # worktreeディレクトリを作成
+   mkdir -p worktrees
+   git worktree add worktrees/team-frontend team/frontend
+   git worktree add worktrees/team-backend team/backend
+   git worktree add worktrees/team-database team/database
+   git worktree add worktrees/team-devops team/devops
+   
+   # 確認
+   git worktree list
+   ```
+
+8. **🛑 ここで必ず停止！**
 
 ### teams.json作成の具体例（厳守）
 
@@ -451,15 +339,15 @@ ls -la documents/teams.json
 echo "teams.json created at: $(pwd)/documents/teams.json"
 ```
 
-### teams.jsonの必須フィールド
+### teams.jsonの必須フィールド（厳密なフォーマット）
 
 | フィールド   | 型     | 説明               | 例           |
 | ------------ | ------ | ------------------ | ------------ |
 | project_name | string | プロジェクト名     | "〇〇アプリ" |
 | project_type | string | プロジェクトタイプ | "web-app"    |
 | teams        | array  | チーム配列         | []           |
-****
-### teamsオブジェクトの必須フィールド
+
+### teamsオブジェクトの必須フィールド（厳密なフォーマット）
 
 | フィールド   | 型     | 説明                 | 例              |
 | ------------ | ------ | -------------------- | --------------- |
@@ -467,6 +355,8 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
 | name         | string | チーム表示名         | "Frontend Team" |
 | member_count | number | メンバー数（1-4）    | 4               |
 | branch       | string | ブランチ名           | "team/frontend" |
+
+**重要**: 上記4つのフィールドのみを含めること。他のフィールド（focus等）は追加しないこと。
 
 
 
@@ -477,22 +367,44 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    - 各チームのペインを作成（1人目がBoss）
    - 全員でclaude --dangerously-skip-permissionsを起動
 
-2. documents/tasks/を参照してタスク管理
+2. git worktreeの確認と移動（重要）
+   各チームは必ず自分のworktreeで作業する：
+   - Frontend Team: worktrees/team-frontend
+   - Backend Team: worktrees/team-backend
+   - Database Team: worktrees/team-database
+   - DevOps Team: worktrees/team-devops
+   
+   # 各Bossが最初に実行
+   cd /workspace/worktrees/team-frontend  # 自分のチームのworktreeに移動
+   pwd  # 確認: /workspace/worktrees/team-frontend
+
+3. documents/tasks/を参照してタスク管理
    ls documents/tasks/ でタスクファイル一覧を確認
    cat documents/tasks/*.md で各チームのタスクを確認
 
-3. 未完了タスク（- [ ]）を抽出して優先順位付け
+4. 未完了タスク（- [ ]）を抽出して優先順位付け
    依存関係を考慮して実行可能なタスクを選定
 
-4. 各チームのBossに指示を出す（階層的指示システム）
+5. 各チームのBossに指示を出す（階層的指示システム）
    Master → Boss → メンバーの流れで指示が伝達される
+   
+   **重要な役割分担**：
+   - **Master（pane 0）**: 全体統括、タスク配分、マージ作業のみ
+   - **Boss（各チームの1人目）**: チーム内タスク管理、レビュー、コミットのみ
+   - **Member（各チームの2-4人目）**: 実装作業のみ
+   
+   **禁止事項**：
+   - BossやMemberがMasterの役割（他チームへの指示、マージ等）を行うこと
+   - MemberがBossの役割（レビュー、コミット等）を行うこと
+   - 各チームは自分のworktree内でのみ作業すること
+   
    例: 
    tmux send-keys -t claude-teams:1.2 "認証システムのタスクを進めてください"
    sleep 0.5
    
    tmux send-keys -t claude-teams:1.2 Enter
 
-5. Masterは常にBossを監視（無限ループ処理）
+6. Masterは常にBossを監視（無限ループ処理）
    ```
    while true:
        for boss in all_bosses:
@@ -563,12 +475,16 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    - ロジック: 言語に応じたユニットテスト (tests/unit/validation_test.拡張子)
    - テストが全て通過するまでコミット禁止
 
-9. Bossがチームタスク完了後、ブランチでコミット
+9. Bossがチームタスク完了後、自分のworktreeでコミット
+   # 必ず自分のworktreeで作業していることを確認
+   pwd  # 例: /workspace/worktrees/team-frontend
+   
    # テスト実行（言語に応じたコマンド）
    npm test          # JavaScript/TypeScript
    pytest tests/     # Python
    go test ./...     # Go
    cargo test        # Rust
+   
    # 全テスト通過後
    git add . && git commit -m "feat: 認証システム実装"
 
@@ -710,7 +626,11 @@ function exampleFunction(param) {
    - Backend: `{機能名}_test.{言語拡張子}`
    - Unit: `{機能名}_test.{言語拡張子}`
    - 例: auth_test.js, auth_test.py, auth_test.go, auth_test.rs
-4. **テスト実行コマンド（言語別）**
+4. **テストカバレッジ基準**
+   - カバレッジ90%以上必須
+   - ハードコード禁止
+   - 各機能に対応するテスト必須
+5. **テスト実行コマンド（言語別）**
    ```bash
    # Playwright E2E (ヘッドレスモード)
    npx playwright test tests/e2e/ --headed=false
@@ -811,44 +731,228 @@ test('ログイン機能', async ({ page }) => {
 2. ❌ 実装まで進める → ✅ チーム構成で停止
 3. ❌ プロセス放置 → ✅ 必ず終了処理
 
-## 📝 タスクリスト作成例
+## 📝 タスクリスト作成ガイドライン
 
-### SNSアプリの場合（完全版・一発実装）
+### タスクの粒度と構成
+タスクは機能単位で分割し、各タスクは1-4時間で完了できる粒度にする
+
+### Frontend Tasks テンプレート
 ```markdown
-### 🎨 Frontend Tasks (50-70タスク想定)
-#### 認証システム完全版
-- [ ] ログイン画面のワイヤーフレーム作成
-- [ ] ログインフォームのHTML構造作成（Magic MCP使用）
-- [ ] フォームのスタイリング（Magic MCP使用）
-- [ ] メールアドレスのバリデーション実装
-- [ ] パスワードの表示/非表示トグル実装（Magic MCP使用）
-- [ ] ソーシャルログイン（Google）実装（Magic MCP使用）
-- [ ] ソーシャルログイン（Twitter）実装（Magic MCP使用）
-- [ ] 2段階認証UI実装（Magic MCP使用）
-- [ ] パスワードリセット完全フロー（Magic MCP使用）
-- [ ] メール認証フロー実装
-- [ ] [新規追加] reCAPTCHA統合
-- [ ] [新規追加] ログイン履歴表示機能（Magic MCP使用）
+#### 基本UI構築
+- [ ] ワイヤーフレーム/モックアップ作成
+- [ ] レイアウトコンポーネント作成（Magic MCP使用）
+- [ ] ナビゲーション実装（Magic MCP使用）
+- [ ] レスポンシブ対応
 
-#### 完全なタイムライン機能
-- [ ] タイムラインのレイアウト設計（Magic MCP使用）
-- [ ] 投稿カードコンポーネント作成（Magic MCP使用）
-- [ ] リアルタイム更新（WebSocket）
-- [ ] 無限スクロール実装
-- [ ] 画像アップロード機能（Magic MCP使用）
-- [ ] 動画アップロード機能（Magic MCP使用）
-- [ ] GIF対応
-- [ ] 絵文字ピッカー実装（Magic MCP使用）
-- [ ] メンション機能（@ユーザー名）
-- [ ] ハッシュタグ機能
-- [ ] 引用投稿機能（Magic MCP使用）
-- [ ] [新規追加] 投稿の予約機能（Magic MCP使用）
-- [ ] [新規追加] 下書き保存機能
+#### 機能実装
+- [ ] フォーム作成（Magic MCP使用）
+- [ ] バリデーション実装
+- [ ] APIとの連携
+- [ ] 状態管理実装
+- [ ] エラーハンドリング
 
-### 開発中の動的タスク追加例
-- [ ] [新規追加] エラーバウンダリ実装
-- [ ] [新規追加] パフォーマンス最適化
-- [ ] [新規追加] アクセシビリティ対応
+#### テスト
+- [ ] ユニットテスト作成（tests/unit/）
+- [ ] E2Eテスト作成（tests/e2e/）
+```
+
+### Backend Tasks テンプレート
+```markdown
+#### API実装
+- [ ] エンドポイント設計
+- [ ] ルーティング実装
+- [ ] ミドルウェア作成
+- [ ] 認証・認可実装
+
+#### ビジネスロジック
+- [ ] サービス層実装
+- [ ] バリデーション処理
+- [ ] エラーハンドリング
+
+#### テスト
+- [ ] APIテスト作成（tests/backend/）
+- [ ] 統合テスト作成
+```
+
+## 📡 通信プロトコル（Master-Boss-Member）
+
+### 階層的通信ルール
+```
+Master ↔️ Boss ↔️ Member
+```
+
+**重要**: 
+- Memberは必ずBoss経由でMasterと通信
+- Bossは必ずMaster経由で他チームと通信
+- 直接的なクロスチーム通信は禁止
+
+### 報告フォーマット
+
+#### Member → Boss
+```
+【タスク完了報告】
+タスク: [タスク名]
+状態: 完了
+テスト: 作成済み・実行済み
+場所: tests/e2e/[ファイル名]
+次タスク待機中
+
+【質問・相談】
+タスク: [タスク名]
+内容: [具体的な質問]
+提案: [自分の案がある場合]
+
+【アイドル報告】※即座に報告
+状態: アイドル
+最終タスク: [直前のタスク名]
+次タスク要求
+```
+
+#### Boss → Master
+```
+【チーム進捗報告】
+チーム: [チーム名]
+完了タスク: 
+- [x] タスク1（テスト済み）
+- [x] タスク2（テスト済み）
+進行中: 
+- [ ] タスク3（Member1）
+- [ ] タスク4（Member2）
+カバレッジ: 92%
+コミット準備: OK
+
+【問題エスカレーション】
+チーム: [チーム名]
+問題: [具体的な問題]
+影響: [影響範囲]
+提案: [解決案]
+```
+
+### ステータス確認方法
+
+#### タスク進捗の可視化
+```bash
+# documents/tasks/[team]_tasks.mdファイルで管理
+- [x] 完了タスク
+- [ ] 未完了タスク
+- [~] 進行中タスク（オプション）
+
+# 定期的に更新
+cat documents/tasks/frontend_tasks.md | grep -E "^\- \["
+```
+
+#### 監視ループの実装
+```
+# Master監視ループ（5秒間隔）
+while true; do
+  for boss in all_bosses; do
+    # 各Bossのステータス確認
+    # タスクファイルのチェックカウント
+    # アイドル検知と即座のタスク割り当て
+  done
+  sleep 5
+done
+
+# Boss監視ループ（3秒間隔）
+while true; do
+  for member in team_members; do
+    # 各メンバーのステータス確認
+    # タスク完了検知
+    # アイドル状態の即座検知
+    # 次タスクの自動割り当て
+  done
+  sleep 3
+done
+```
+
+### エスカレーションルール
+
+1. **Member → Boss**
+   - 技術的な質問・相談
+   - タスク完了報告
+   - アイドル状態報告（最優先）
+
+2. **Boss → Master**
+   - チーム間調整が必要な事項
+   - アーキテクチャ決定
+   - マージタイミング調整
+   - リソース不足
+
+3. **緊急エスカレーション**
+   - ビルドが壊れた
+   - テストが大量に失敗
+   - 依存関係の問題
+   - セキュリティ問題発見
+
+## 🏁 プロジェクト完了手順
+
+### 1. 全タスク完了確認
+```bash
+# 全タスクファイルの完了確認
+for file in documents/tasks/*.md; do
+  echo "=== $file ==="
+  grep -E "^\- \[ \]" "$file" || echo "全タスク完了！"
+done
+
+# カバレッジ確認
+npm run test:coverage  # または適切なコマンド
+```
+
+### 2. 最終マージとプッシュ
+```bash
+# Masterが実行
+cd /workspace
+git checkout main
+git merge --no-ff team/frontend
+git merge --no-ff team/backend
+git merge --no-ff team/database
+git merge --no-ff team/devops
+
+# 最終テスト実行
+npm test  # または適切なテストコマンド
+
+# GitHubへプッシュ
+git push origin main
+```
+
+### 3. 成果物の記録
+```bash
+# Obsidianへの記録（MCP経由）
+claude mcp mcp__obsidian__create_vault_file \
+  --filename "projects/$(date +%Y%m%d)_${PROJECT_NAME}.md" \
+  --content "# ${PROJECT_NAME} 開発完了レポート..."
+
+# LINE通知（MCP経由）
+claude mcp mcp__line-bot__push_text_message \
+  --message "🎉 ${PROJECT_NAME} の開発が完了しました！全テスト通過、カバレッジ95%"
+```
+
+### 4. tmuxセッション終了
+```bash
+# 全ペインに終了通知
+tmux send-keys -t claude-teams:0 "echo '開発完了！セッションを終了します。'" Enter
+sleep 2
+
+# セッション終了
+tmux kill-session -t claude-teams
+```
+
+### 5. クリーンアップ（オプション）
+```bash
+# worktreeの削除
+git worktree remove worktrees/team-frontend
+git worktree remove worktrees/team-backend
+git worktree remove worktrees/team-database
+git worktree remove worktrees/team-devops
+
+# ブランチの削除
+git branch -d team/frontend
+git branch -d team/backend
+git branch -d team/database
+git branch -d team/devops
+
+# 一時ファイルの削除
+rm -rf .tmp/ .cache/
 ```
 
 ## 🎯 最重要ポイント
@@ -862,9 +966,6 @@ test('ログイン機能', async ({ page }) => {
 7. **teams.jsonは必ずdocumentsディレクトリに保存（catコマンド使用）**
 8. **生成後は必ず停止（Masterがtmuxで指示を出す）**
 9. **UIデザイン作成時は必ずMagic MCPを使用**
-
----
-
-**Mission**: 世界を変える完成品を、最高の品質で、一発で作っていこう！！
-
-※ 「今後の展開」「ロードマップ」「将来的には」等の言葉は使わない。現在実装できる最高の完成品を作ろう！！
+10. **通信は必ず階層構造を守る（Master ↔️ Boss ↔️ Member）**
+11. **アイドル状態は即座に報告・即座に対応**
+12. **テストカバレッジ90%以上、ハードコード禁止**
