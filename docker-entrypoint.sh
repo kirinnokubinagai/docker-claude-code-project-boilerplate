@@ -72,22 +72,13 @@ fi
 mkdir -p /home/developer/.claude /workspace/.claude
 chown -R developer:developer /home/developer/.claude /workspace/.claude
 
-# ホストの~/.claudeディレクトリをコンテナ内にコピー（毎回上書き）
+# ホストの~/.claudeディレクトリをコンテナ内にコピー
 if [ -d "/tmp/host-claude" ]; then
     echo "Claude設定をコピー中..."
-    # 既存の.claudeディレクトリをクリア（認証情報を最新に保つ）
-    rm -rf /home/developer/.claude/* 2>/dev/null || true
-    rm -rf /home/developer/.claude/.[^.]* 2>/dev/null || true
-    
-    # ホストの設定をコピー
     cp -r /tmp/host-claude/* /home/developer/.claude/ 2>/dev/null || true
     # 隠しファイルもコピー
     cp -r /tmp/host-claude/.[^.]* /home/developer/.claude/ 2>/dev/null || true
     chown -R developer:developer /home/developer/.claude
-    
-    echo "Claude設定のコピーが完了しました"
-else
-    echo "[WARNING] ホストのClaude設定が見つかりません: /tmp/host-claude"
 fi
 
 # プロジェクト用CLAUDE.mdをworkspaceにコピー（ホストのCLAUDE.mdとは独立）
