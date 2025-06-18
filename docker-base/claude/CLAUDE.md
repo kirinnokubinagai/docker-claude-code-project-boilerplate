@@ -551,13 +551,17 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
 
 8. テスト実施（必須）
    - 各タスク完了時に必ずテストを作成・実行
-   - UIタスク: PlaywrightでE2Eテスト (tests/e2e/auth_test.spec.ts)
+   - UIタスク: Playwright MCPを使用してE2Eテスト (tests/e2e/auth_test.spec.ts)
      ```bash
-     # プロジェクトでPlaywrightをインストール
+     # オプション1: Playwright MCPサーバー経由（Chromium不要）
+     # MCPコマンドで直接ブラウザを操作
+     claude mcp mcp__mcp-playwright__browser_navigate --url "http://localhost:3000"
+     claude mcp mcp__mcp-playwright__browser_snapshot
+     claude mcp mcp__mcp-playwright__browser_click --element "Login button" --ref "button[type=submit]"
+     
+     # オプション2: プロジェクトローカルでPlaywright実行
      npm install --save-dev @playwright/test
-     npx playwright install chromium --with-deps
-     # ヘッドレスモードで実行（コンテナ内推奨）
-     npx playwright test --headed=false
+     npm test
      ```
    - APIタスク: 言語に応じたユニットテスト (tests/backend/auth_test.拡張子)
    - ロジック: 言語に応じたユニットテスト (tests/unit/validation_test.拡張子)
@@ -687,6 +691,7 @@ function exampleFunction(param) {
 - ダッシュボードレイアウト → Magic MCPで生成
 - ボタンやカードコンポーネント → Magic MCPで生成
 - レスポンシブナビゲーション → Magic MCPで生成
+
 
 ### テスト駆動開発
 

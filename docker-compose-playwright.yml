@@ -1,0 +1,14 @@
+# Playwright専用コンテナの設定例
+version: "3.8"
+
+services:
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.40.0-jammy
+    container_name: playwright-${PROJECT_NAME}
+    volumes:
+      - .:/workspace
+    networks:
+      - ${PROJECT_NAME}_network
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null  # コンテナを起動したままにする

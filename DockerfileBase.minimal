@@ -1,0 +1,50 @@
+FROM alpine:3.19
+
+# 最小限の必須パッケージのみインストール
+RUN apk add --no-cache \
+    # 基本ツール
+    bash git curl sudo nodejs npm pnpm \
+    # Docker & GitHub CLI
+    docker-cli docker-cli-compose github-cli \
+    # 開発に必要な最小限のツール
+    tmux vim jq \
+    # Python（uvのため）
+    python3 py3-pip \
+    && rm -rf /var/cache/apk/*
+
+# pnpm設定
+ENV PNPM_HOME=/usr/local/share/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN mkdir -p $PNPM_HOME
+
+# Claude Codeをインストール
+RUN pnpm config set enable-pre-post-scripts true && \
+    pnpm install -g @anthropic-ai/claude-code
+
+# Pythonツール
+RUN pip3 install --no-cache-dir --break-system-packages uv
+
+# developerユーザーを作成
+RUN addgroup -g 1001 developer && \
+    adduser -D -u 1001 -G developer -s /bin/bash developer && \
+    echo "developer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/developer
+
+# 必要なディレクトリを作成
+RUN mkdir -p /workspace /opt/system && \
+    chown -R developer:developer /workspace /home/developer
+
+# ロケール設定
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+# entrypointスクリプト
+COPY docker-entrypoint.sh /opt/system/docker-entrypoint.sh
+RUN chmod +x /opt/system/docker-entrypoint.sh
+
+# Bash設定
+COPY docker-base/bash/.bashrc /home/developer/.bashrc
+COPY docker-base/bash/.bash_profile /home/developer/.bash_profile
+RUN chown developer:developer /home/developer/.bashrc /home/developer/.bash_profile
+
+WORKDIR /workspace
+ENTRYPOINT ["/opt/system/docker-entrypoint.sh"]

@@ -36,11 +36,6 @@ services:
       # Dockerソケットマウント（Docker内Docker実行用）
       - /var/run/docker.sock:/var/run/docker.sock
 
-    # environment:
-    # すべての環境変数は.envファイルから必要に応じて
-    # docker-entrypoint.sh内で読み込まれるため、
-    # ここでの設定は不要
-
     working_dir: /workspace
     stdin_open: true
     tty: true

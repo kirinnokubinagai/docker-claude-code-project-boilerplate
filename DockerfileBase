@@ -35,22 +35,10 @@ RUN apk add --no-cache \
     npm \
     pnpm
 
-# Chromium関連をインストール（重いパッケージを分離）
-# Playwright用の依存関係も含む
+# フォント関連のみインストール（PDF生成等に必要）
 RUN apk add --no-cache \
-    chromium \
-    chromium-chromedriver \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
     ca-certificates \
-    ttf-freefont \
-    dbus \
-    dbus-x11 \
-    xvfb \
-    mesa-dri-gallium \
-    udev
+    ttf-freefont
 
 # pecoのインストール（Go製のインタラクティブフィルタ）
 RUN curl -L https://github.com/peco/peco/releases/download/v0.5.11/peco_linux_amd64.tar.gz | tar xz \

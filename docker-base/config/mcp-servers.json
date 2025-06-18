@@ -47,6 +47,14 @@
         "STRIPE_SECRET_KEY": "${STRIPE_SEC_KEY}"
       }
     },
+    "mcp-playwright": {
+      "command": "npx",
+      "args": ["-y", "@executeautomation/mcp-playwright"],
+      "env": {
+        "BROWSER_WSS_URL": "${BROWSER_WSS_URL}",
+        "BROWSER_TYPE": "${BROWSER_TYPE:-chromium}"
+      }
+    },
     "magic-mcp": {
       "command": "npx",
       "args": ["-y", "@21st-dev/magic@latest"],
