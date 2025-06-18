@@ -133,9 +133,10 @@ ENV LC_ALL=C.UTF-8
 
 # 環境変数はdocker-entrypoint.shで設定する（developerユーザーで実行するため）
 
-# entrypointスクリプトをコピー
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# entrypointスクリプトを/opt/systemにコピー（ルートディレクトリを汚染しない）
+RUN mkdir -p /opt/system
+COPY docker-entrypoint.sh /opt/system/docker-entrypoint.sh
+RUN chmod +x /opt/system/docker-entrypoint.sh
 
 # システム設定ディレクトリを作成
 RUN mkdir -p /opt/claude-system
@@ -149,5 +150,5 @@ RUN chown developer:developer /home/developer/.bashrc /home/developer/.bash_prof
 WORKDIR /workspace
 
 # entrypointを設定（rootで実行してからdeveloperに切り替える）
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/opt/system/docker-entrypoint.sh"]
 # デフォルトコマンドは設定しない（docker-entrypoint.shで制御）

@@ -9,8 +9,3 @@ fi
 # Ensure pnpm global directory is in PATH (for claude command in non-login shells)
 export PNPM_HOME=/usr/local/share/pnpm
 export PATH="$PNPM_HOME:$PATH"
-
-# User specific environment and startup programs
-
-# Always start in workspace directory
-cd /workspace 2>/dev/null || true

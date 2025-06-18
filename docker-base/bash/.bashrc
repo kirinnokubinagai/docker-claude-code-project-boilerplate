@@ -130,9 +130,6 @@ export VISUAL='vim'
 # Bashのviモードを無効化（emacsモードを使用）
 set -o emacs
 
-# Set working directory
-cd /workspace 2>/dev/null || true
-
 # Welcome message
 echo ""
 echo "==============================================="

@@ -17,9 +17,6 @@ services:
     # ENTRYPOINTはrootで実行、その後developerに切り替え
     # user: "${USER_UID:-1000}:${USER_GID:-1000}"
     volumes:
-      # claude-project（boilerplate）を読み取り専用でマウント
-      - ${CLAUDE_PROJECT_DIR}:/claude-project:ro
-      
       # プロジェクトディレクトリ（workspaceサブディレクトリのみ）
       - ./workspace:/workspace:delegated
       
