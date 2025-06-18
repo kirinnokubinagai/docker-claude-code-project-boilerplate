@@ -44,11 +44,18 @@ for server in $servers; do
     echo -e "${YELLOW}[INFO]${NC} $server を追加中..."
     
     # サーバー情報を取得（ハイフンを含む名前に対応）
-    command=$(jq -r ".mcpServers[\"$server\"].command" "$template_file")
-    args=$(jq -r ".mcpServers[\"$server\"].args[]" "$template_file" 2>/dev/null | tr '\n' ' ')
+    transport=$(jq -r ".mcpServers[\"$server\"].transport // empty" "$template_file")
+    url=$(jq -r ".mcpServers[\"$server\"].url // empty" "$template_file")
+    command=$(jq -r ".mcpServers[\"$server\"].command // empty" "$template_file")
+    args=$(jq -r ".mcpServers[\"$server\"].args[]?" "$template_file" 2>/dev/null | tr '\n' ' ')
     
     # コマンドを構築
     cmd="claude mcp add -s user $server"
+    
+    # トランスポートタイプを指定
+    if [ -n "$transport" ]; then
+        cmd="$cmd -t $transport"
+    fi
     
     # 環境変数を処理
     # jqで環境変数のキーを取得
@@ -84,11 +91,19 @@ for server in $servers; do
         fi
     done
     
-    # -- を追加（コマンドとの区切り）
-    cmd="$cmd --"
+    # URLまたはコマンドを追加
+    if [ -n "$url" ]; then
+        # SSE/HTTPトランスポートの場合
+        # 環境変数を展開
+        expanded_url=$(echo "$url" | sed "s/\${PROJECT_NAME}/$PROJECT_NAME/g" | sed "s/\${PLAYWRIGHT_MCP_PORT}/${PLAYWRIGHT_MCP_PORT:-8931}/g")
+        cmd="$cmd $expanded_url"
+    else
+        # stdioトランスポートの場合
+        cmd="$cmd -- $command $args"
+    fi
     
-    # コマンドと引数を追加
-    cmd="$cmd $command $args"
+    # デバッグ: 実行するコマンドを表示
+    echo -e "${BLUE}[DEBUG]${NC} 実行コマンド: $cmd"
     
     # コマンドを実行
     eval "$cmd"

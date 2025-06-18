@@ -48,12 +48,8 @@
       }
     },
     "mcp-playwright": {
-      "command": "npx",
-      "args": ["-y", "@executeautomation/mcp-playwright"],
-      "env": {
-        "BROWSER_WSS_URL": "${BROWSER_WSS_URL}",
-        "BROWSER_TYPE": "${BROWSER_TYPE:-chromium}"
-      }
+      "transport": "sse",
+      "url": "http://playwright-mcp-${PROJECT_NAME}:${PLAYWRIGHT_MCP_PORT}/sse"
     },
     "magic-mcp": {
       "command": "npx",

@@ -14,8 +14,10 @@ services:
     container_name: claude-code-${PROJECT_NAME}
     # ENTRYPOINTはrootで実行、その後developerに切り替え
     # user: "${USER_UID:-1000}:${USER_GID:-1000}"
+    env_file:
+      - .env
     volumes:
-      # プロジェクトディレクトリ全体をマウント
+      # プロジェクトディレクトリを/workspaceにマウント
       - .:/workspace:delegated
 
       # docker-baseディレクトリを別の場所にマウント
@@ -60,6 +62,29 @@ services:
 
     # ホストのネットワークモードを使用（MCPサーバー接続用）
     # network_mode: "host"  # 必要に応じてコメントアウトを外す
+
+  # Playwright MCP Server
+  playwright-mcp:
+    image: mcr.microsoft.com/playwright:v1.51.1-noble
+    container_name: playwright-mcp-${PROJECT_NAME}
+    working_dir: /app
+    command: >
+      sh -c "
+        npm install -g @playwright/mcp@latest &&
+        npx playwright install chrome &&
+        npx playwright install-deps chrome &&
+        npx @playwright/mcp@latest --port ${PLAYWRIGHT_MCP_PORT:-8931} --headless
+      "
+    ports:
+      - "${PLAYWRIGHT_MCP_PORT:-8931}:${PLAYWRIGHT_MCP_PORT:-8931}"
+    environment:
+      - HEADLESS=true
+      - PLAYWRIGHT_MCP_PORT=${PLAYWRIGHT_MCP_PORT:-8931}
+    networks:
+      - claude-network
+    restart: unless-stopped
+    depends_on:
+      - claude-code
 
 volumes:
   bash_history:

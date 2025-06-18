@@ -82,14 +82,22 @@ create_project() {
     # ビルドのみ実行してログを表示
     export PROJECT_NAME
     export CLAUDE_PROJECT_DIR
-    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --progress=plain build
+    # プロジェクトディレクトリでdocker-composeを実行することで、.:/workspaceが正しく機能する
+    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" --progress=plain build
     
     echo "==============================================="
     echo "🚀 コンテナを起動中..."
     echo "==============================================="
     
-    # コンテナを起動
-    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" up -d
+    # claude-codeコンテナを先に起動
+    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d claude-code
+    
+    echo ""
+    echo "📦 Playwright MCPサーバーを起動中..."
+    echo "（初回はイメージのダウンロードに時間がかかります）"
+    
+    # Playwright MCPを後から起動
+    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d playwright-mcp
     
     echo "==============================================="
     
@@ -143,7 +151,8 @@ create_project() {
     echo "今後このプロジェクトで作業する場合："
     echo "  cd $PROJECT_DIR"
     echo "  export PROJECT_NAME=$PROJECT_NAME"
-    echo "  docker compose -f $CLAUDE_PROJECT_DIR/docker-compose-base.yml up -d"
+    echo "  export CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR"
+    echo "  docker compose -f $CLAUDE_PROJECT_DIR/docker-compose-base.yml --project-directory . up -d"
     echo "  docker exec -it -u developer $CONTAINER_NAME bash"
     echo ""
     echo "コンテナ '$CONTAINER_NAME' にdeveloperユーザーで接続します..."

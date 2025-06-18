@@ -38,6 +38,8 @@ if [ ! -z "$USER_UID" ] && [ ! -z "$USER_GID" ] && [ "$USER_UID" != "0" ]; then
 fi
 
 
+# 削除: プロジェクトファイルは直接マウントされるため、コピー処理は不要
+
 # workspaceディレクトリの権限設定（developerユーザーが書き込めるように）
 # ただし、.gitディレクトリは除外（既存の権限を保持）
 find /workspace -mindepth 1 -maxdepth 1 ! -name '.git' -exec chown -R developer:developer {} \; 2>/dev/null || true

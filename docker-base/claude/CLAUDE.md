@@ -558,10 +558,6 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
      claude mcp mcp__mcp-playwright__browser_navigate --url "http://localhost:3000"
      claude mcp mcp__mcp-playwright__browser_snapshot
      claude mcp mcp__mcp-playwright__browser_click --element "Login button" --ref "button[type=submit]"
-     
-     # オプション2: プロジェクトローカルでPlaywright実行
-     npm install --save-dev @playwright/test
-     npm test
      ```
    - APIタスク: 言語に応じたユニットテスト (tests/backend/auth_test.拡張子)
    - ロジック: 言語に応じたユニットテスト (tests/unit/validation_test.拡張子)
