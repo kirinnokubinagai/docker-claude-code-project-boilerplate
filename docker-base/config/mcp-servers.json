@@ -48,7 +48,7 @@
     },
     "mcp-playwright": {
       "transport": "sse",
-      "url": "http://localhost:${PLAYWRIGHT_MCP_PORT}/sse"
+      "url": "http://host.docker.internal:${PLAYWRIGHT_MCP_PORT}/sse"
     },
     "magic-mcp": {
       "command": "npx",

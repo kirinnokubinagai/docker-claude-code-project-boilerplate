@@ -72,6 +72,15 @@ fi
 mkdir -p /home/developer/.claude /workspace/.claude
 chown -R developer:developer /home/developer/.claude /workspace/.claude
 
+# ホストの~/.claudeディレクトリをコンテナ内にコピー
+if [ -d "/tmp/host-claude" ]; then
+    echo "Claude設定をコピー中..."
+    cp -r /tmp/host-claude/* /home/developer/.claude/ 2>/dev/null || true
+    # 隠しファイルもコピー
+    cp -r /tmp/host-claude/.[^.]* /home/developer/.claude/ 2>/dev/null || true
+    chown -R developer:developer /home/developer/.claude
+fi
+
 # プロジェクト用CLAUDE.mdをworkspaceにコピー（ホストのCLAUDE.mdとは独立）
 if [ -f "/opt/claude-system/claude/CLAUDE.md" ]; then
     cp /opt/claude-system/claude/CLAUDE.md /workspace/CLAUDE.md 2>/dev/null || true
@@ -125,8 +134,12 @@ export PLAYWRIGHT_BROWSERS_PATH=/home/developer/.cache/ms-playwright
 
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
-# setup-mcp.sh内で.envを読み込むので、そのまま実行
-su developer -c "/opt/claude-system/scripts/setup-mcp.sh" || {
+# .envファイルが存在する場合は環境変数として読み込む
+if [ -f /workspace/.env ]; then
+    export $(grep -v '^#' /workspace/.env | xargs)
+fi
+# setup-mcp.sh内でも.envを読み込むが、suコマンドで環境変数が引き継がれるように
+su developer -c "export $(grep -v '^#' /workspace/.env 2>/dev/null | xargs) && /opt/claude-system/scripts/setup-mcp.sh" || {
     echo "[WARNING] MCP設定に失敗しましたが、続行します..."
 }
 
