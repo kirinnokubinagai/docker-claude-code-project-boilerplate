@@ -97,13 +97,8 @@ EOF
     git init
     git commit --allow-empty -m "Initial commit"
     
-    # Dockerボリュームを作成（docker-compose-base.ymlで自動作成されるが、明示的に作成）
-    echo "8. Dockerボリュームを作成中..."
-    docker volume create "${PROJECT_NAME}_bash_history"
-    docker volume create "${PROJECT_NAME}_z"
-    
     # Docker Composeを起動（ビルドログを表示）
-    echo "9. Docker Composeを起動中..."
+    echo "8. Docker Composeを起動中..."
     echo "==============================================="
     echo "📦 Dockerイメージをビルド中..."
     echo "（初回は時間がかかる場合があります）"
@@ -132,7 +127,7 @@ EOF
     echo "==============================================="
     
     # コンテナが起動するまで待機
-    echo "10. コンテナの起動を待機中..."
+    echo "9. コンテナの起動を待機中..."
     CONTAINER_NAME="claude-code-${PROJECT_NAME}"
     
     local dot_count=0
@@ -172,7 +167,7 @@ EOF
     done
     
     # developerユーザーでコンテナに入る
-    echo "11. コンテナに接続中..."
+    echo "10. コンテナに接続中..."
     echo ""
     echo "==============================================="
     echo "プロジェクト '$PROJECT_NAME' の作成が完了しました！"
