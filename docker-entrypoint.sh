@@ -99,8 +99,9 @@ fi
 mkdir -p /home/developer/.npm /home/developer/.local /home/developer/.config /home/developer/.cache
 
 # 読み取り専用マウントを除いてchown実行
-find /home/developer -type d -writable -exec chown developer:developer {} \; 2>/dev/null || true
-find /home/developer -type f -writable -exec chown developer:developer {} \; 2>/dev/null || true
+# .claude, .gitconfig, .ssh, .config/ghは除外（ホストからマウントされているため）
+find /home/developer -type d -writable ! -path "/home/developer/.claude*" ! -path "/home/developer/.gitconfig" ! -path "/home/developer/.ssh*" ! -path "/home/developer/.config/gh*" -exec chown developer:developer {} \; 2>/dev/null || true
+find /home/developer -type f -writable ! -path "/home/developer/.claude*" ! -path "/home/developer/.gitconfig" ! -path "/home/developer/.ssh*" ! -path "/home/developer/.config/gh*" -exec chown developer:developer {} \; 2>/dev/null || true
 
 # 環境変数を設定
 export HOME=/home/developer

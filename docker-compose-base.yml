@@ -30,12 +30,13 @@ services:
       
       # Claude設定を直接マウント（読み書き可能）
       - ~/.claude:/home/developer/.claude
+      
+      # bash履歴とz履歴は個別ファイルとしてマウント
+      - ${PROJECT_NAME}_bash_history:/home/developer/.bash_history
+      - ${PROJECT_NAME}_z:/home/developer/.z
 
       # GitHub CLI設定を引き継ぎ
       - ~/.config/gh:/home/developer/.config/gh:ro
-
-      # データ永続化（プロジェクト別）
-      - developer_home:/home/developer
 
       # Dockerソケットマウント（Docker内Docker実行用）
       - /var/run/docker.sock:/var/run/docker.sock
@@ -84,9 +85,12 @@ services:
       - claude-code
 
 volumes:
-  developer_home:
-    external: true
-    name: ${PROJECT_NAME}_developer_home
+  # bash履歴ファイル用ボリューム
+  ${PROJECT_NAME}_bash_history:
+    name: ${PROJECT_NAME}_bash_history
+  # zディレクトリジャンプ用ボリューム  
+  ${PROJECT_NAME}_z:
+    name: ${PROJECT_NAME}_z
 
 networks:
   claude-network:
