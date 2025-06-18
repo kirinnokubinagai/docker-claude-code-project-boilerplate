@@ -123,6 +123,10 @@ alias ta='tmux attach -t'
 alias tl='tmux list-sessions'
 alias tn='tmux new -s'
 
+# Docker shortcuts（コンテナ内で使用）
+# プロジェクト間の移動用
+alias dced='echo "このコマンドはホスト側で使用してください"'
+
 # Environment variables
 export EDITOR='vim'
 export VISUAL='vim'
