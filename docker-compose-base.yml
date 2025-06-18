@@ -35,9 +35,7 @@ services:
       - ~/.config/gh:/home/developer/.config/gh:ro
 
       # データ永続化（プロジェクト別）
-      - bash_history:/home/developer/.bash_history
-      - z_data:/home/developer
-      - tmux_data:/home/developer/.tmux
+      - developer_home:/home/developer
 
       # Dockerソケットマウント（Docker内Docker実行用）
       - /var/run/docker.sock:/var/run/docker.sock
@@ -86,15 +84,9 @@ services:
       - claude-code
 
 volumes:
-  bash_history:
+  developer_home:
     external: true
-    name: ${PROJECT_NAME}_bash_history
-  z_data:
-    external: true
-    name: ${PROJECT_NAME}_z_data
-  tmux_data:
-    external: true
-    name: ${PROJECT_NAME}_tmux_data
+    name: ${PROJECT_NAME}_developer_home
 
 networks:
   claude-network:

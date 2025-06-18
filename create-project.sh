@@ -99,9 +99,7 @@ EOF
     
     # Dockerボリュームを作成
     echo "8. Dockerボリュームを作成中..."
-    docker volume create "${PROJECT_NAME}_bash_history"
-    docker volume create "${PROJECT_NAME}_z_data"
-    docker volume create "${PROJECT_NAME}_tmux_data"
+    docker volume create "${PROJECT_NAME}_developer_home"
     
     # Docker Composeを起動（ビルドログを表示）
     echo "9. Docker Composeを起動中..."
