@@ -134,12 +134,34 @@ export PLAYWRIGHT_BROWSERS_PATH=/home/developer/.cache/ms-playwright
 
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
-# .envファイルが存在する場合は環境変数として読み込む
-if [ -f /workspace/.env ]; then
-    export $(grep -v '^#' /workspace/.env | xargs)
+
+# 環境変数を読み込む関数
+load_env_files() {
+    local env_vars=""
+    
+    # .envファイルが存在する場合は環境変数として読み込む
+    if [ -f /workspace/.env ]; then
+        echo "[INFO] .envファイルからプロジェクト設定を読み込みます..."
+        env_vars="$env_vars $(grep -v '^#' /workspace/.env | xargs)"
+    fi
+    
+    # .env.mcpファイルが存在する場合はMCPサービスの環境変数として読み込む
+    if [ -f /workspace/.env.mcp ]; then
+        echo "[INFO] .env.mcpファイルからMCPサービス設定を読み込みます..."
+        env_vars="$env_vars $(grep -v '^#' /workspace/.env.mcp | xargs)"
+    fi
+    
+    echo "$env_vars"
+}
+
+# 環境変数を読み込んでエクスポート
+ENV_VARS=$(load_env_files)
+if [ ! -z "$ENV_VARS" ]; then
+    export $ENV_VARS
 fi
-# setup-mcp.sh内でも.envを読み込むが、suコマンドで環境変数が引き継がれるように
-su developer -c "export $(grep -v '^#' /workspace/.env 2>/dev/null | xargs) && /opt/claude-system/scripts/setup-mcp.sh" || {
+
+# setup-mcp.sh内でも環境変数を読み込むが、suコマンドで環境変数が引き継がれるように
+su developer -c "export $ENV_VARS && /opt/claude-system/scripts/setup-mcp.sh" || {
     echo "[WARNING] MCP設定に失敗しましたが、続行します..."
 }
 

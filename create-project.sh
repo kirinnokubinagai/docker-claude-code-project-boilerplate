@@ -47,13 +47,19 @@ create_project() {
     # PROJECT_NAMEを設定
     echo "4. 環境変数を設定中..."
     
-    # .envファイルを作成
+    # .envファイルを作成（プロジェクト固有の設定のみ）
     echo "5. 環境変数ファイルを作成中..."
-    # 一時ファイルを作成
-    TEMP_ENV=$(mktemp)
-    
-    # PROJECT_NAMEを最初に記載
-    echo "PROJECT_NAME=$PROJECT_NAME" > "$TEMP_ENV"
+    cat > .env << EOF
+# ==============================================
+# Project Configuration
+# ==============================================
+PROJECT_NAME=$PROJECT_NAME
+CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR
+
+# ==============================================
+# Playwright MCP Port Configuration
+# ==============================================
+EOF
     
     # Playwright MCPポートを自動割り当て（8931から順番に空いているポートを探す）
     echo "Playwright MCPの利用可能なポートを検索中..."
@@ -62,22 +68,26 @@ create_project() {
         PLAYWRIGHT_PORT=$((PLAYWRIGHT_PORT + 1))
     done
     echo "  → ポート $PLAYWRIGHT_PORT を使用します"
-    echo "PLAYWRIGHT_MCP_PORT=$PLAYWRIGHT_PORT" >> "$TEMP_ENV"
+    echo "PLAYWRIGHT_MCP_PORT=$PLAYWRIGHT_PORT" >> .env
     
-    # claude-projectディレクトリの.envファイルが存在する場合は追加
+    # プロジェクト固有の環境変数用のセクションを追加
+    cat >> .env << 'EOF'
+
+# ==============================================
+# Project-specific Environment Variables
+# ==============================================
+# Add your project-specific environment variables below
+# Example:
+# DATABASE_URL=
+# REDIS_URL=
+# NEXT_PUBLIC_API_URL=
+EOF
+    
+    # .env.mcpファイルをコピー（MCPサービスの認証情報）
     if [ -f "$CLAUDE_PROJECT_DIR/.env" ]; then
-        echo "" >> "$TEMP_ENV"
-        echo "# Copied from boilerplate .env" >> "$TEMP_ENV"
-        cat "$CLAUDE_PROJECT_DIR/.env" >> "$TEMP_ENV"
+        echo "MCPサービスの認証情報をコピー中..."
+        cp "$CLAUDE_PROJECT_DIR/.env" .env.mcp
     fi
-    
-    # CLAUDE_PROJECT_DIRを最後に追加
-    echo "" >> "$TEMP_ENV"
-    echo "# Project directory" >> "$TEMP_ENV"
-    echo "CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR" >> "$TEMP_ENV"
-    
-    # 一時ファイルを.envに移動
-    mv "$TEMP_ENV" .env
     
     # .dockerignoreファイルは不要（docker-compose-base.ymlはCLAUDE_PROJECT_DIRから読み込むため）
     echo "6. Gitリポジトリ初期化の準備中..."

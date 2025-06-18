@@ -1,6 +1,10 @@
 # Environment variables
 .env
 .env.*
+# MCP service credentials (keep out of git)
+.env.mcp
+# Example file can be committed
+!.env.mcp.example
 
 # Claude configuration
 CLAUDE.md
