@@ -39,7 +39,6 @@ create_project() {
     # プロジェクトディレクトリを作成（空のディレクトリ）
     echo "2. プロジェクトディレクトリを作成中..."
     mkdir -p "$PROJECT_DIR"
-    mkdir -p "$PROJECT_DIR/workspace"  # 実際の作業ディレクトリ
     
     # プロジェクトディレクトリに移動
     echo "3. プロジェクトディレクトリに移動..."
@@ -69,12 +68,10 @@ docker-compose.yml
 .git/
 EOF
 
-    # .gitの初期化と初回コミット（workspaceディレクトリ内で）
+    # .gitの初期化と初回コミット
     echo "7. Gitリポジトリを初期化中..."
-    cd workspace
     git init
     git commit --allow-empty -m "Initial commit"
-    cd ..
     
     # Dockerボリュームを作成
     echo "8. Dockerボリュームを作成中..."
