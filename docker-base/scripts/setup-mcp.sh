@@ -3,6 +3,9 @@
 # MCP Server Setup Script for Claude Code
 # Docker内でMCPサーバーの設定を行うスクリプト
 
+# PATHにpnpmのグローバルディレクトリを追加（claude コマンドのため）
+export PATH="/usr/local/share/pnpm:$PATH"
+
 # カラー定義
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'

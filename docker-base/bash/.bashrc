@@ -9,6 +9,10 @@ fi
 # User specific environment
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
+# pnpm global directory (for claude command)
+export PNPM_HOME=/usr/local/share/pnpm
+export PATH="$PNPM_HOME:$PATH"
+
 # ロケール設定（日本語文字化け対策）
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8

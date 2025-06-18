@@ -4,6 +4,9 @@
 # 
 # このスクリプトは動的チーム編成システムで自動的にタスクを割り当てます
 
+# PATHにpnpmのグローバルディレクトリを追加（claude コマンドのため）
+export PATH="/usr/local/share/pnpm:$PATH"
+
 # カラー定義
 RED='\033[0;31m'
 GREEN='\033[0;32m'
