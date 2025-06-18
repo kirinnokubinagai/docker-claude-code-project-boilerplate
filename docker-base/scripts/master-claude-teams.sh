@@ -413,8 +413,7 @@ main() {
     if [[ " $@ " == *" --phased "* ]]; then
         log_info "段階的起動モード: メモリ使用量を分散します"
         # Masterを最初に起動
-        # 環境変数を読み込んでからClaude起動
-        tmux send-keys -t "$SESSION_NAME.1" 'export $(grep -v "^#" /workspace/.env 2>/dev/null | xargs); export $(grep -v "^#" /workspace/.env.mcp 2>/dev/null | xargs); claude --dangerously-skip-permissions'
+        tmux send-keys -t "$SESSION_NAME.1" 'claude --dangerously-skip-permissions'
         tmux send-keys -t "$SESSION_NAME.1" Enter
         log_success "Master Claude起動完了 (1/$final_panes)"
         sleep 5
@@ -429,8 +428,7 @@ main() {
             
             log_info "$team_name チームを起動中..."
             for member in $(seq 1 "$member_count"); do
-                # 環境変数を読み込んでからClaude起動
-                tmux send-keys -t "$SESSION_NAME.$current_pane" 'export $(grep -v "^#" /workspace/.env 2>/dev/null | xargs); export $(grep -v "^#" /workspace/.env.mcp 2>/dev/null | xargs); claude --dangerously-skip-permissions'
+                tmux send-keys -t "$SESSION_NAME.$current_pane" 'claude --dangerously-skip-permissions'
                 tmux send-keys -t "$SESSION_NAME.$current_pane" Enter
                 log_success "  → メンバー $member 起動完了 ($current_pane/$final_panes)"
                 current_pane=$((current_pane + 1))
@@ -441,8 +439,7 @@ main() {
     else
         # 通常の起動
         for i in $(seq 1 "$final_panes"); do
-            # 環境変数を読み込んでからClaude起動
-            tmux send-keys -t "$SESSION_NAME.$i" 'export $(grep -v "^#" /workspace/.env 2>/dev/null | xargs); export $(grep -v "^#" /workspace/.env.mcp 2>/dev/null | xargs); claude --dangerously-skip-permissions'
+            tmux send-keys -t "$SESSION_NAME.$i" 'claude --dangerously-skip-permissions'
             tmux send-keys -t "$SESSION_NAME.$i" Enter
             # 起動を分散させる
             sleep 0.5

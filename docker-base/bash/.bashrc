@@ -127,6 +127,11 @@ alias tn='tmux new -s'
 export EDITOR='vim'
 export VISUAL='vim'
 
+# 自動的に環境変数を読み込む
+if [ -f /opt/claude-system/bash/.env_loader ]; then
+    source /opt/claude-system/bash/.env_loader
+fi
+
 # Bashのviモードを無効化（emacsモードを使用）
 set -o emacs
 
