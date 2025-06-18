@@ -28,8 +28,8 @@ services:
       - ~/.gitconfig:/home/developer/.gitconfig:ro
       - ~/.ssh:/home/developer/.ssh:ro
       
-      # Claude設定を一時的にマウント（entrypointでコピーするため）
-      - ~/.claude:/tmp/host-claude:ro
+      # Claude設定を直接マウント
+      - ~/.claude:/home/developer/.claude:ro
 
       # GitHub CLI設定を引き継ぎ
       - ~/.config/gh:/home/developer/.config/gh:ro

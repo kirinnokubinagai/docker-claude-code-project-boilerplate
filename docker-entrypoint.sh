@@ -68,18 +68,9 @@ if [ -f "/opt/claude-system/config/.tmux.conf" ]; then
     chown -R developer:developer /home/developer/.tmux 2>/dev/null || true
 fi
 
-# Claude Code用の設定ディレクトリ作成
-mkdir -p /home/developer/.claude /workspace/.claude
-chown -R developer:developer /home/developer/.claude /workspace/.claude
-
-# ホストの~/.claudeディレクトリをコンテナ内にコピー
-if [ -d "/tmp/host-claude" ]; then
-    echo "Claude設定をコピー中..."
-    cp -r /tmp/host-claude/* /home/developer/.claude/ 2>/dev/null || true
-    # 隠しファイルもコピー
-    cp -r /tmp/host-claude/.[^.]* /home/developer/.claude/ 2>/dev/null || true
-    chown -R developer:developer /home/developer/.claude
-fi
+# Claude Code用の設定ディレクトリ作成（workspaceのみ）
+mkdir -p /workspace/.claude
+chown -R developer:developer /workspace/.claude
 
 # プロジェクト用CLAUDE.mdをworkspaceにコピー（ホストのCLAUDE.mdとは独立）
 if [ -f "/opt/claude-system/claude/CLAUDE.md" ]; then
