@@ -66,17 +66,23 @@
 ### 実行手順（自動実行）
 
 1. **プロジェクト分析**
-   - 要件整理とタイプ判定（web/mobile/ai/blockchain等）
+   - 要件整理とタイプ判定（web/mobile-app/ai/blockchain等）
    - **全機能を一発で実装する前提で機能洗い出し**
    - MVPやフェーズ分けはしない（完全版を作る）
    - 今後の展開やロードマップは作らない
 
 2. **技術選定**
-   - Web検索で最新トレンドを調査（直近半年）
-   - Context7で最新バージョン確認
-   - VibeCodingに適した技術スタック決定
-   - **プロダクション完成形を想定した技術選定**
+   - Web検索で最新トレンドを調査（直近3ヶ月の技術動向）
+   - Context7で最新バージョンとベストプラクティス確認
+   - **その時点で最も優れた技術スタックを選定**
+   - プロダクション完成形を想定した技術選定
    - 現在実装できる最高の機能をすべて盛り込む
+   - **動的技術選定ポリシー**:
+     - 常に最新の安定版技術を調査・採用
+     - 過去の選択に縛られず、その時点のベストを選択
+     - 新技術が登場した場合は積極的に評価・採用
+   - **例**: Webアプリ→その時点で最適なフレームワーク
+   - **例**: モバイルアプリ→その時点で最適なクロスプラットフォーム技術
 
 3. **要件定義書とタスクファイル作成**
    ```bash
@@ -232,11 +238,6 @@
 
 5. **開発環境構築**
    - 選定した技術スタックに基づいてプロジェクトを初期化
-     - 例: `npx create-next-app@latest .` / `npm create vite@latest .` 等
-   - package.jsonに必要なスクリプトを追加
-     - `npm run dev` - 開発サーバー起動
-     - `npm run build` - ビルド実行
-     - `npm run test` - テスト実行
    - 基本的なディレクトリ構造を作成
      ```
      /workspace/
@@ -247,8 +248,13 @@
      ├── documents/     # ドキュメント（既存）
      └── worktrees/     # チーム別作業ディレクトリ（後で作成）
      ```
+   - **デプロイツールの自動インストール**（技術選定後に実行）
+     ```bash
+     # プロジェクトタイプを検出して必要なツールをインストール
+     /opt/claude-system/scripts/setup-deploy-tools.sh
+     ```
    - ESLint/Prettier等の開発ツールを設定
-   - 開発サーバーを起動（`npm run dev`）してPlaywrightで動作確認
+   - 開発サーバーを起動（ポート番号を確認・記録）
    - git initとgit commitで初期状態を保存
 
 6. **タスク分割とチーム編成**
@@ -304,7 +310,7 @@
 cat > documents/teams.json << 'EOF'
 {
   "project_name": "実際のプロジェクト名",
-  "project_type": "プロジェクトタイプ（web-app/mobile/ai/blockchain等）",
+  "project_type": "プロジェクトタイプ（web-app/mobile-app/ai/blockchain等）",
   "teams": [
     # ここに実際のチーム構成を記載
     # 例:
@@ -436,147 +442,17 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    - MemberがBossの役割（レビュー、コミット等）を行うこと
    - 各チームは自分のworktree内でのみ作業すること
 
-### 📌 具体的なコミュニケーションフロー
+### 📊 Master-Boss-Member ワークフロー
 
-#### 1️⃣ Master → Boss への指示
-
-##### 初回タスク割り当て
-```bash
-# FrontendチームのBossに初回指示
-tmux send-keys -t claude-teams.2 "あなたはFrontendチームのBossです。documents/tasks/frontend_tasks.mdを確認して、チームメンバーと連携して認証システムのコンポーネント開発を進めてください。" && sleep 5 && tmux send-keys -t claude-teams.2 Enter
-
-# BackendチームのBossに初回指示
-tmux send-keys -t claude-teams.6 "あなたはBackendチームのBossです。documents/tasks/backend_tasks.mdを確認して、認証APIの実装を進めてください。" && sleep 5 && tmux send-keys -t claude-teams.6 Enter
-```
-
-##### タスク完了後の次タスク指示
-```bash
-# git pullを含む次タスク指示
-tmux send-keys -t claude-teams.2 "git pull origin mainを実行してください。その後、frontend_tasks.mdを確認して、ダッシュボード機能の開発を進めてください。" && sleep 5 && tmux send-keys -t claude-teams.2 Enter
-
-# 緊急タスクの割り込み指示
-tmux send-keys -t claude-teams.10 "セキュリティ脆弱性が発見されました。database_tasks.mdの緊急パッチタスクを最優先で実施してください。" && sleep 5 && tmux send-keys -t claude-teams.10 Enter
-```
-
-#### 2️⃣ Boss → Member への指示
-
-##### 初回メンバー指示
-```bash
-# Member1への具体的タスク割り当て
-tmux send-keys -t claude-teams.3 "あなたはFrontendチームのMemberです。ログインフォームコンポーネントを実装してください。Magic MCPを使用して、モダンなデザインで作成してください。" && sleep 5 && tmux send-keys -t claude-teams.3 Enter
-
-# Member2への並行タスク割り当て
-tmux send-keys -t claude-teams.4 "あなたはFrontendチームのMemberです。パスワードリセット画面を実装してください。Magic MCPを使用してください。" && sleep 4 && tmux send-keys -t claude-teams.4 Enter
-
-# Member3への関連タスク割り当て
-tmux send-keys -t claude-teams.5 "あなたはFrontendチームのMemberです。バリデーション処理とエラーメッセージ表示機能を実装してください。" && sleep 4 && tmux send-keys -t claude-teams.5 Enter
-```
-
-##### タスク完了後の次タスク指示
-```bash
-# 即座に次のタスクを割り当て（指示待ちゼロ）
-tmux send-keys -t claude-teams.3 "ログインフォームのテストも作成済みですね。次はソーシャルログインボタンを追加してください。Google、GitHub、Twitterの3つに対応してください。" && sleep 3 && tmux send-keys -t claude-teams.3 Enter
-```
-
-#### 3️⃣ Member → Boss への報告
-
-##### タスク完了報告
-```bash
-# 正常完了の報告
-tmux send-keys -t claude-teams.2 "ログインフォームコンポーネントの実装が完了しました。tests/e2e/login_test.spec.tsにE2Eテストも作成済みです。レビューをお願いします。" && sleep 2 && tmux send-keys -t claude-teams.2 Enter
-
-# 問題発生時の報告
-tmux send-keys -t claude-teams.2 "バリデーション処理の実装中にAPIとの連携で問題が発生しました。エラーレスポンスの形式が想定と異なります。確認をお願いします。" && sleep 2 && tmux send-keys -t claude-teams.2 Enter
-
-# アイドル状態の即座報告（重要）
-tmux send-keys -t claude-teams.2 "現在アイドル状態です。次のタスクをください。" && sleep 2 && tmux send-keys -t claude-teams.2 Enter
-```
-
-#### 4️⃣ Boss のレビューと対応
-
-##### ✅ レビュー通過の場合
-```bash
-# テスト実行と確認
-tmux send-keys -t claude-teams.2 "npm test tests/e2e/login_test.spec.ts" && sleep 0.1 && tmux send-keys -t claude-teams.2 Enter
-
-# コミット実行（テスト通過後）
-tmux send-keys -t claude-teams.2 "git add . && git commit -m 'feat: ログインフォームコンポーネント実装（テスト含む）'" && sleep 0.1 && tmux send-keys -t claude-teams.2 Enter
-
-# メンバーのセッションクリア
-tmux send-keys -t claude-teams.3 "/clear" && sleep 0.1 && tmux send-keys -t claude-teams.3 Enter
-
-# Masterへの完了報告
-tmux send-keys -t claude-teams.1 "認証システムのUI実装が完了しました。全テスト通過、カバレッジ95%、コミット済みです。" && sleep 2 && tmux send-keys -t claude-teams.1 Enter
-```
-
-##### ❌ 修正が必要な場合
-```bash
-# 具体的な修正指示
-tmux send-keys -t claude-teams.3 "ログインフォームのバリデーションエラー表示が適切ではありません。エラーメッセージをフォームフィールドの下に赤文字で表示するように修正してください。" && sleep 3 && tmux send-keys -t claude-teams.3 Enter
-
-# テスト追加の指示
-tmux send-keys -t claude-teams.4 "パスワードリセット機能のテストが不足しています。メール送信失敗時のエラーハンドリングテストを追加してください。" && sleep 3 && tmux send-keys -t claude-teams.4 Enter
-```
-
-#### 5️⃣ Boss → Master への報告
-
-##### チーム進捗報告
-```bash
-# 定期進捗報告
-tmux send-keys -t claude-teams.1 "【Frontend Team進捗】完了: ログインUI(3/3)、パスワードリセット(2/2)。進行中: ダッシュボード(1/4)。カバレッジ: 92%。" && sleep 2 && tmux send-keys -t claude-teams.1 Enter
-
-# 問題エスカレーション
-tmux send-keys -t claude-teams.1 "【問題報告】BackendチームのAPI仕様変更により、フロントエンドの修正が必要です。影響範囲: 認証関連の全画面。対応時間: 約2時間。" && sleep 3 && tmux send-keys -t claude-teams.1 Enter
-```
-
-#### 6️⃣ Master のマージ処理
-
-##### ✅ マージ成功時
-```bash
-# mainブランチへのマージ
-tmux send-keys -t claude-teams.1 "git checkout main && git merge --no-ff team/frontend -m 'merge: Frontend認証システム実装'" && sleep 0.1 && tmux send-keys -t claude-teams.1 Enter
-
-# タスクファイルの更新（Alpine Linux対応）
-tmux send-keys -t claude-teams.1 "cp documents/tasks/frontend_tasks.md documents/tasks/frontend_tasks.md.bak && sed 's/- \[ \] ログインフォーム/- [x] ログインフォーム (commit: abc123)/' documents/tasks/frontend_tasks.md.bak > documents/tasks/frontend_tasks.md && rm documents/tasks/frontend_tasks.md.bak" && sleep 0.1 && tmux send-keys -t claude-teams.1 Enter
-
-# 次タスクセットの指示
-tmux send-keys -t claude-teams.2 "/clear" && sleep 0.1 && tmux send-keys -t claude-teams.2 Enter
-tmux send-keys -t claude-teams.2 "マージ完了しました。次はダッシュボード機能の実装を進めてください。必ずgit pull origin mainを実行してから開始してください。" && sleep 5 && tmux send-keys -t claude-teams.2 Enter
-```
-
-##### ❌ マージコンフリクト時
-```bash
-# コンフリクト発生の通知
-tmux send-keys -t claude-teams.2 "mainブランチとのマージでコンフリクトが発生しました。src/components/auth/Login.tsxでBackendチームの変更と競合しています。解決してください。" && sleep 4 && tmux send-keys -t claude-teams.2 Enter
-
-# Boss → Member への解決指示
-tmux send-keys -t claude-teams.3 "mainブランチとのコンフリクトを解決する必要があります。src/components/auth/Login.tsxを確認して、両方の変更を適切に統合してください。" && sleep 3 && tmux send-keys -t claude-teams.3 Enter
-
-# 解決後の再マージ
-tmux send-keys -t claude-teams.1 "コンフリクト解決を確認しました。再度マージを実行します。" && sleep 2 && tmux send-keys -t claude-teams.1 Enter
-```
-
-#### 7️⃣ チーム間連携が必要な場合
-
-```bash
-# Master → 複数Bossへの調整指示
-tmux send-keys -t claude-teams.2 "BackendチームのAPI変更に合わせて、認証フローを修正してください。新しいエンドポイントは /api/v2/auth です。" && sleep 5 && tmux send-keys -t claude-teams.2 Enter
-tmux send-keys -t claude-teams.6 "Frontendチームと連携して、API変更の影響を最小限にしてください。移行期間は旧エンドポイントも維持してください。" && sleep 5 && tmux send-keys -t claude-teams.6 Enter
-```
-
-### 📊 タスク管理フロー
-```
-1. Master: documents/tasks/*.md を確認
-2. Master: 未完了タスク（- [ ]）を優先順位付け
-3. Master → Boss: タスク指示
-4. Boss → Members: タスク分配
-5. Members: 実装作業
-6. Members → Boss: 完了報告
-7. Boss: レビュー & コミット
-8. Boss → Master: 完了報告
-9. Master: マージ & タスクファイル更新
-10. ループ: 全タスクが [x] になるまで継続
-```
+1. **Master**: documents/tasks/*.md から未完了タスクを抽出
+2. **Master → Boss**: tmuxコマンドでタスク指示
+3. **Boss → Members**: タスクを分配し、3秒ごとに監視
+4. **Members**: 実装作業（アイドル時は即報告）
+5. **Members → Boss**: 完了/質問/アイドル報告
+6. **Boss**: レビュー & テスト & コミット
+7. **Boss → Master**: チーム進捗報告
+8. **Master**: マージ & タスクファイル更新
+9. **ループ**: 全タスクが [x] になるまで継続
 
 6. Masterは常にBossを監視（無限ループ処理）
    ```
@@ -639,9 +515,14 @@ tmux send-keys -t claude-teams.6 "Frontendチームと連携して、API変更�
    - 各タスク完了時に必ずテストを作成・実行
    - UIタスク: Playwright MCPを使用してE2Eテスト
      ```bash
+     # 重要: 開発サーバーが起動していることを必ず確認
+     # 開発サーバーのポートを確認（Next.js:3000, Vite:5173など）
+     DEV_PORT=3000  # テスト対象アプリのポート番号
+     
      # Playwright MCPサーバー経由でブラウザを操作
-     # 開発サーバーが起動していることを確認してから実行
-     claude mcp mcp__mcp-playwright__browser_navigate --url "http://host.docker.internal:3000"
+     # 注: Playwright MCPサーバーは各tmuxペインごとに30001-30999の範囲で自動割り当て済み
+     # 以下のURLはテスト対象アプリケーションのアドレス
+     claude mcp mcp__mcp-playwright__browser_navigate --url "http://host.docker.internal:${DEV_PORT}"
      claude mcp mcp__mcp-playwright__browser_snapshot
      claude mcp mcp__mcp-playwright__browser_click --element "Login button" --ref "button[type=submit]"
      claude mcp mcp__mcp-playwright__browser_take_screenshot --filename "login-test.png"
@@ -667,13 +548,13 @@ tmux send-keys -t claude-teams.6 "Frontendチームと連携して、API変更�
    cargo test        # Rust
    
    # 全テスト通過後、活動ログを作成してからコミット
-   # 1. 活動ログディレクトリを作成
-   mkdir -p documents/activity_logs
+   # 1. 活動ログディレクトリを作成（プロジェクト内）
+   mkdir -p /workspace/documents/activity_logs
    
    # 2. タイムスタンプを生成（形式: yyyy-mm-dd_HH-MM-SS）
    TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
    WORK_DESC="implement-auth-system"  # 作業内容を簡潔に記述（kebab-case）
-   LOG_FILE="documents/activity_logs/${TIMESTAMP}_${WORK_DESC}.md"
+   LOG_FILE="/workspace/documents/activity_logs/${TIMESTAMP}_${WORK_DESC}.md"
    
    # 3. 活動ログを作成
    cat > "$LOG_FILE" << 'EOF'
@@ -738,51 +619,6 @@ tmux send-keys -t claude-teams.6 "Frontendチームと連携して、API変更�
 13. 12まで完了した時に`git push`を行いobsidianにメモを作成し、lineに通知を行う
 ```
 
-#### コミュニケーションフローの例
-
-```
-Master: "Frontend Teamのboss、認証システムの実装を開始してください"
-（Masterは監視ループ継続中...）
-↓
-Frontend Boss: "了解しました。メンバーにタスクを割り当てます"
-
-Master: （監視中 - 5秒後） "Frontend Bossのステータス: タスク割り当て中。問題なし。"
-↓
-Frontend Boss → Member1: "ログインフォームのUI実装をお願いします"
-Frontend Boss → Member2: "バリデーション処理を実装してください"
-Frontend Boss → Member3: "エラーメッセージ表示機能を実装してください"
-
-Boss: （監視ループ - 3秒後） "全メンバーのステータス確認中..."
-↓
-Member1 → Boss: "ログインフォーム完成しました。テストも作成済みです。レビューお願いします"
-
-Boss: （監視ループで即検知） "Member1のタスク完了を検知。次のタスクを即座に割り当て"
-Boss: "テストを実行して確認します... （プロジェクトのテストコマンドを実行）"
-Boss: "テスト通過確認。次はパスワードリセット画面を実装してください"
-（指示待ちゼロ、Member1に即座に次タスク）
-
-Member2 → Boss: "質問があります。バリデーションのエラーメッセージはどのように表示しますか？"
-Boss: （監視ループで即検知） "エラーメッセージはトースト通知で表示してください"
-
-Member3 → Boss: "アイドル状態になりました。次のタスクをください"
-Boss: （監視ループで即検知） "メール認証フロー実装をお願いします"
-
-Master: （監視中 - 即検知） "Frontend Bossの活発な管理を確認。問題なし。"
-↓
-Frontend Boss → Master: "認証システムの基本機能完了しました。全テスト通過確認済み。コミット準備OKです"
-
-Master: （監視ループで即検知） "報告受領。コミット許可。次のタスクセットを準備済みです"
-Master: "テストカバレッジを確認... 了解。コミットしてください"
-↓
-Frontend Boss: 
-"（プロジェクトのテストコマンドを実行） # npm test / pytest / go test 等"
-"git add ."
-"git commit -m 'feat: 認証システムのUI実装完了（テスト含む）'"
-↓
-Master: "テストカバレッジ確認。メインブランチにマージします"
-Master: "次はダッシュボード機能を実装してください"
-（Masterは監視ループを継続し、各Bossの状態を5秒ごとにチェック）
-```
 
 #### タスク管理のベストプラクティス
 - **実現可能性重視**: 既存技術で確実に実装できるもののみ
@@ -796,6 +632,193 @@ Master: "次はダッシュボード機能を実装してください"
 - **プロアクティブ管理**: タスク完了前に次のタスクを準備
 - **確認体制徹底**: メンバー→Boss、Boss→Masterの確認フロー
 - **テスト必須**: 各タスク完了時にテスト作成・実行が必須
+
+## 🛠️ プロジェクトタイプ検出と動的ツールインストール
+
+### 自動検出とツール選定
+
+プロジェクトの種類を自動的に検出し、必要なデプロイツールを動的にインストールします。
+
+#### Webプロジェクトの場合
+
+```bash
+# package.jsonから使用フレームワークを検出
+if [ -f package.json ]; then
+  # Next.js検出
+  if grep -q "next" package.json; then
+    echo "Next.jsプロジェクトを検出 → Vercel CLIをインストール"
+    npm install -g vercel
+    
+    # デプロイコマンド例
+    # vercel --prod
+  fi
+  
+  # Remix検出
+  if grep -q "@remix-run" package.json; then
+    echo "Remixプロジェクトを検出 → Fly.io CLIをインストール"
+    curl -L https://fly.io/install.sh | sh
+    
+    # デプロイコマンド例
+    # fly deploy
+  fi
+  
+  # Vite/Vue/React（静的サイト）検出
+  if grep -q "vite\|vue\|react" package.json && ! grep -q "next\|remix" package.json; then
+    echo "静的サイトを検出 → Netlify CLIをインストール"
+    npm install -g netlify-cli
+    
+    # デプロイコマンド例
+    # netlify deploy --prod
+  fi
+  
+  # Nuxt検出
+  if grep -q "nuxt" package.json; then
+    echo "Nuxtプロジェクトを検出 → Vercel/Netlify CLIをインストール"
+    npm install -g vercel netlify-cli
+  fi
+fi
+
+# Python Webフレームワーク検出
+if [ -f requirements.txt ] || [ -f pyproject.toml ]; then
+  if grep -q "django\|flask\|fastapi" requirements.txt pyproject.toml 2>/dev/null; then
+    echo "Python Webプロジェクトを検出 → Railway CLIをインストール"
+    npm install -g @railway/cli
+    
+    # デプロイコマンド例
+    # railway up
+  fi
+fi
+```
+
+#### モバイルアプリの場合
+
+```bash
+# React Native検出
+if [ -f package.json ] && grep -q "react-native" package.json; then
+  # Expo使用確認
+  if grep -q "expo" package.json; then
+    echo "React Native + Expoプロジェクトを検出"
+    npm install -g expo-cli eas-cli
+    echo "✅ Expo & EAS CLI installed"
+  else
+    echo "React Nativeプロジェクトを検出"
+    # React Native CLIなど必要なツールをインストール
+  fi
+fi
+
+# Flutter検出（将来的な対応のため）
+if [ -f pubspec.yaml ]; then
+  echo "Flutterプロジェクトを検出"
+  # 必要なツールをインストール
+fi
+```
+
+### プロジェクトタイプ別推奨ツール
+
+#### Webプロジェクト
+
+| フレームワーク | デプロイ先 | CLIツール | インストールコマンド |
+|--------------|-----------|----------|------------------|
+| Next.js | Vercel | vercel | `npm i -g vercel` |
+| Remix | Fly.io | flyctl | `curl -L https://fly.io/install.sh \| sh` |
+| Nuxt | Vercel/Netlify | vercel/netlify | `npm i -g vercel netlify-cli` |
+| Vite/React/Vue | Netlify/Vercel | netlify/vercel | `npm i -g netlify-cli vercel` |
+| SvelteKit | Vercel/Netlify | vercel/netlify | `npm i -g vercel netlify-cli` |
+| Astro | Netlify/Vercel | netlify/vercel | `npm i -g netlify-cli vercel` |
+| Django/Flask | Railway/Render | railway | `npm i -g @railway/cli` |
+| Laravel | Forge/Vapor | vapor | `composer global require laravel/vapor-cli` |
+| Rails | Heroku/Render | heroku | `curl https://cli-assets.heroku.com/install.sh \| sh` |
+
+#### モバイルアプリ
+
+| フレームワーク | ビルド/配信 | CLIツール | インストールコマンド |
+|--------------|-----------|----------|------------------|
+| React Native + Expo | EAS Build | expo-cli, eas-cli | `npm i -g expo-cli eas-cli` |
+| React Native | React Native CLI | react-native | `npm i -g react-native` |
+| Flutter | Flutter CLI | flutter | `適切なインストール方法` |
+
+### 自動セットアップスクリプト
+
+プロジェクト作成時に自動的に実行されるセットアップ：
+
+```bash
+#!/bin/bash
+# /opt/claude-system/scripts/setup-deploy-tools.sh
+
+detect_and_install_tools() {
+  echo "🔍 プロジェクトタイプを検出中..."
+  
+  # Web Framework Detection
+  if [ -f package.json ]; then
+    if grep -q '"next"' package.json; then
+      echo "📦 Next.js detected → Installing Vercel CLI"
+      npm install -g vercel
+      echo "✅ Vercel CLI installed. Deploy with: vercel --prod"
+    elif grep -q '"@remix-run"' package.json; then
+      echo "📦 Remix detected → Installing Fly.io CLI"
+      curl -L https://fly.io/install.sh | sh
+      echo "✅ Fly CLI installed. Deploy with: fly deploy"
+    elif grep -q '"nuxt"' package.json; then
+      echo "📦 Nuxt detected → Installing deployment CLIs"
+      npm install -g vercel netlify-cli
+      echo "✅ Deploy with: vercel --prod or netlify deploy --prod"
+    fi
+  fi
+  
+  # Mobile Framework Detection
+  if [ -f package.json ] && grep -q '"react-native"' package.json; then
+    if grep -q '"expo"' package.json; then
+      echo "📱 React Native + Expo detected → Installing Expo/EAS CLI"
+      npm install -g expo-cli eas-cli
+      echo "✅ Expo & EAS CLI installed"
+      echo "   Development: expo start"
+      echo "   Build: eas build --platform all"
+      echo "   Submit: eas submit"
+    else
+      echo "📱 React Native detected → Installing React Native CLI"
+      npm install -g react-native-cli
+      echo "✅ React Native CLI installed"
+    fi
+  fi
+  
+  # Flutter Detection (for future support)
+  if [ -f pubspec.yaml ]; then
+    echo "📱 Flutter detected"
+    # Flutter specific tools installation
+  fi
+}
+
+# 実行
+detect_and_install_tools
+```
+
+### 使用例
+
+```bash
+# プロジェクト作成後、自動的にツールがインストールされる
+cd /workspace
+
+# 手動で再検出・インストール
+/opt/claude-system/scripts/setup-deploy-tools.sh
+
+# デプロイ実行例（Next.js）
+vercel --prod
+
+# デプロイ実行例（React Native）
+eas build --platform all
+eas submit
+```
+
+### 注意事項
+
+1. **認証情報**: 各CLIツールは初回使用時に認証が必要
+2. **環境変数**: `.env`ファイルで以下を設定可能
+   - `VERCEL_TOKEN`
+   - `NETLIFY_AUTH_TOKEN`
+   - `FLY_API_TOKEN`
+   - `EXPO_TOKEN`
+
+3. **自動デプロイ**: CI/CD設定は各プロジェクトで個別に行う
 
 ## 💻 開発原則
 
@@ -870,9 +893,12 @@ function exampleFunction(param) {
 5. **テスト実行コマンド（言語別）**
    ```bash
    # Playwright MCP経由でE2Eテスト
-   # 開発サーバーが起動していることを確認（例: npm run dev）
-   # その後、MCP経由でブラウザを操作:
-   claude mcp mcp__mcp-playwright__browser_navigate --url "http://host.docker.internal:3000"
+   # 重要: 開発サーバーが起動していることを必ず確認
+   # 1. 開発サーバー起動: npm run dev (別ペインで実行)
+   # 2. ポート確認: 通常3000, Viteは5173, カスタムポートの場合は要確認
+   # 3. Playwright MCPサーバー自体は30001-30999ポートで自動起動済み
+   # 4. MCP経由でブラウザを操作してテスト対象アプリにアクセス:
+   claude mcp mcp__mcp-playwright__browser_navigate --url "http://host.docker.internal:[DEV_PORT]"
    claude mcp mcp__mcp-playwright__browser_snapshot
    # 各テストステップをMCPコマンドで実行
    
@@ -907,6 +933,24 @@ function exampleFunction(param) {
 3. **DX**: 開発体験の良さ
 4. **性能**: ベンチマーク結果
 5. **保守性**: 長期的なメンテナンス
+
+### 新技術への対応方針
+
+1. **定期的な技術調査**
+   - プロジェクト開始時に必ず最新技術を調査
+   - 過去の選択にとらわれない
+
+2. **評価基準**
+   - 安定性（stable release）
+   - コミュニティの活発さ
+   - エコシステムの充実度
+   - パフォーマンス指標
+   - 開発者体験
+
+3. **採用決定**
+   - 新技術が既存技術を明確に上回る場合は採用
+   - 「いつも使っているから」という理由での技術選定は禁止
+   - その時点のベストプラクティスを採用
 
 
 ## 📊 プロジェクトタイプ別チーム構成
@@ -945,8 +989,12 @@ npm run dev
 # 必ず終了: Ctrl+C
 
 # Playwright MCPを使用したE2Eテスト
-# 開発サーバーを起動してから実行:
-claude mcp mcp__mcp-playwright__browser_navigate --url "http://host.docker.internal:3000"
+# 重要: 開発サーバーが起動していることを必ず確認
+# 1. 開発サーバー起動（別ペイン）: npm run dev
+# 2. 開発サーバーのポート確認（DEV_PORTはテスト対象アプリのポート）:
+DEV_PORT=3000  # Next.js:3000, Vite:5173, その他フレームワークに応じて変更
+# 3. Playwright MCPを使ってテスト対象アプリにアクセス:
+claude mcp mcp__mcp-playwright__browser_navigate --url "http://host.docker.internal:${DEV_PORT}"
 claude mcp mcp__mcp-playwright__browser_snapshot
 claude mcp mcp__mcp-playwright__browser_type --element "Email input" --ref "input[name='email']" --text "test@example.com"
 claude mcp mcp__mcp-playwright__browser_type --element "Password input" --ref "input[name='password']" --text "password"

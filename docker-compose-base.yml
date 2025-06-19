@@ -27,10 +27,10 @@ services:
       # Git設定をホストから引き継ぎ
       - ~/.gitconfig:/home/developer/.gitconfig:ro
       - ~/.ssh:/home/developer/.ssh:ro
-      
+
       # Claude設定を直接マウント（読み書き可能）
       - ~/.claude:/home/developer/.claude
-      
+
       # bash履歴は名前付きボリュームとしてマウント
       - bash_history:/home/developer/.bash_history
       # zデータはファイルではなくディレクトリとしてマウント
@@ -47,15 +47,14 @@ services:
     tty: true
     restart: unless-stopped
 
-    # リソース制限の設定（Master Claude使用時は増やす）
     deploy:
       resources:
         limits:
           memory: 8G
-          cpus: '4.0'
+          cpus: "4.0"
         reservations:
           memory: 4G
-          cpus: '2.0'
+          cpus: "2.0"
 
     # カスタムネットワーク使用（コンテナ間通信用）
     networks:
@@ -63,10 +62,11 @@ services:
     # ホストのMCPサーバーにアクセスするため
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    
-    # Playwright MCPサーバー用のポート範囲を開放
+
+    # ポート範囲を開放
     ports:
-      - "30000-30999:30000-30999"
+      - "30000-30999:30000-30999"  # Playwright MCPサーバー用
+      - "3000-9999:3000-9999"      # 開発サーバー用（各種フレームワーク対応）
 
     # ホストのネットワークモードを使用（MCPサーバー接続用）
     # network_mode: "host"  # 必要に応じてコメントアウトを外す
@@ -78,7 +78,7 @@ volumes:
   bash_history:
     name: ${PROJECT_NAME}_bash_history
     external: true
-  # zディレクトリジャンプ用ボリューム  
+  # zディレクトリジャンプ用ボリューム
   z_data:
     name: ${PROJECT_NAME}_z
     external: true
