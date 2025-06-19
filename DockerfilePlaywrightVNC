@@ -1,0 +1,107 @@
+FROM node:22-alpine
+
+# VNCとX11環境をインストール
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    curl \
+    x11vnc \
+    xvfb \
+    fluxbox \
+    novnc \
+    websockify \
+    supervisor \
+    bash \
+    sudo && \
+    # パッケージキャッシュをクリーンアップ
+    rm -rf /var/cache/apk/*
+
+# Playwrightの依存関係をインストール
+RUN npm install -g @playwright/mcp@latest && \
+    npm cache clean --force
+
+# VNC用のディレクトリとパスワード設定
+RUN mkdir -p /home/playwright/.vnc && \
+    x11vnc -storepasswd playwright /home/playwright/.vnc/passwd && \
+    chown -R playwright:playwright /home/playwright/.vnc
+
+# Supervisorの設定
+RUN mkdir -p /etc/supervisor.d && \
+    cat > /etc/supervisor.d/supervisord.ini << 'EOF'
+[supervisord]
+nodaemon=true
+user=root
+
+[program:xvfb]
+command=/usr/bin/Xvfb :99 -screen 0 1920x1080x24
+autorestart=true
+priority=1
+user=playwright
+
+[program:x11vnc]
+command=/usr/bin/x11vnc -display :99 -forever -shared -rfbport 5900 -rfbauth /home/playwright/.vnc/passwd
+autorestart=true
+priority=2
+user=playwright
+
+[program:fluxbox]
+command=/usr/bin/fluxbox -display :99
+autorestart=true
+priority=3
+user=playwright
+
+[program:novnc]
+command=/usr/bin/websockify --web=/usr/share/novnc 6080 localhost:5900
+autorestart=true
+priority=4
+user=playwright
+
+[program:playwright-mcp]
+command=/usr/local/bin/npx @playwright/mcp --port 8931
+autorestart=true
+priority=5
+environment=DISPLAY=":99"
+user=playwright
+EOF
+
+# 環境変数設定
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV DISPLAY=:99
+
+# ポート8931（Playwright MCP）、5900（VNC）、6080（noVNC）を公開
+EXPOSE 8931 5900 6080
+
+# ヘルスチェック（起動時間を考慮して開始期間を延長）
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:8931/health || curl -f http://localhost:6080 || exit 1
+
+# 起動スクリプト
+RUN cat > /start.sh << 'EOF'
+#!/bin/sh
+echo "======================================"
+echo "Playwright MCP with VNC Support"
+echo "======================================"
+echo "VNC Password: playwright"
+echo "VNC Port: 5900"
+echo "Web VNC: http://localhost:6080/vnc.html"
+echo "Playwright MCP: http://localhost:8931"
+echo "======================================"
+
+# ディレクトリの権限を確認・修正
+chown -R playwright:playwright /home/playwright
+chmod 755 /home/playwright
+
+exec /usr/bin/supervisord -c /etc/supervisor.d/supervisord.ini
+EOF
+
+RUN chmod +x /start.sh
+
+# 非rootユーザーに切り替え（supervisordはrootで起動する必要があるため、CMDでは切り替えない）
+CMD ["/start.sh"]

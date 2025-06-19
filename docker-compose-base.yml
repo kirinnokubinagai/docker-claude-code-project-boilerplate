@@ -63,10 +63,13 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-    # ポート範囲を開放
+    # ポート範囲を開放（動的に割り当て）
     ports:
-      - "30000-30999:30000-30999"  # Playwright MCPサーバー用
-      - "3000-9999:3000-9999"      # 開発サーバー用（各種フレームワーク対応）
+      - "${PLAYWRIGHT_PORT_RANGE:-30000-30999}:30000-30999"  # Playwright MCPサーバー用
+      - "${VNC_PORT_RANGE:-40000-40999}:40000-40999"  # Playwright VNC用（オプション）
+      - "${WEBVNC_PORT_RANGE:-50000-50999}:50000-50999"  # Playwright Web VNC用（オプション）
+      # 開発サーバーのポートは公開不要（コンテナ内でのみアクセス）
+      # 必要な場合は個別にdocker-compose.override.ymlで追加
 
     # ホストのネットワークモードを使用（MCPサーバー接続用）
     # network_mode: "host"  # 必要に応じてコメントアウトを外す

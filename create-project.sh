@@ -39,14 +39,86 @@ create_project() {
             echo "コンテナ '$CONTAINER_NAME' に接続中..."
             docker exec -it -u developer "$CONTAINER_NAME" bash
         else
+            # 停止中のコンテナがあるか確認
+            if docker ps -a --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
+                echo "停止中のコンテナを検出しました。"
+                echo "オプションを選択してください:"
+                echo "1) 既存のコンテナを削除して新規作成"
+                echo "2) 既存のコンテナを再起動"
+                echo "3) キャンセル"
+                read -p "選択 (1-3): " choice
+                
+                case $choice in
+                    1)
+                        echo "既存のコンテナを削除中..."
+                        docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+                        # 新規作成フローへ
+                        ;;
+                    2)
+                        echo "既存のコンテナを再起動中..."
+                        cd "$PROJECT_DIR"
+                        docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
+                        
+                        # コンテナが起動するまで待機
+                        echo "コンテナの起動を待機中..."
+                        while ! docker ps --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; do
+                            sleep 1
+                        done
+                        
+                        echo "コンテナ '$CONTAINER_NAME' に接続中..."
+                        docker exec -it -u developer "$CONTAINER_NAME" bash
+                        return 0
+                        ;;
+                    3)
+                        echo "キャンセルしました"
+                        return 0
+                        ;;
+                    *)
+                        echo "無効な選択です"
+                        return 1
+                        ;;
+                esac
+            fi
+            
             echo "コンテナが起動していません。起動します..."
             cd "$PROJECT_DIR"
+            
+            # 必要なボリュームが存在するか確認し、なければ作成
+            if ! docker volume ls -q | grep -q "^${PROJECT_NAME}_bash_history$"; then
+                echo "ボリュームを作成中: ${PROJECT_NAME}_bash_history"
+                docker volume create "${PROJECT_NAME}_bash_history"
+            fi
+            if ! docker volume ls -q | grep -q "^${PROJECT_NAME}_z$"; then
+                echo "ボリュームを作成中: ${PROJECT_NAME}_z"
+                docker volume create "${PROJECT_NAME}_z"
+            fi
+            
             docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
+            
+            # エラーチェック
+            if [ $? -ne 0 ]; then
+                echo ""
+                echo "エラー: コンテナの起動に失敗しました"
+                echo "考えられる原因:"
+                echo "- ポートが既に使用されている"
+                echo "- Dockerリソースが不足している"
+                echo ""
+                echo "以下のコマンドで既存のコンテナを確認してください:"
+                echo "  docker ps -a | grep ${PROJECT_NAME}"
+                return 1
+            fi
             
             # コンテナが起動するまで待機
             echo "コンテナの起動を待機中..."
+            local wait_count=0
             while ! docker ps --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; do
                 sleep 1
+                wait_count=$((wait_count + 1))
+                if [ $wait_count -gt 30 ]; then
+                    echo "エラー: コンテナの起動がタイムアウトしました"
+                    echo "docker logs $CONTAINER_NAME で詳細を確認してください"
+                    return 1
+                fi
             done
             
             echo "コンテナ '$CONTAINER_NAME' に接続中..."
@@ -88,14 +160,24 @@ CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR
 # ==============================================
 EOF
     
-    # Playwright MCPポートを自動割り当て（8931から順番に空いているポートを探す）
-    echo "Playwright MCPの利用可能なポートを検索中..."
-    PLAYWRIGHT_PORT=8931
-    while lsof -Pi :$PLAYWRIGHT_PORT -sTCP:LISTEN -t >/dev/null 2>&1; do
-        PLAYWRIGHT_PORT=$((PLAYWRIGHT_PORT + 1))
-    done
-    echo "  → ポート $PLAYWRIGHT_PORT を使用します"
-    echo "PLAYWRIGHT_MCP_PORT=$PLAYWRIGHT_PORT" >> .env
+    # 空いているポート範囲を自動検出
+    echo "利用可能なポート範囲を検索中..."
+    PORT_RANGES=$("$CLAUDE_PROJECT_DIR/docker-base/scripts/find-free-port-range.sh")
+    eval "$PORT_RANGES"
+    
+    echo "  → 以下のポート範囲を使用します："
+    echo "    Playwright MCP: $PLAYWRIGHT_PORT_RANGE"
+    echo "    VNC: $VNC_PORT_RANGE"
+    echo "    Web VNC: $WEBVNC_PORT_RANGE"
+    
+    # ポート範囲を.envに保存
+    cat >> .env << EOF
+
+# Dynamic port ranges (auto-detected)
+PLAYWRIGHT_PORT_RANGE=$PLAYWRIGHT_PORT_RANGE
+VNC_PORT_RANGE=$VNC_PORT_RANGE
+WEBVNC_PORT_RANGE=$WEBVNC_PORT_RANGE
+EOF
     
     # プロジェクト固有の環境変数用のセクションを追加
     cat >> .env << 'EOF'
@@ -114,6 +196,18 @@ EOF
     if [ -f "$CLAUDE_PROJECT_DIR/.env" ]; then
         echo "MCPサービスの認証情報をコピー中..."
         cp "$CLAUDE_PROJECT_DIR/.env" .env.mcp
+        
+        # コピーが成功したか確認
+        if [ -f ".env.mcp" ]; then
+            echo "  → .env.mcpファイルが正常にコピーされました"
+            # ファイルサイズを確認
+            ls -la .env.mcp
+        else
+            echo "  → 警告: .env.mcpファイルのコピーに失敗しました"
+        fi
+    else
+        echo "警告: $CLAUDE_PROJECT_DIR/.env が見つかりません"
+        echo "MCPサービスを利用する場合は、後で手動で設定してください"
     fi
     
     # .dockerignoreファイルは不要（docker-compose-base.ymlはCLAUDE_PROJECT_DIRから読み込むため）
@@ -124,8 +218,13 @@ EOF
     git init
     git commit --allow-empty -m "Initial commit"
     
+    # 必要なDockerボリュームを作成
+    echo "8. Dockerボリュームを作成中..."
+    docker volume create "${PROJECT_NAME}_bash_history" || true
+    docker volume create "${PROJECT_NAME}_z" || true
+    
     # Docker Composeを起動（ビルドログを表示）
-    echo "8. Docker Composeを起動中..."
+    echo "9. Docker Composeを起動中..."
     echo "==============================================="
     echo "📦 Dockerイメージをビルド中..."
     echo "（初回は時間がかかる場合があります）"
@@ -145,16 +244,10 @@ EOF
     docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d claude-code
     
     echo ""
-    echo "📦 Playwright MCPサーバーを起動中..."
-    echo "（ARM64対応版をビルドします）"
-    
-    # Playwright MCPを後から起動
-    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d playwright-mcp
-    
     echo "==============================================="
     
     # コンテナが起動するまで待機
-    echo "9. コンテナの起動を待機中..."
+    echo "10. コンテナの起動を待機中..."
     CONTAINER_NAME="claude-code-${PROJECT_NAME}"
     
     local dot_count=0
@@ -194,7 +287,7 @@ EOF
     done
     
     # developerユーザーでコンテナに入る
-    echo "10. コンテナに接続中..."
+    echo "11. コンテナに接続中..."
     echo ""
     echo "==============================================="
     echo "プロジェクト '$PROJECT_NAME' の作成が完了しました！"

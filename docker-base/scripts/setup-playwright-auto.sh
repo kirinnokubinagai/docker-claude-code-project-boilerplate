@@ -19,17 +19,26 @@ SESSION_NAME=$(tmux display-message -p '#S')
 PANE_INDEX=$(tmux display-message -p '#P')
 WINDOW_INDEX=$(tmux display-message -p '#I')
 
-# ユニークなポートを生成（30001-30999の範囲）
+# 環境変数からポート範囲を取得（デフォルトは30000-30999）
+PLAYWRIGHT_PORT_RANGE=${PLAYWRIGHT_PORT_RANGE:-"30000-30999"}
+PORT_BASE=${PLAYWRIGHT_PORT_RANGE%%\-*}
+PORT_MAX=${PLAYWRIGHT_PORT_RANGE##*\-}
+PORT_RANGE_SIZE=$((PORT_MAX - PORT_BASE + 1))
+
+# デフォルト値の設定
+PORT_BASE=${PORT_BASE:-30000}
+PORT_BASE=$((PORT_BASE + 1))  # 30001から開始
+
+# ユニークなポートを生成
 # ウィンドウとペインの組み合わせでユニークにする
-PORT_BASE=30001
 PORT_OFFSET=$((WINDOW_INDEX * 100 + PANE_INDEX))
 PLAYWRIGHT_MCP_PORT=$((PORT_BASE + PORT_OFFSET))
 
 # ポートが範囲内か確認
-if [ $PLAYWRIGHT_MCP_PORT -gt 30999 ]; then
+if [ $PLAYWRIGHT_MCP_PORT -gt $PORT_MAX ]; then
     # 範囲を超えた場合はハッシュを使用
     PORT_HASH=$(echo -n "${SESSION_NAME}${WINDOW_INDEX}${PANE_INDEX}" | cksum | cut -d' ' -f1)
-    PLAYWRIGHT_MCP_PORT=$((30001 + (PORT_HASH % 999)))
+    PLAYWRIGHT_MCP_PORT=$((PORT_BASE + (PORT_HASH % (PORT_RANGE_SIZE - 1))))
 fi
 
 echo -e "${GREEN}[INFO]${NC} Playwright MCP設定:"

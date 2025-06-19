@@ -34,20 +34,49 @@ start_playwright_container() {
         return 1
     fi
     
+    # VNCサポートの有無を確認
+    local use_vnc="${PLAYWRIGHT_VNC_ENABLED:-false}"
+    local image_name="playwright-mcp:latest"
+    local dockerfile="${CLAUDE_PROJECT_DIR}/DockerfilePlaywright"
+    
+    if [ "$use_vnc" = "true" ]; then
+        image_name="playwright-mcp-vnc:latest"
+        dockerfile="${CLAUDE_PROJECT_DIR}/DockerfilePlaywrightVNC"
+        echo -e "${BLUE}[INFO]${NC} VNCサポートを有効化"
+    fi
+    
     # イメージをビルド（キャッシュを使用）
     echo -e "${BLUE}[INFO]${NC} Dockerイメージをビルド中..."
-    if ! docker build -t playwright-mcp:latest -f "${CLAUDE_PROJECT_DIR}/DockerfilePlaywright" "${CLAUDE_PROJECT_DIR}" >/dev/null 2>&1; then
+    if ! docker build -t "$image_name" -f "$dockerfile" "${CLAUDE_PROJECT_DIR}" >/dev/null 2>&1; then
         echo -e "${RED}[ERROR]${NC} Dockerイメージのビルドに失敗しました"
         return 1
     fi
     
+    # VNCポートの計算
+    local docker_run_cmd="docker run -d --name $container_name --network $NETWORK_NAME -p ${port}:8931"
+    
+    if [ "$use_vnc" = "true" ]; then
+        # 環境変数からベースポートを取得（デフォルトは元の値）
+        local playwright_base=${PLAYWRIGHT_PORT_RANGE%%\-*}
+        local vnc_base=${VNC_PORT_RANGE%%\-*}
+        local webvnc_base=${WEBVNC_PORT_RANGE%%\-*}
+        
+        # デフォルト値の設定
+        playwright_base=${playwright_base:-30000}
+        vnc_base=${vnc_base:-40000}
+        webvnc_base=${webvnc_base:-50000}
+        
+        # ポートオフセットを計算
+        local offset=$((port - playwright_base))
+        local vnc_port=$((vnc_base + offset))
+        local webvnc_port=$((webvnc_base + offset))
+        docker_run_cmd="$docker_run_cmd -p ${vnc_port}:5900 -p ${webvnc_port}:6080"
+    fi
+    
+    docker_run_cmd="$docker_run_cmd --restart unless-stopped $image_name"
+    
     # コンテナを起動
-    if docker run -d \
-        --name "$container_name" \
-        --network "$NETWORK_NAME" \
-        -p "${port}:8931" \
-        --restart unless-stopped \
-        playwright-mcp:latest >/dev/null 2>&1; then
+    if eval "$docker_run_cmd" >/dev/null 2>&1; then
         
         # 起動確認
         echo -e "${BLUE}[INFO]${NC} コンテナの起動を確認中..."
@@ -56,6 +85,28 @@ start_playwright_container() {
                 echo -e "${GREEN}[SUCCESS]${NC} Playwright MCPコンテナが起動しました"
                 echo "  内部URL: http://${container_name}:8931/sse"
                 echo "  外部URL: http://host.docker.internal:${port}/sse"
+                
+                if [ "$use_vnc" = "true" ]; then
+                    # 環境変数からベースポートを取得（デフォルトは元の値）
+                    local playwright_base=${PLAYWRIGHT_PORT_RANGE%%\-*}
+                    local vnc_base=${VNC_PORT_RANGE%%\-*}
+                    local webvnc_base=${WEBVNC_PORT_RANGE%%\-*}
+                    
+                    # デフォルト値の設定
+                    playwright_base=${playwright_base:-30000}
+                    vnc_base=${vnc_base:-40000}
+                    webvnc_base=${webvnc_base:-50000}
+                    
+                    # ポートオフセットを計算
+                    local offset=$((port - playwright_base))
+                    local vnc_port=$((vnc_base + offset))
+                    local webvnc_port=$((webvnc_base + offset))
+                    echo ""
+                    echo -e "${GREEN}[VNC]${NC} ブラウザ画面を確認できます:"
+                    echo "  Web UI: http://localhost:${webvnc_port}/vnc.html"
+                    echo "  VNC: vnc://localhost:${vnc_port} (パスワード: playwright)"
+                fi
+                
                 return 0
             fi
             sleep 1

@@ -155,8 +155,9 @@ if [ ! -z "$ENV_VARS" ]; then
     export $ENV_VARS
 fi
 
-# setup-mcp.sh内でも環境変数を読み込むが、suコマンドで環境変数が引き継がれるように
-su developer -c "export $ENV_VARS && /opt/claude-system/scripts/setup-mcp.sh" || {
+# MCPサーバーを設定（developerユーザーとして実行）
+echo "[INFO] MCPサーバーを設定中..."
+su - developer -c "cd /workspace && /opt/claude-system/scripts/setup-mcp.sh" || {
     echo "[WARNING] MCP設定に失敗しましたが、続行します..."
 }
 
