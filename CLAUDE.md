@@ -280,8 +280,8 @@ When making commits using Claude Code, follow this process to maintain activity 
 
 1. **Before committing**, create an activity log file:
    ```bash
-   # Create documents/activity_logs directory if it doesn't exist
-   mkdir -p documents/activity_logs
+   # Create activity_logs directory in project root if it doesn't exist
+   mkdir -p activity_logs
    
    # Create activity log with timestamp
    # Format: yyyy-mm-dd_HH-MM-SS_work-description.md
@@ -331,7 +331,7 @@ When making commits using Claude Code, follow this process to maintain activity 
    # 4. Commit with descriptive message
    git commit -m "feat: [description]
    
-   📝 Activity log: documents/activity_logs/[filename]
+   📝 Activity log: activity_logs/[filename]
    
    🤖 Generated with Claude Code
    Co-Authored-By: Claude <noreply@anthropic.com>"
