@@ -283,10 +283,10 @@
    
    # worktreeディレクトリを作成
    mkdir -p worktrees
-   git worktree add worktrees/team-frontend team/frontend
-   git worktree add worktrees/team-backend team/backend
-   git worktree add worktrees/team-database team/database
-   git worktree add worktrees/team-devops team/devops
+   git worktree add worktrees/frontend team/frontend
+   git worktree add worktrees/backend team/backend
+   git worktree add worktrees/database team/database
+   git worktree add worktrees/devops team/devops
    
    # 確認
    git worktree list
@@ -296,43 +296,74 @@
 
 ### teams.json作成の具体例（厳守）
 
-**重要: 以下のコマンドをそのままコピー＆ペーストして実行**
+**重要: プロジェクトタイプと規模に応じてチーム構成を調整**
 
 ```bash
-# 実際の作成コマンド例（Webアプリの場合）
-# このコマンドを実行すると teams.json が作成されます
+# teams.json作成コマンド
+# 注意: チーム構成とメンバー数は実際のプロジェクト要件に合わせて調整すること
 cat > documents/teams.json << 'EOF'
 {
-  "project_name": "YourProjectName",
-  "project_type": "web-app",
+  "project_name": "実際のプロジェクト名",
+  "project_type": "プロジェクトタイプ（web-app/mobile/ai/blockchain等）",
   "teams": [
-    {
-      "id": "frontend",
-      "name": "Frontend Team",
-      "member_count": 4,
-      "branch": "team/frontend"
-    },
-    {
-      "id": "backend",
-      "name": "Backend Team",
-      "member_count": 4,
-      "branch": "team/backend"
-    },
-    {
-      "id": "database",
-      "name": "Database Team",
-      "member_count": 3,
-      "branch": "team/database"
-    },
-    {
-      "id": "devops",
-      "name": "DevOps Team",
-      "member_count": 3,
-      "branch": "team/devops"
-    }
+    # ここに実際のチーム構成を記載
+    # 例:
+    # - Webアプリ: frontend(4), backend(4), database(3), devops(3)
+    # - モバイルアプリ: mobile(4), backend(4), devops(3)
+    # - AIプロダクト: ai(4), backend(4), frontend(4), data(4)
+    # - シンプルなサイト: frontend(3), backend(2)
+    # 
+    # 各チームの形式:
+    # {
+    #   "id": "チームID（英小文字）",
+    #   "name": "チーム表示名",
+    #   "member_count": メンバー数（1-4）,
+    #   "branch": "team/チームID"
+    # }
   ]
 }
 EOF
+
+# よく使われる構成例:
+
+# 【Webアプリケーション（フルスタック）】
+cat > documents/teams.json << 'EOF'
+{
+  "project_name": "プロジェクト名を入力",
+  "project_type": "web-app",
+  "teams": [
+    {"id": "frontend", "name": "Frontend Team", "member_count": 4, "branch": "team/frontend"},
+    {"id": "backend", "name": "Backend Team", "member_count": 4, "branch": "team/backend"},
+    {"id": "database", "name": "Database Team", "member_count": 3, "branch": "team/database"},
+    {"id": "devops", "name": "DevOps Team", "member_count": 3, "branch": "team/devops"}
+  ]
+}
+EOF
+
+# 【シンプルなWebサイト】
+# cat > documents/teams.json << 'EOF'
+# {
+#   "project_name": "プロジェクト名を入力",
+#   "project_type": "website",
+#   "teams": [
+#     {"id": "frontend", "name": "Frontend Team", "member_count": 3, "branch": "team/frontend"},
+#     {"id": "backend", "name": "Backend Team", "member_count": 2, "branch": "team/backend"}
+#   ]
+# }
+# EOF
+
+# 【モバイルアプリ】
+# cat > documents/teams.json << 'EOF'
+# {
+#   "project_name": "プロジェクト名を入力",
+#   "project_type": "mobile-app",
+#   "teams": [
+#     {"id": "mobile", "name": "Mobile Team", "member_count": 4, "branch": "team/mobile"},
+#     {"id": "backend", "name": "Backend Team", "member_count": 4, "branch": "team/backend"},
+#     {"id": "devops", "name": "DevOps Team", "member_count": 3, "branch": "team/devops"}
+#   ]
+# }
+# EOF
 
 # 必ず実行: 作成確認
 ls -la documents/teams.json
@@ -369,14 +400,14 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
 
 2. git worktreeの確認と移動（重要）
    各チームは必ず自分のworktreeで作業する：
-   - Frontend Team: worktrees/team-frontend
-   - Backend Team: worktrees/team-backend
-   - Database Team: worktrees/team-database
-   - DevOps Team: worktrees/team-devops
+   - Frontend Team: worktrees/frontend
+   - Backend Team: worktrees/backend
+   - Database Team: worktrees/database
+   - DevOps Team: worktrees/devops
    
    # 各Bossが最初に実行
-   cd /workspace/worktrees/team-frontend  # 自分のチームのworktreeに移動
-   pwd  # 確認: /workspace/worktrees/team-frontend
+   cd /workspace/worktrees/frontend  # 自分のチームのworktreeに移動
+   pwd  # 確認: /workspace/worktrees/frontend
 
 3. documents/tasks/を参照してタスク管理
    ls documents/tasks/ でタスクファイル一覧を確認
@@ -389,20 +420,163 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    Master → Boss → メンバーの流れで指示が伝達される
    
    **重要な役割分担**：
-   - **Master（pane 0）**: 全体統括、タスク配分、マージ作業のみ
-   - **Boss（各チームの1人目）**: チーム内タスク管理、レビュー、コミットのみ
-   - **Member（各チームの2-4人目）**: 実装作業のみ
+   - **Master（pane 1）**: 全体統括、タスク配分、メインブランチへのマージ作業、完了マークの追加とコミットIDの追加、Bossへの指示のみ
+   - **Boss（各チームの1人目）**: チーム内タスク管理、メインブランチをworktreeにマージ、レビュー及びMemberへの指示、コミットのみ
+   - **Member（各チームの2-4人目）**: 実装作業とBossへの報告のみ
+
+   **ペイン番号（重要）**：
+   - ペイン1: Master（常に固定）
+   - ペイン2以降: teams.jsonの順番通りに各チームが配置
+     - 例: 最初のチームのBossがペイン2
+     - 例: 最初のチームのメンバー2がペイン3
+     - 以降、各チームのメンバーが順番に配置
    
    **禁止事項**：
    - BossやMemberがMasterの役割（他チームへの指示、マージ等）を行うこと
    - MemberがBossの役割（レビュー、コミット等）を行うこと
    - 各チームは自分のworktree内でのみ作業すること
-   
-   例: 
-   tmux send-keys -t claude-teams:1.2 "認証システムのタスクを進めてください"
-   sleep 0.5
-   
-   tmux send-keys -t claude-teams:1.2 Enter
+
+### 📌 具体的なコミュニケーションフロー
+
+#### 1️⃣ Master → Boss への指示
+
+##### 初回タスク割り当て
+```bash
+# FrontendチームのBossに初回指示
+tmux send-keys -t claude-teams.2 "あなたはFrontendチームのBossです。documents/tasks/frontend_tasks.mdを確認して、チームメンバーと連携して認証システムのコンポーネント開発を進めてください。" && sleep 5 && tmux send-keys -t claude-teams.2 Enter
+
+# BackendチームのBossに初回指示
+tmux send-keys -t claude-teams.6 "あなたはBackendチームのBossです。documents/tasks/backend_tasks.mdを確認して、認証APIの実装を進めてください。" && sleep 5 && tmux send-keys -t claude-teams.6 Enter
+```
+
+##### タスク完了後の次タスク指示
+```bash
+# git pullを含む次タスク指示
+tmux send-keys -t claude-teams.2 "git pull origin mainを実行してください。その後、frontend_tasks.mdを確認して、ダッシュボード機能の開発を進めてください。" && sleep 5 && tmux send-keys -t claude-teams.2 Enter
+
+# 緊急タスクの割り込み指示
+tmux send-keys -t claude-teams.10 "セキュリティ脆弱性が発見されました。database_tasks.mdの緊急パッチタスクを最優先で実施してください。" && sleep 5 && tmux send-keys -t claude-teams.10 Enter
+```
+
+#### 2️⃣ Boss → Member への指示
+
+##### 初回メンバー指示
+```bash
+# Member1への具体的タスク割り当て
+tmux send-keys -t claude-teams.3 "あなたはFrontendチームのMemberです。ログインフォームコンポーネントを実装してください。Magic MCPを使用して、モダンなデザインで作成してください。" && sleep 5 && tmux send-keys -t claude-teams.3 Enter
+
+# Member2への並行タスク割り当て
+tmux send-keys -t claude-teams.4 "あなたはFrontendチームのMemberです。パスワードリセット画面を実装してください。Magic MCPを使用してください。" && sleep 4 && tmux send-keys -t claude-teams.4 Enter
+
+# Member3への関連タスク割り当て
+tmux send-keys -t claude-teams.5 "あなたはFrontendチームのMemberです。バリデーション処理とエラーメッセージ表示機能を実装してください。" && sleep 4 && tmux send-keys -t claude-teams.5 Enter
+```
+
+##### タスク完了後の次タスク指示
+```bash
+# 即座に次のタスクを割り当て（指示待ちゼロ）
+tmux send-keys -t claude-teams.3 "ログインフォームのテストも作成済みですね。次はソーシャルログインボタンを追加してください。Google、GitHub、Twitterの3つに対応してください。" && sleep 3 && tmux send-keys -t claude-teams.3 Enter
+```
+
+#### 3️⃣ Member → Boss への報告
+
+##### タスク完了報告
+```bash
+# 正常完了の報告
+tmux send-keys -t claude-teams.2 "ログインフォームコンポーネントの実装が完了しました。tests/e2e/login_test.spec.tsにE2Eテストも作成済みです。レビューをお願いします。" && sleep 2 && tmux send-keys -t claude-teams.2 Enter
+
+# 問題発生時の報告
+tmux send-keys -t claude-teams.2 "バリデーション処理の実装中にAPIとの連携で問題が発生しました。エラーレスポンスの形式が想定と異なります。確認をお願いします。" && sleep 2 && tmux send-keys -t claude-teams.2 Enter
+
+# アイドル状態の即座報告（重要）
+tmux send-keys -t claude-teams.2 "現在アイドル状態です。次のタスクをください。" && sleep 2 && tmux send-keys -t claude-teams.2 Enter
+```
+
+#### 4️⃣ Boss のレビューと対応
+
+##### ✅ レビュー通過の場合
+```bash
+# テスト実行と確認
+tmux send-keys -t claude-teams.2 "npm test tests/e2e/login_test.spec.ts" && sleep 0.1 && tmux send-keys -t claude-teams.2 Enter
+
+# コミット実行（テスト通過後）
+tmux send-keys -t claude-teams.2 "git add . && git commit -m 'feat: ログインフォームコンポーネント実装（テスト含む）'" && sleep 0.1 && tmux send-keys -t claude-teams.2 Enter
+
+# メンバーのセッションクリア
+tmux send-keys -t claude-teams.3 "/clear" && sleep 0.1 && tmux send-keys -t claude-teams.3 Enter
+
+# Masterへの完了報告
+tmux send-keys -t claude-teams.1 "認証システムのUI実装が完了しました。全テスト通過、カバレッジ95%、コミット済みです。" && sleep 2 && tmux send-keys -t claude-teams.1 Enter
+```
+
+##### ❌ 修正が必要な場合
+```bash
+# 具体的な修正指示
+tmux send-keys -t claude-teams.3 "ログインフォームのバリデーションエラー表示が適切ではありません。エラーメッセージをフォームフィールドの下に赤文字で表示するように修正してください。" && sleep 3 && tmux send-keys -t claude-teams.3 Enter
+
+# テスト追加の指示
+tmux send-keys -t claude-teams.4 "パスワードリセット機能のテストが不足しています。メール送信失敗時のエラーハンドリングテストを追加してください。" && sleep 3 && tmux send-keys -t claude-teams.4 Enter
+```
+
+#### 5️⃣ Boss → Master への報告
+
+##### チーム進捗報告
+```bash
+# 定期進捗報告
+tmux send-keys -t claude-teams.1 "【Frontend Team進捗】完了: ログインUI(3/3)、パスワードリセット(2/2)。進行中: ダッシュボード(1/4)。カバレッジ: 92%。" && sleep 2 && tmux send-keys -t claude-teams.1 Enter
+
+# 問題エスカレーション
+tmux send-keys -t claude-teams.1 "【問題報告】BackendチームのAPI仕様変更により、フロントエンドの修正が必要です。影響範囲: 認証関連の全画面。対応時間: 約2時間。" && sleep 3 && tmux send-keys -t claude-teams.1 Enter
+```
+
+#### 6️⃣ Master のマージ処理
+
+##### ✅ マージ成功時
+```bash
+# mainブランチへのマージ
+tmux send-keys -t claude-teams.1 "git checkout main && git merge --no-ff team/frontend -m 'merge: Frontend認証システム実装'" && sleep 0.1 && tmux send-keys -t claude-teams.1 Enter
+
+# タスクファイルの更新（Alpine Linux対応）
+tmux send-keys -t claude-teams.1 "cp documents/tasks/frontend_tasks.md documents/tasks/frontend_tasks.md.bak && sed 's/- \[ \] ログインフォーム/- [x] ログインフォーム (commit: abc123)/' documents/tasks/frontend_tasks.md.bak > documents/tasks/frontend_tasks.md && rm documents/tasks/frontend_tasks.md.bak" && sleep 0.1 && tmux send-keys -t claude-teams.1 Enter
+
+# 次タスクセットの指示
+tmux send-keys -t claude-teams.2 "/clear" && sleep 0.1 && tmux send-keys -t claude-teams.2 Enter
+tmux send-keys -t claude-teams.2 "マージ完了しました。次はダッシュボード機能の実装を進めてください。必ずgit pull origin mainを実行してから開始してください。" && sleep 5 && tmux send-keys -t claude-teams.2 Enter
+```
+
+##### ❌ マージコンフリクト時
+```bash
+# コンフリクト発生の通知
+tmux send-keys -t claude-teams.2 "mainブランチとのマージでコンフリクトが発生しました。src/components/auth/Login.tsxでBackendチームの変更と競合しています。解決してください。" && sleep 4 && tmux send-keys -t claude-teams.2 Enter
+
+# Boss → Member への解決指示
+tmux send-keys -t claude-teams.3 "mainブランチとのコンフリクトを解決する必要があります。src/components/auth/Login.tsxを確認して、両方の変更を適切に統合してください。" && sleep 3 && tmux send-keys -t claude-teams.3 Enter
+
+# 解決後の再マージ
+tmux send-keys -t claude-teams.1 "コンフリクト解決を確認しました。再度マージを実行します。" && sleep 2 && tmux send-keys -t claude-teams.1 Enter
+```
+
+#### 7️⃣ チーム間連携が必要な場合
+
+```bash
+# Master → 複数Bossへの調整指示
+tmux send-keys -t claude-teams.2 "BackendチームのAPI変更に合わせて、認証フローを修正してください。新しいエンドポイントは /api/v2/auth です。" && sleep 5 && tmux send-keys -t claude-teams.2 Enter
+tmux send-keys -t claude-teams.6 "Frontendチームと連携して、API変更の影響を最小限にしてください。移行期間は旧エンドポイントも維持してください。" && sleep 5 && tmux send-keys -t claude-teams.6 Enter
+```
+
+### 📊 タスク管理フロー
+```
+1. Master: documents/tasks/*.md を確認
+2. Master: 未完了タスク（- [ ]）を優先順位付け
+3. Master → Boss: タスク指示
+4. Boss → Members: タスク分配
+5. Members: 実装作業
+6. Members → Boss: 完了報告
+7. Boss: レビュー & コミット
+8. Boss → Master: 完了報告
+9. Master: マージ & タスクファイル更新
+10. ループ: 全タスクが [x] になるまで継続
+```
 
 6. Masterは常にBossを監視（無限ループ処理）
    ```
@@ -429,7 +603,7 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    - 問題発生時は代替タスクを提供
    - Bossからの質問にリアルタイムで対応
 
-6. Bossは部下を常に監視（無限ループ処理）
+7. Bossは部下を常に監視（無限ループ処理）
    ```
    while true:
        for member in team_members:
@@ -455,13 +629,13 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    - メンバーからの質問にリアルタイムで対応
    - 問題発生時は即座にサポートまたは代替タスクを提供
 
-7. 確認フロー（重要）
+8. 確認フロー（重要）
    - メンバー → Boss: タスク完了報告、質問、レビュー依頼
    - **メンバー → Boss: アイドル状態になったら即座に報告（指示待ちゼロ）**
    - Boss → Master: チームタスク完了報告、方針確認、コミット準備
    - Master → Boss: マージ、次のタスク指示
 
-8. テスト実施（必須）
+9. テスト実施（必須）
    - 各タスク完了時に必ずテストを作成・実行
    - UIタスク: Playwright MCPを使用してE2Eテスト
      ```bash
@@ -482,9 +656,9 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    - ロジック: 言語に応じたユニットテスト (tests/unit/validation_test.拡張子)
    - テストが全て通過するまでコミット禁止
 
-9. Bossがチームタスク完了後、自分のworktreeでコミット
+10. Bossがチームタスク完了後、自分のworktreeでコミット
    # 必ず自分のworktreeで作業していることを確認
-   pwd  # 例: /workspace/worktrees/team-frontend
+   pwd  # 例: /workspace/worktrees/frontend
    
    # テスト実行（言語に応じたコマンド）
    npm test          # JavaScript/TypeScript
@@ -492,20 +666,76 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    go test ./...     # Go
    cargo test        # Rust
    
-   # 全テスト通過後
-   git add . && git commit -m "feat: 認証システム実装"
+   # 全テスト通過後、活動ログを作成してからコミット
+   # 1. 活動ログディレクトリを作成
+   mkdir -p documents/activity_logs
+   
+   # 2. タイムスタンプを生成（形式: yyyy-mm-dd_HH-MM-SS）
+   TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+   WORK_DESC="implement-auth-system"  # 作業内容を簡潔に記述（kebab-case）
+   LOG_FILE="documents/activity_logs/${TIMESTAMP}_${WORK_DESC}.md"
+   
+   # 3. 活動ログを作成
+   cat > "$LOG_FILE" << 'EOF'
+   # Activity Log: 認証システム実装
+   
+   **Date**: 2024-06-19 14:30:00
+   **Author**: Claude Code (Frontend Team)
+   **Commit Hash**: [後で追加]
+   
+   ## Summary
+   認証システムの基本機能を実装しました。ログイン、ログアウト、パスワードリセット機能を含みます。
+   
+   ## Changes Made
+   - ログインフォームコンポーネントの作成
+   - バリデーション処理の実装
+   - エラーメッセージ表示機能の追加
+   - APIとの連携処理
+   - テストコードの作成
+   
+   ## Files Modified
+   - `src/components/auth/LoginForm.tsx` - ログインフォームUI
+   - `src/utils/validation.ts` - バリデーションロジック
+   - `src/api/auth.ts` - 認証API連携
+   - `tests/e2e/login.spec.ts` - E2Eテスト
+   - `tests/unit/validation.test.ts` - ユニットテスト
+   
+   ## Testing
+   - 全ユニットテスト: PASS
+   - E2Eテスト: PASS
+   - カバレッジ: 85%
+   
+   ## Notes
+   - パフォーマンス最適化は次回のスプリントで実施予定
+   - アクセシビリティ対応完了
+   EOF
+   
+   # 4. 活動ログを含めてコミット
+   git add .
+   git commit -m "feat: 認証システム実装
+   
+   📝 Activity log: documents/activity_logs/${TIMESTAMP}_${WORK_DESC}.md
+   
+   🤖 Generated with Claude Code
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   
+   # 5. コミットハッシュを取得して活動ログを更新
+   COMMIT_HASH=$(git log -1 --format="%H")
+   sed -i "s/\[後で追加\]/$COMMIT_HASH/" "$LOG_FILE"
+   git add "$LOG_FILE"
+   git commit --amend --no-edit
 
-10. MasterがBossからの報告を受けてマージ
+11. MasterがBossからの報告を受けてマージ
     - テストの実行確認（テストなしのコミットは却下）
     - documents/tasks/内の該当タスクファイルを更新（完了: - [ ] を - [x] に変更）
     - 新規タスク発生: 適切な場所に追加
     - ブランチをメインにマージ
     - 即座に次のタスクセットをBossに割り当て
 
-11. 全タスクが完了するまで4-10を繰り返す
+12. 全タスクが完了するまで4-10を繰り返す
     目標: documents/tasks/内の全タスクファイルの全項目が [x] になること
 
-12. 11まで完了した時に`git push`を行いobsidianにメモを作成し、lineに通知を行う
+13. 12まで完了した時に`git push`を行いobsidianにメモを作成し、lineに通知を行う
 ```
 
 #### コミュニケーションフローの例
@@ -666,7 +896,7 @@ function exampleFunction(param) {
    mvn test
    gradle test
    ```
-5. **全テスト通過後にコミット**
+6. **全テスト通過後にコミット**
 
 ## 🔧 技術選定基準
 
@@ -929,21 +1159,26 @@ claude mcp mcp__line-bot__push_text_message \
 
 ### 4. tmuxセッション終了
 ```bash
-# 全ペインに終了通知
-tmux send-keys -t claude-teams:0 "echo '開発完了！セッションを終了します。'" Enter
-sleep 2
+# Masterペインに終了通知（ペイン1は必ずMaster）
+tmux send-keys -t claude-teams.1 "echo '開発完了！セッションを終了します。'" && sleep 2 && tmux send-keys -t claude-teams.1 Enter
+
+# 全ペインにexit送信（Claude Codeセッションを正常終了）
+for pane in $(tmux list-panes -t claude-teams -F '#{pane_index}'); do
+  tmux send-keys -t claude-teams.$pane "exit" && sleep 0.1 && tmux send-keys -t claude-teams.$pane Enter
+done
 
 # セッション終了
+sleep 2
 tmux kill-session -t claude-teams
 ```
 
 ### 5. クリーンアップ（オプション）
 ```bash
 # worktreeの削除
-git worktree remove worktrees/team-frontend
-git worktree remove worktrees/team-backend
-git worktree remove worktrees/team-database
-git worktree remove worktrees/team-devops
+git worktree remove worktrees/frontend
+git worktree remove worktrees/backend
+git worktree remove worktrees/database
+git worktree remove worktrees/devops
 
 # ブランチの削除
 git branch -d team/frontend
@@ -954,6 +1189,53 @@ git branch -d team/devops
 # 一時ファイルの削除
 rm -rf .tmp/ .cache/
 ```
+
+## 📝 活動ログの作成ルール
+
+### 重要: すべてのコミット時に活動ログを必ず作成
+
+1. **ファイル名形式**: `yyyy-mm-dd_HH-MM-SS_work-description.md`
+   - 例: `2024-06-19_14-30-00_add-authentication.md`
+   - work-descriptionはkebab-case、最大50文字
+
+2. **保存場所**: `documents/activity_logs/`
+
+3. **作成タイミング**: コミット実行前（必須）
+
+4. **活動ログの内容**:
+   - 作業内容の要約
+   - 変更したファイルのリスト
+   - テスト結果
+   - コミットハッシュ（後で追加）
+
+5. **コミット手順**:
+   ```bash
+   # 活動ログを作成
+   mkdir -p documents/activity_logs
+   TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+   WORK_DESC="brief-description"
+   LOG_FILE="documents/activity_logs/${TIMESTAMP}_${WORK_DESC}.md"
+   
+   # ログ内容を記述
+   cat > "$LOG_FILE" << 'EOF'
+   [活動ログテンプレートに従って記述]
+   EOF
+   
+   # コミット実行
+   git add .
+   git commit -m "feat: [説明]
+   
+   📝 Activity log: documents/activity_logs/${TIMESTAMP}_${WORK_DESC}.md
+   
+   🤖 Generated with Claude Code
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   
+   # コミットハッシュで更新
+   COMMIT_HASH=$(git log -1 --format="%H")
+   sed -i "s/\[後で追加\]/$COMMIT_HASH/" "$LOG_FILE"
+   git add "$LOG_FILE"
+   git commit --amend --no-edit
+   ```
 
 ## 🎯 最重要ポイント
 
@@ -969,3 +1251,4 @@ rm -rf .tmp/ .cache/
 10. **通信は必ず階層構造を守る（Master ↔️ Boss ↔️ Member）**
 11. **アイドル状態は即座に報告・即座に対応**
 12. **テストカバレッジ90%以上、ハードコード禁止**
+13. **すべてのコミットに活動ログを作成（documents/activity_logs/）**

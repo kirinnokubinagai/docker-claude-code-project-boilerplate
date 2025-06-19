@@ -1,0 +1,33 @@
+# Playwright MCP Server用のDockerfile
+FROM node:20-alpine
+
+# 必要なパッケージをインストール
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    && rm -rf /var/cache/apk/*
+
+# Playwright環境変数
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# 作業ディレクトリ
+WORKDIR /app
+
+# Playwright MCPをインストール
+RUN npm install -g @playwright/mcp@latest
+
+# ポート8931を公開
+EXPOSE 8931
+
+# ヘルスチェック
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8931/health || exit 1
+
+# Playwright MCPサーバーを起動
+CMD ["npx", "@playwright/mcp@latest", "--port", "8931", "--host", "0.0.0.0"]

@@ -31,9 +31,10 @@ services:
       # Claude設定を直接マウント（読み書き可能）
       - ~/.claude:/home/developer/.claude
       
-      # bash履歴とz履歴は個別ファイルとしてマウント
+      # bash履歴は名前付きボリュームとしてマウント
       - bash_history:/home/developer/.bash_history
-      - z_data:/home/developer/.z
+      # zデータはファイルではなくディレクトリとしてマウント
+      - z_data:/home/developer/.z_data
 
       # GitHub CLI設定を引き継ぎ
       - ~/.config/gh:/home/developer/.config/gh:ro
@@ -62,35 +63,25 @@ services:
     # ホストのMCPサーバーにアクセスするため
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    
+    # Playwright MCPサーバー用のポート範囲を開放
+    ports:
+      - "30000-30999:30000-30999"
 
     # ホストのネットワークモードを使用（MCPサーバー接続用）
     # network_mode: "host"  # 必要に応じてコメントアウトを外す
 
-  # Playwright MCP Server (ARM64 compatible)
-  playwright-mcp:
-    image: playwright-mcp-base:latest
-    build:
-      context: ${CLAUDE_PROJECT_DIR}/docker-base/playwright-mcp
-      dockerfile: Dockerfile
-    container_name: playwright-mcp-${PROJECT_NAME}
-    command: npx @playwright/mcp@latest --port 8931 --host 0.0.0.0 --headless
-    ports:
-      - "${PLAYWRIGHT_MCP_PORT:-8931}:8931"
-    environment:
-      - PLAYWRIGHT_MCP_PORT=${PLAYWRIGHT_MCP_PORT:-8931}
-    networks:
-      - claude-network
-    restart: unless-stopped
-    depends_on:
-      - claude-code
+  # Playwright MCP Server は master コマンド実行時に動的に起動
 
 volumes:
   # bash履歴ファイル用ボリューム
   bash_history:
     name: ${PROJECT_NAME}_bash_history
+    external: true
   # zディレクトリジャンプ用ボリューム  
   z_data:
     name: ${PROJECT_NAME}_z
+    external: true
 
 networks:
   claude-network:

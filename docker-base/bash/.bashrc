@@ -68,6 +68,9 @@ function peco-git-branch() {
 
 # z設定 - ディレクトリジャンプ
 if [ -f /usr/local/bin/z.sh ]; then
+    # .zファイルの場所を.z_dataディレクトリ内に変更
+    export _Z_DATA="$HOME/.z_data/z"
+    mkdir -p "$HOME/.z_data"
     . /usr/local/bin/z.sh
 fi
 
@@ -92,9 +95,10 @@ alias cl='claude login'
 alias check_mcp='claude mcp list'
 alias setup-mcp='/opt/claude-system/scripts/setup-mcp.sh'
 alias master='/opt/claude-system/scripts/master-claude-teams.sh'
-alias auto-assign='/opt/claude-system/scripts/auto-assign-tasks.sh'
 alias help='/opt/claude-system/scripts/show-help.sh'
 alias h='/opt/claude-system/scripts/show-help.sh'
+alias setup-playwright-auto='/opt/claude-system/scripts/setup-playwright-auto.sh'
+alias manage-playwright='/opt/claude-system/scripts/manage-playwright-containers.sh'
 
 # peco aliases
 alias pcd='peco-cd'

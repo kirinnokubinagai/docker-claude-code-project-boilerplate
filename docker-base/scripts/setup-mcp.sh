@@ -27,16 +27,9 @@ echo -e "${BLUE}${BOLD}    MCP Server Setup for Claude Code${NC}"
 echo -e "${BLUE}${BOLD}======================================${NC}"
 echo ""
 
-# 設定ファイルの優先順位：
-# 1. プロジェクトのmcp-servers.json
-# 2. システムのmcp-servers.json（テンプレート）
-if [ -f "/workspace/mcp-servers.json" ]; then
-    template_file="/workspace/mcp-servers.json"
-    echo -e "${BLUE}[INFO]${NC} プロジェクト固有のMCP設定を使用します"
-else
-    template_file="/opt/claude-system/config/mcp-servers.json"
-    echo -e "${BLUE}[INFO]${NC} システムのデフォルトMCP設定を使用します"
-fi
+# 設定ファイルはシステムの設定のみを使用
+template_file="/opt/claude-system/config/mcp-servers.json"
+echo -e "${BLUE}[INFO]${NC} システムのMCP設定を使用します"
 
 if [ ! -f "$template_file" ]; then
     echo -e "${RED}[ERROR]${NC} 設定ファイルが見つかりません: $template_file"
@@ -58,6 +51,11 @@ echo ""
 servers=$(jq -r '.mcpServers | to_entries[] | .key' "$template_file")
 
 for server in $servers; do
+    # mcp-playwrightは共有サーバーを使用
+    if [ "$server" = "mcp-playwright" ]; then
+        echo -e "${YELLOW}[INFO]${NC} mcp-playwright は共有サーバー (playwright-mcp:8931) を使用します"
+    fi
+    
     echo -e "${YELLOW}[INFO]${NC} $server を追加中..."
     
     # サーバー情報を取得（ハイフンを含む名前に対応）
@@ -112,7 +110,7 @@ for server in $servers; do
     if [ -n "$url" ]; then
         # SSE/HTTPトランスポートの場合
         # 環境変数を展開
-        expanded_url=$(echo "$url" | sed "s/\${PROJECT_NAME}/$PROJECT_NAME/g" | sed "s/\${PLAYWRIGHT_MCP_PORT}/${PLAYWRIGHT_MCP_PORT:-8931}/g")
+        expanded_url=$(echo "$url" | sed "s/\${PROJECT_NAME}/$PROJECT_NAME/g" | sed "s/\${PLAYWRIGHT_MCP_PORT}/${PLAYWRIGHT_MCP_PORT:-30000}/g")
         cmd="$cmd $expanded_url"
     else
         # stdioトランスポートの場合
@@ -142,6 +140,7 @@ echo "  CHANNEL_ACCESS_TOKEN: $([ -n "$CHANNEL_ACCESS_TOKEN" ] && echo "設定�
 echo "  DESTINATION_USER_ID: $([ -n "$DESTINATION_USER_ID" ] && echo "設定済み" || echo "未設定")"
 echo "  OBSIDIAN_API_KEY: $([ -n "$OBSIDIAN_API_KEY" ] && echo "設定済み" || echo "未設定")"
 echo "  OBSIDIAN_HOST: $([ -n "$OBSIDIAN_HOST" ] && echo "$OBSIDIAN_HOST" || echo "localhost:27123 (デフォルト)")"
+echo "  PLAYWRIGHT_MCP_PORT: $([ -n "$PLAYWRIGHT_MCP_PORT" ] && echo "$PLAYWRIGHT_MCP_PORT" || echo "30000 (デフォルト)")"
 echo ""
 
 # 設定完了の確認

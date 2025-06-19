@@ -22,7 +22,8 @@ RUN apk add --no-cache \
     perl \
     gettext \
     ncurses \
-    vim
+    vim \
+    lsof
 
 # Python関連をインストール（分離してネットワーク問題を回避）
 RUN apk add --no-cache \
@@ -61,8 +62,8 @@ RUN mkdir -p /home/developer/.config \
 RUN curl -sSL https://raw.githubusercontent.com/rupa/z/master/z.sh -o /usr/local/bin/z.sh \
     && chmod +x /usr/local/bin/z.sh \
     && mkdir -p /home/developer/.local/share \
-    && touch /home/developer/.z \
-    && chown developer:developer /home/developer/.z
+    && mkdir -p /home/developer/.z_data \
+    && chown developer:developer /home/developer/.z_data
 
 # tmux-xpanesのインストール
 RUN curl -L https://raw.githubusercontent.com/greymd/tmux-xpanes/master/bin/xpanes -o /usr/local/bin/xpanes \
@@ -84,7 +85,11 @@ RUN mkdir -p $PNPM_HOME \
 
 # Claude Codeをインストール（ビルドスクリプトを許可）
 RUN pnpm config set enable-pre-post-scripts true && \
+    echo "@anthropic-ai/claude-code" | pnpm approve-builds -g && \
     pnpm install -g @anthropic-ai/claude-code
+
+# Playwright MCPサーバーをインストール
+RUN npm install -g @playwright/mcp@latest
 
 # Pythonベースのツールもインストール（--break-system-packagesフラグを使用）
 RUN pip3 install --break-system-packages uv

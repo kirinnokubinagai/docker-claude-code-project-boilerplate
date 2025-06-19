@@ -34,7 +34,6 @@ Claude-Project/                    # Main boilerplate repository
 │   ├── scripts/                  # Utility scripts
 │   │   ├── master-claude-teams.sh    # Team orchestration
 │   │   ├── setup-mcp.sh             # MCP configuration
-│   │   ├── auto-assign-tasks.sh     # Task automation
 │   │   ├── set-pane-titles.sh       # tmux pane naming
 │   │   └── show-help.sh             # Help documentation
 │   └── templates/                # Configuration templates
@@ -272,6 +271,91 @@ MAGIC_API_KEY=
 - All features implemented in first pass
 - No "future enhancements" or roadmaps
 - Production-ready from start
+
+## 📝 Git Commit with Activity Logs
+
+When making commits using Claude Code, follow this process to maintain activity logs:
+
+### Commit Process with Activity Logging
+
+1. **Before committing**, create an activity log file:
+   ```bash
+   # Create documents/activity_logs directory if it doesn't exist
+   mkdir -p documents/activity_logs
+   
+   # Create activity log with timestamp
+   # Format: yyyy-mm-dd_HH-MM-SS_work-description.md
+   # Example: 2024-01-15_14-30-00_add-user-authentication.md
+   ```
+
+2. **Activity log template**:
+   ```markdown
+   # Activity Log: [Brief Description]
+   
+   **Date**: [YYYY-MM-DD HH:MM:SS]
+   **Author**: Claude Code
+   **Commit Hash**: [Will be added after commit]
+   
+   ## Summary
+   [Brief summary of changes]
+   
+   ## Changes Made
+   - [List of specific changes]
+   - [File modifications]
+   - [Features added/removed]
+   
+   ## Files Modified
+   - `path/to/file1.js` - [Description of changes]
+   - `path/to/file2.py` - [Description of changes]
+   
+   ## Testing
+   - [Tests performed]
+   - [Test results]
+   
+   ## Notes
+   [Any additional notes or considerations]
+   ```
+
+3. **Commit workflow**:
+   ```bash
+   # 1. Check status
+   git status
+   
+   # 2. Create activity log
+   echo "Creating activity log..."
+   # [Create the log file as shown above]
+   
+   # 3. Stage changes including activity log
+   git add .
+   
+   # 4. Commit with descriptive message
+   git commit -m "feat: [description]
+   
+   📝 Activity log: documents/activity_logs/[filename]
+   
+   🤖 Generated with Claude Code
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   
+   # 5. Update activity log with commit hash
+   git log -1 --format="%H" # Get commit hash
+   # Update the activity log file with the hash
+   ```
+
+### Activity Log Naming Convention
+- **Format**: `yyyy-mm-dd_HH-MM-SS_brief-description.md`
+- **Time**: Use 24-hour format
+- **Description**: Use kebab-case, max 50 characters
+- **Examples**:
+  - `2024-01-15_09-30-00_fix-login-bug.md`
+  - `2024-01-15_14-45-30_add-payment-integration.md`
+  - `2024-01-15_18-00-00_refactor-database-schema.md`
+
+### Important Notes
+- Always create the activity log BEFORE committing
+- Include the activity log in the same commit
+- Reference the log file in the commit message
+- Keep logs concise but informative
+- Use consistent formatting
 
 ## 🐛 Troubleshooting
 

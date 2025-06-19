@@ -22,10 +22,37 @@ create_project() {
         return 1
     fi
     
-    # プロジェクトディレクトリが既に存在する場合はエラー
+    # プロジェクトディレクトリが既に存在する場合の処理
     if [ -d "$PROJECT_DIR" ]; then
-        echo "エラー: プロジェクトディレクトリが既に存在します: $PROJECT_DIR"
-        return 1
+        echo "プロジェクトディレクトリが既に存在します: $PROJECT_DIR"
+        echo "既存のコンテナに接続します..."
+        
+        # 環境変数を設定
+        export PROJECT_NAME
+        export CLAUDE_PROJECT_DIR
+        
+        # コンテナ名を設定
+        CONTAINER_NAME="claude-code-${PROJECT_NAME}"
+        
+        # コンテナが起動しているか確認
+        if docker ps --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
+            echo "コンテナ '$CONTAINER_NAME' に接続中..."
+            docker exec -it -u developer "$CONTAINER_NAME" bash
+        else
+            echo "コンテナが起動していません。起動します..."
+            cd "$PROJECT_DIR"
+            docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
+            
+            # コンテナが起動するまで待機
+            echo "コンテナの起動を待機中..."
+            while ! docker ps --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; do
+                sleep 1
+            done
+            
+            echo "コンテナ '$CONTAINER_NAME' に接続中..."
+            docker exec -it -u developer "$CONTAINER_NAME" bash
+        fi
+        return 0
     fi
     
     echo "プロジェクト '$PROJECT_NAME' を作成中..."

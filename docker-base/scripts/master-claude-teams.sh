@@ -15,7 +15,6 @@ NC='\033[0m' # No Color
 # 設定
 SESSION_NAME="claude-teams"
 WORKSPACE="/workspace"
-TEAMS_TEMPLATE_FILE="/opt/claude-system/templates/teams.json.example"
 TEAMS_CONFIG_FILE="$WORKSPACE/documents/teams.json"
 TASKS_DIR="$WORKSPACE/documents/tasks"
 TEAM_LOG_FILE="$WORKSPACE/team-communication.log"
@@ -52,15 +51,9 @@ check_config_files() {
     
     # teams.jsonのチェック（新規プロジェクトの場合は後でMasterが作成）
     if [ ! -f "$TEAMS_CONFIG_FILE" ]; then
-        if [ -f "$TEAMS_TEMPLATE_FILE" ]; then
-            log_warning "teams.json が見つかりません - Masterが作成します"
-            # テンプレートをコピーして一時的なチーム構成を作成
-            cp "$TEAMS_TEMPLATE_FILE" "$TEAMS_CONFIG_FILE"
-            log_info "テンプレートから初期teams.jsonを作成しました"
-        else
-            log_error "teams.json およびテンプレートファイルが見つかりません"
-            has_error=true
-        fi
+        log_warning "teams.json が見つかりません"
+        log_info "新規プロジェクトの場合、Masterが作成します"
+        has_error=true
     else
         # JSONの妥当性チェック
         if ! jq empty "$TEAMS_CONFIG_FILE" 2>/dev/null; then
@@ -191,9 +184,14 @@ send_task_to_pane() {
         return 1
     fi
     
-    # タスクを送信
-    tmux send-keys -t "$SESSION_NAME.$pane_idx" "$task"
-    tmux send-keys -t "$SESSION_NAME.$pane_idx" Enter
+    # タスクを送信（長いタスクに対応するため待機時間を調整）
+    local task_length=${#task}
+    local wait_time=0.5
+    if [ $task_length -gt 100 ]; then
+        wait_time=1.0
+    fi
+    
+    tmux send-keys -t "$SESSION_NAME.$pane_idx" "$task" && sleep $wait_time && tmux send-keys -t "$SESSION_NAME.$pane_idx" Enter
     
     return 0
 }
@@ -234,8 +232,7 @@ setup_master() {
     fi
     log_info ""
     log_info "例: "
-    log_info "  tmux send-keys -t claude-teams.2 \"Frontend Boss、認証UIを実装してください\""
-    log_info "  tmux send-keys -t claude-teams.2 Enter"
+    log_info "  tmux send-keys -t claude-teams.2 \"Frontend Boss、認証UIを実装してください\" && sleep 0.1 && tmux send-keys -t claude-teams.2 Enter"
     log_info ""
     log_info "確認体制: メンバー→Boss、Boss→Masterの確認フローを徹底"
     log_info "テスト必須: 各タスク完了時にテスト作成・実行（tests/e2e/, tests/backend/, tests/unit/）"
@@ -439,66 +436,20 @@ main() {
     # 各ペインでClaude Codeを起動
     log_info "各ペインでClaude Codeを起動中..."
     
-    # 段階的起動オプションのチェック
-    if [[ " $@ " == *" --phased "* ]]; then
-        log_info "段階的起動モード: メモリ使用量を分散します"
-        # Masterを最初に起動
-        tmux send-keys -t "$SESSION_NAME.1" 'claude --dangerously-skip-permissions'
-        tmux send-keys -t "$SESSION_NAME.1" Enter
-        log_success "Master Claude起動完了 (1/$final_panes)"
-        sleep 5
-        
-        # チームごとに段階的に起動
-        local current_pane=2
-        local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
-        
-        for team in $teams; do
-            local team_name=$(jq -r ".teams[] | select(.id == \"$team\") | .name" "$TEAMS_CONFIG_FILE" 2>/dev/null)
-            local member_count=$(jq -r ".teams[] | select(.id == \"$team\") | .member_count // 1" "$TEAMS_CONFIG_FILE" 2>/dev/null)
-            
-            log_info "$team_name チームを起動中..."
-            for member in $(seq 1 "$member_count"); do
-                tmux send-keys -t "$SESSION_NAME.$current_pane" 'claude --dangerously-skip-permissions'
-                tmux send-keys -t "$SESSION_NAME.$current_pane" Enter
-                log_success "  → メンバー $member 起動完了 ($current_pane/$final_panes)"
-                current_pane=$((current_pane + 1))
-                sleep 3  # メモリ負荷を分散
-            done
-            sleep 2  # チーム間の間隔
-        done
-    else
-        # 通常の起動
-        for i in $(seq 1 "$final_panes"); do
-            tmux send-keys -t "$SESSION_NAME.$i" 'claude --dangerously-skip-permissions'
-            tmux send-keys -t "$SESSION_NAME.$i" Enter
-            # 起動を分散させる
-            sleep 0.5
-        done
-    fi
+    # 通常の起動（並列実行）
+    for i in $(seq 1 "$final_panes"); do
+        tmux send-keys -t "$SESSION_NAME.$i" 'claude --dangerously-skip-permissions' && sleep 0.1 && tmux send-keys -t "$SESSION_NAME.$i" Enter &
+    done
+    wait  # 全ての並列処理が完了するまで待機
     
     log_success "全てのClaude Codeを起動しました"
     
-    # Claude Codeの起動完了を待つ
-    log_info "Claude Codeの初期化を待機中..."
-    sleep 10  # Claude Codeの初期表示が完了するまで待つ
-    
-    # クリア完了を待つ
-    sleep 2
-    
-    # ペイン名が確実に表示されていることを確認
+    # Claude Codeの起動を待つ（エラーチェック付き）
     log_info "ペイン名の表示を確認中..."
-    sleep 2
-    
-    # Masterの初期設定
-    # --phasedオプションの場合は追加待機
-    if [[ " $@ " == *" --phased "* ]]; then
-        log_info "段階的起動が完了するまで待機中..."
-        # 追加で5秒待機
-        sleep 5
-    fi
-    
+    sleep 12  # Claude Codeが完全に起動するまで十分な時間を待つ
+
     # ペイン名設定が完了してからMasterプロンプトを送信
-    setup_master
+    setup_master & wait
     
     # デバッグ: ペインマッピングを表示
     show_pane_mapping
@@ -517,52 +468,96 @@ main() {
     echo "  - 作業ディレクトリ: $WORKSPACE"
     echo ""
     
-    # アタッチオプションの確認
-    if [[ " $@ " != *" --no-attach "* ]]; then
-        echo "3秒後にセッションにアタッチします..."
-        echo "（Ctrl+Cでキャンセル）"
-        sleep 3
-        tmux attach-session -t "$SESSION_NAME"
+    echo "📍 接続方法："
+    echo "   tmux attach -t $SESSION_NAME"
+    echo ""
+    echo "🔧 便利なtmuxコマンド："
+    echo "   Ctrl+b d     - デタッチ（セッションから離れる）"
+    echo "   Ctrl+b z     - ペインを最大化/元に戻す"
+    echo "   Ctrl+b 矢印  - ペイン間を移動"
+    echo ""
+    
+    # 指示がある場合はMasterに送信
+    if [ -n "$MASTER_INSTRUCTION" ]; then
+        log_info "Masterに指示を送信中..."
+        sleep 2
+        # 指示を送信
+        tmux send-keys -t "$SESSION_NAME.1" "$MASTER_INSTRUCTION" && sleep 0.5 && tmux send-keys -t "$SESSION_NAME.1" Enter
     else
-        echo "📍 接続方法："
-        echo "   tmux attach -t $SESSION_NAME"
-        echo ""
-        echo "🔧 便利なtmuxコマンド："
-        echo "   Ctrl+b d     - デタッチ（セッションから離れる）"
-        echo "   Ctrl+b z     - ペインを最大化/元に戻す"
-        echo "   Ctrl+b 矢印  - ペイン間を移動"
-        echo ""
+        # 指示がない場合は、既存の初期指示を送信
+        sleep 2
+        if [ -d "$TASKS_DIR" ] && [ "$(find "$TASKS_DIR" -name "*.md" -type f 2>/dev/null | wc -l)" -gt 0 ]; then
+            # 既存タスクがある場合
+            tmux send-keys -t "$SESSION_NAME.1" "documents/tasks/内のタスクファイルを確認して、各チームのBossにタスクを割り当ててください。" && sleep 5 && tmux send-keys -t "$SESSION_NAME.1" Enter
+        else
+            # 新規プロジェクトの場合
+            tmux send-keys -t "$SESSION_NAME.1" "新規プロジェクトです。プロジェクトの要件定義を行い、各チームのBossに詳細設計と実装タスクを割り当ててください。" && sleep 5 && tmux send-keys -t "$SESSION_NAME.1" Enter
+        fi
+    fi
+    
+    # --no-attachオプションが指定されていない場合は自動接続
+    if [ "$ATTACH_SESSION" = "true" ]; then
+        log_info "セッションに自動接続中..."
+        sleep 1
+        tmux attach-session -t "$SESSION_NAME"
     fi
 }
 
 # エラーハンドリング
 trap 'log_error "予期しないエラーが発生しました"; exit 1' ERR
 
-# ヘルプ表示
-if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
-    echo "使用方法: master [オプション]"
-    echo ""
-    echo "オプション:"
-    echo "  --no-attach    セッション作成後にアタッチしない"
-    echo "  --phased       段階的起動（メモリ使用量を分散）"
-    echo "  --help, -h     このヘルプを表示"
-    echo ""
-    echo "メモリ最適化のアドバイス:"
-    echo "  16GBマシンでの推奨チーム構成："
-    echo "    - 小規模: 2-3チーム（6-9人）"
-    echo "    - 中規模: 4チーム（12人）※段階的起動推奨"
-    echo "    - 大規模: 5チーム以上（15人以上）※要注意"
-    echo ""
-    echo "使用例:"
-    echo "  master                 # 通常起動"
-    echo "  master --phased        # 段階的起動（メモリ負荷軽減）"
-    echo "  master --no-attach     # バックグラウンド起動"
-    echo ""
-    echo "環境変数:"
-    echo "  DEBUG=true     デバッグモードを有効化"
-    echo ""
-    exit 0
-fi
+# 引数処理
+ATTACH_SESSION=true
+PHASED_MODE=false
+MASTER_INSTRUCTION=""
+
+# 引数の解析
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            echo "使用方法: master [オプション] [指示]"
+            echo ""
+            echo "オプション:"
+            echo "  --no-attach    セッション作成後にアタッチしない"
+            echo "  --phased       段階的起動（メモリ使用量を分散）"
+            echo "  --help, -h     このヘルプを表示"
+            echo ""
+            echo "指示:"
+            echo "  任意のテキストをMasterに送信できます"
+            echo ""
+            echo "メモリ最適化のアドバイス:"
+            echo "  16GBマシンでの推奨チーム構成："
+            echo "    - 小規模: 2-3チーム（6-9人）"
+            echo "    - 中規模: 4チーム（12人）※段階的起動推奨"
+            echo "    - 大規模: 5チーム以上（15人以上）※要注意"
+            echo ""
+            echo "使用例:"
+            echo "  master                 # 通常起動"
+            echo "  master --phased        # 段階的起動（メモリ負荷軽減）"
+            echo "  master --no-attach     # バックグラウンド起動"
+            echo "  master '認証機能を実装して'  # 起動後にMasterに指示を送信"
+            echo "  master --phased 'ECサイトを作りたい'  # 段階的起動＋指示"
+            echo ""
+            echo "環境変数:"
+            echo "  DEBUG=true     デバッグモードを有効化"
+            echo ""
+            exit 0
+            ;;
+        --no-attach)
+            ATTACH_SESSION=false
+            shift
+            ;;
+        --phased)
+            PHASED_MODE=true
+            shift
+            ;;
+        *)
+            # オプション以外は指示として扱う
+            MASTER_INSTRUCTION="$*"
+            break
+            ;;
+    esac
+done
 
 # エントリーポイント
 main "$@"

@@ -14,9 +14,6 @@ export WORKSPACE="/workspace"
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
 
-# Playwright MCPはコンテナ内での実行が複雑なため、
-# 通常のPlaywrightテストコードを書くことを推奨
-
 # USER_UID/USER_GIDが環境変数で指定されている場合は、developerユーザーのUID/GIDを変更
 if [ ! -z "$USER_UID" ] && [ ! -z "$USER_GID" ] && [ "$USER_UID" != "0" ]; then
     # 現在のdeveloperユーザーのUID/GIDを取得
@@ -38,8 +35,6 @@ if [ ! -z "$USER_UID" ] && [ ! -z "$USER_GID" ] && [ "$USER_UID" != "0" ]; then
 fi
 
 
-# 削除: プロジェクトファイルは直接マウントされるため、コピー処理は不要
-
 # workspaceディレクトリの権限設定（developerユーザーが書き込めるように）
 # ただし、.gitディレクトリは除外（既存の権限を保持）
 find /workspace -mindepth 1 -maxdepth 1 ! -name '.git' -exec chown -R developer:developer {} \; 2>/dev/null || true
@@ -52,7 +47,7 @@ if [ -d "/opt/claude-system/scripts" ]; then
     chmod +x /opt/claude-system/scripts/*.sh
 fi
 
-# tmux設定ファイルをコピー（権限を修正してから）
+# tmux設定ファイルをコピー
 if [ -f "/opt/claude-system/config/.tmux.conf" ]; then
     # rootユーザーとして実行されているので、直接操作
     # 両方の場所に配置（環境によって読み込み場所が異なるため）
@@ -82,12 +77,6 @@ fi
 if [ ! -f "/workspace/.gitignore" ] && [ -f "/opt/claude-system/templates/.gitignore" ]; then
     cp /opt/claude-system/templates/.gitignore /workspace/.gitignore 2>/dev/null || true
     chown developer:developer /workspace/.gitignore 2>/dev/null || true
-fi
-
-# mcp-servers.jsonをworkspaceにコピー（存在しない場合のみ）
-if [ ! -f "/workspace/mcp-servers.json" ] && [ -f "/opt/claude-system/config/mcp-servers.json" ]; then
-    cp /opt/claude-system/config/mcp-servers.json /workspace/mcp-servers.json 2>/dev/null || true
-    chown developer:developer /workspace/mcp-servers.json 2>/dev/null || true
 fi
 
 # Dockerソケットの権限調整（developerユーザーが使えるように）
@@ -123,6 +112,20 @@ export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 export CI=true
 # ヘッドレスモードを強制
 export PLAYWRIGHT_BROWSERS_PATH=/home/developer/.cache/ms-playwright
+
+# Playwright MCPのポート設定
+# tmuxセッション毎に異なるポートを割り当て
+if [ -z "$PLAYWRIGHT_MCP_PORT" ]; then
+    # デフォルトは30000
+    export PLAYWRIGHT_MCP_PORT=30000
+    
+    # .envファイルに保存（存在する場合）
+    if [ -f /workspace/.env ]; then
+        # 既存のPLAYWRIGHT_MCP_PORT設定を削除
+        sed -i '/^PLAYWRIGHT_MCP_PORT=/d' /workspace/.env
+        echo "PLAYWRIGHT_MCP_PORT=$PLAYWRIGHT_MCP_PORT" >> /workspace/.env
+    fi
+fi
 
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
@@ -161,7 +164,7 @@ su developer -c "export $ENV_VARS && /opt/claude-system/scripts/setup-mcp.sh" ||
 set -e
 
 # Playwright環境変数とロケール設定、PATHをdeveloperユーザーに渡す
-PLAYWRIGHT_ENV="PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD CI=$CI PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH LANG=$LANG LC_ALL=$LC_ALL PNPM_HOME=$PNPM_HOME PATH=$PATH"
+PLAYWRIGHT_ENV="PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD CI=$CI PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH PLAYWRIGHT_MCP_PORT=$PLAYWRIGHT_MCP_PORT LANG=$LANG LC_ALL=$LC_ALL PNPM_HOME=$PNPM_HOME PATH=$PATH"
 
 # Claude認証チェックスクリプトを作成
 cat > /tmp/check_claude_auth.sh << 'EOF'
