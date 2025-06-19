@@ -22,12 +22,13 @@ WORKDIR /app
 # Playwright MCPをインストール
 RUN npm install -g @playwright/mcp@latest
 
-# ポート8931を公開
+# コンテナ内部では常に8931ポートを使用
+# ホストへのマッピングは docker run -p で指定
 EXPOSE 8931
 
-# ヘルスチェック
+# ヘルスチェック（内部ポート8931を使用）
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8931/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8931/health || exit 1
 
 # Playwright MCPサーバーを起動
 CMD ["npx", "@playwright/mcp@latest", "--port", "8931", "--host", "0.0.0.0"]
