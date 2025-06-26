@@ -57,12 +57,8 @@ create_project() {
                     2)
                         echo "既存のコンテナを再起動中..."
                         cd "$PROJECT_DIR"
-                        # MCP Gateway統合が有効な場合は統合ファイルも含める
-            if [ -f "$CLAUDE_PROJECT_DIR/.mcp-gateway-integrated" ] && [ -f "$CLAUDE_PROJECT_DIR/mcp-gateway/claude-project-integration/docker-compose.yml" ]; then
-                docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" -f "$CLAUDE_PROJECT_DIR/mcp-gateway/claude-project-integration/docker-compose.yml" --project-directory "$PROJECT_DIR" up -d
-            else
-                docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
-            fi
+                        # Docker Composeで起動
+                        docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
                         
                         # コンテナが起動するまで待機
                         echo "コンテナの起動を待機中..."
@@ -88,20 +84,15 @@ create_project() {
             echo "コンテナが起動していません。起動します..."
             cd "$PROJECT_DIR"
             
-            # MCP Gateway統合チェックとプロキシ起動
-            if [ -f "$CLAUDE_PROJECT_DIR/.mcp-gateway-integrated" ] && [ -d "$CLAUDE_PROJECT_DIR/mcp-gateway" ]; then
-                echo "MCP Gateway統合を検出..."
-                
-                # プロキシサーバーが起動していない場合は起動
-                if ! nc -z localhost 9999 2>/dev/null; then
-                    echo "MCPプロキシサーバーを起動中..."
-                    cd "$CLAUDE_PROJECT_DIR/mcp-gateway"
-                    nohup bun run proxy > /dev/null 2>&1 &
-                    PROXY_PID=$!
-                    cd "$PROJECT_DIR"
-                    sleep 3
-                    echo "プロキシサーバー起動完了 (PID: $PROXY_PID)"
-                fi
+            # MCPプロキシサーバーの起動確認（常に必要）
+            if ! nc -z localhost 9999 2>/dev/null; then
+                echo "MCPプロキシサーバーを起動中..."
+                cd "$CLAUDE_PROJECT_DIR/mcp-gateway"
+                nohup bun run proxy > /dev/null 2>&1 &
+                PROXY_PID=$!
+                cd "$PROJECT_DIR"
+                sleep 3
+                echo "プロキシサーバー起動完了 (PID: $PROXY_PID)"
             fi
             
             # 必要なボリュームが存在するか確認し、なければ作成
@@ -114,12 +105,8 @@ create_project() {
                 docker volume create "${PROJECT_NAME}_z"
             fi
             
-            # MCP Gateway統合が有効な場合は統合ファイルも含める
-            if [ -f "$CLAUDE_PROJECT_DIR/.mcp-gateway-integrated" ] && [ -f "$CLAUDE_PROJECT_DIR/mcp-gateway/claude-project-integration/docker-compose.yml" ]; then
-                docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" -f "$CLAUDE_PROJECT_DIR/mcp-gateway/claude-project-integration/docker-compose.yml" --project-directory "$PROJECT_DIR" up -d
-            else
-                docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
-            fi
+            # Docker Composeで起動
+            docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
             
             # エラーチェック
             if [ $? -ne 0 ]; then
