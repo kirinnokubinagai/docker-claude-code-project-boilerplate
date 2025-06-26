@@ -1,12 +1,5 @@
 {
   "mcpServers": {
-    "mcp-gateway": {
-      "command": "sh",
-      "args": ["-c", "cd /Users/kirinnokubinagaiyo/Claude-Project/mcp-gateway && bun server/index.ts"],
-      "env": {
-        "MCP_PROXY_PORT": "9999"
-      }
-    },
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],

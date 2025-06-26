@@ -62,7 +62,7 @@ services:
     image: mcp-gateway-server:latest
     container_name: mcp-gateway-server-${PROJECT_NAME}
     volumes:
-      - ${MCP_CONFIG_PATH:-./mcp-config.json}:/app/mcp-config.json:ro
+      - ./mcp-config.json:/app/mcp-config.json:rw
     environment:
       - MCP_PROXY_PORT=${MCP_PROXY_PORT:-9999}
       - DOCKER_ENV=true
@@ -71,6 +71,7 @@ services:
       - host.docker.internal:host-gateway
     restart: unless-stopped
     network_mode: host
+    entrypoint: ["/bin/sh", "-c", "cd /app && bun server/web-server.ts"]
   mcp-gateway-client:
     build:
       context: ${CLAUDE_PROJECT_DIR}/mcp-gateway
