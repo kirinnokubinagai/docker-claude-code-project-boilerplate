@@ -12,13 +12,15 @@ create_project() {
     fi
     
     PROJECT_NAME="$1"
-    CLAUDE_PROJECT_DIR="$HOME/claude-project"
+    # スクリプトの場所から Claude-Project ディレクトリを特定
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    CLAUDE_PROJECT_DIR="$SCRIPT_DIR"
     PROJECT_DIR="$CLAUDE_PROJECT_DIR/projects/$PROJECT_NAME"
     
-    # claude-projectディレクトリが存在しない場合はエラー
+    # Claude-Projectディレクトリが存在しない場合はエラー
     if [ ! -d "$CLAUDE_PROJECT_DIR" ]; then
-        echo "エラー: claude-projectディレクトリが存在しません"
-        echo "先にclaude-projectのセットアップを完了してください"
+        echo "エラー: Claude-Projectディレクトリが存在しません: $CLAUDE_PROJECT_DIR"
+        echo "先にClaude-Projectのセットアップを完了してください"
         return 1
     fi
     
@@ -215,10 +217,13 @@ EOF
     fi
     
     # .dockerignoreファイルは不要（docker-compose-base.ymlはCLAUDE_PROJECT_DIRから読み込むため）
-    echo "6. mcp-config.jsonファイルを作成中..."
+    echo "6. mcp-configディレクトリと設定ファイルを作成中..."
+    
+    # mcp-configディレクトリを作成
+    mkdir -p mcp-config
     
     # mcp-config.jsonを作成（空の設定）
-    cat > mcp-config.json << 'EOF'
+    cat > mcp-config/mcp-config.json << 'EOF'
 {
   "mcpServers": {}
 }
