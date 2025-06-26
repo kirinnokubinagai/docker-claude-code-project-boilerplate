@@ -1,0 +1,95 @@
+version: '3.8'
+name: claude-code-${PROJECT_NAME}
+services:
+  claude-code:
+    image: claude-code-base:latest
+    build:
+      context: ${CLAUDE_PROJECT_DIR}
+      dockerfile: DockerfileBase
+      args:
+        - CLAUDE_AUTH_DIR=${HOME}
+    container_name: claude-code-${PROJECT_NAME}
+    env_file:
+      - .env
+    environment:
+      - HOST_CLAUDE_PROJECT_DIR=${CLAUDE_PROJECT_DIR}
+      - MCP_GATEWAY_URL=http://mcp-gateway-server:3003
+    volumes:
+      - .:/workspace:delegated
+      - ${CLAUDE_PROJECT_DIR}/docker-base:/opt/claude-system:ro
+      - ~/.gitconfig:/home/developer/.gitconfig:ro
+      - ~/.ssh:/home/developer/.ssh:ro
+      - ~/.claude:/home/developer/.claude
+      - bash_history:/home/developer/.bash_history
+      - z_data:/home/developer/.z_data
+      - ~/.config/gh:/home/developer/.config/gh:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CLAUDE_PROJECT_DIR}/mcp-gateway/claude-project-integration/mcp-servers-gateway.json:/home/developer/.config/claude/mcp-servers.json:ro
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
+    network_mode: host
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - mcp-gateway-server
+  mcp-proxy-check:
+    image: busybox
+    container_name: mcp-proxy-check-${PROJECT_NAME}
+    command: |-
+      sh -c "
+          if ! nc -z host.docker.internal 9999 2>/dev/null; then
+            echo '❌ エラー: MCPプロキシサーバーが起動していません！'
+            echo '👉 cd mcp-gateway && bun run proxy'
+            exit 1
+          fi
+        "
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  mcp-gateway-server:
+    build:
+      context: ${CLAUDE_PROJECT_DIR}/mcp-gateway
+      dockerfile: Dockerfile.server
+    image: mcp-gateway-server:latest
+    container_name: mcp-gateway-server
+    volumes:
+      - ${CLAUDE_PROJECT_DIR}/mcp-gateway/mcp-config.json:/app/mcp-config.json:ro
+    environment:
+      - MCP_PROXY_PORT=${MCP_PROXY_PORT:-9999}
+      - DOCKER_ENV=true
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    network_mode: host
+  mcp-gateway-client:
+    build:
+      context: ${CLAUDE_PROJECT_DIR}/mcp-gateway
+      dockerfile: Dockerfile.client
+    image: mcp-gateway-client:latest
+    container_name: mcp-gateway-client
+    environment:
+      - API_URL=http://host.docker.internal:${MCP_API_PORT:-3003}
+      - MCP_API_PORT=${MCP_API_PORT:-3003}
+    depends_on:
+      - mcp-gateway-server
+    ports:
+      - ${MCP_WEB_PORT:-3002}:3002
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+volumes:
+  bash_history:
+    name: ${PROJECT_NAME}_bash_history
+    external: true
+  z_data:
+    name: ${PROJECT_NAME}_z
+    external: true
