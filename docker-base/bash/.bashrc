@@ -23,6 +23,15 @@ export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 export CI=true
 export PLAYWRIGHT_BROWSERS_PATH=/home/developer/.cache/ms-playwright
 
+# MCP用環境変数の読み込み
+if [ -f /workspace/.env ]; then
+    export $(grep -v '^#' /workspace/.env | xargs)
+fi
+
+if [ -f /workspace/.env.mcp ]; then
+    export $(grep -v '^#' /workspace/.env.mcp | xargs)
+fi
+
 # History settings - Ctrl+Rで履歴検索を有効化
 export HISTSIZE=10000
 export HISTFILESIZE=20000
@@ -87,9 +96,23 @@ alias grep='grep --color=auto'
 alias vi='vim'
 alias v='vim'
 
-# Claude Code aliases
-alias cc='claude'
-alias ccd='claude --dangerously-skip-permissions'
+# Claude Code aliases with automatic login
+function cc() {
+    if ! claude --version >/dev/null 2>&1; then
+        echo "Claude Codeの初回認証が必要です..."
+        claude login
+    fi
+    claude "$@"
+}
+
+function ccd() {
+    if ! claude --version >/dev/null 2>&1; then
+        echo "Claude Codeの初回認証が必要です..."
+        claude login
+    fi
+    claude --dangerously-skip-permissions "$@"
+}
+
 alias clogin='claude login'
 alias cl='claude login'
 alias check_mcp='claude mcp list'
@@ -169,6 +192,7 @@ echo ""
 # Claude認証状態をチェック（重複しないように条件分岐）
 if ! claude --version >/dev/null 2>&1; then
     echo "⚠️  Claude Codeの初回認証が必要です"
+    echo "   cc または ccd コマンド実行時に自動的にログイン画面が表示されます"
     echo ""
 fi
 
@@ -182,7 +206,7 @@ echo "  check_mcp       - MCPサーバーの状態確認"
 echo "  help / h        - ヘルプとコマンド一覧を表示"
 echo ""
 echo "📝 次のステップ:"
-echo "  1. cl または clogin でClaude Codeにログイン（初回のみ）"
+echo "  1. cc または ccd を実行（初回は自動的にログイン画面表示）"
 echo "  2. master を実行してMaster Claude Teamsを起動"
 echo "     → Masterが ccd で要件定義・teams.json作成"
 echo "     → 各チームBossに詳細要件定義を指示"

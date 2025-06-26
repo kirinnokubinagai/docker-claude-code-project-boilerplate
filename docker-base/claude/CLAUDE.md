@@ -81,14 +81,20 @@
      - 常に最新の安定版技術を調査・採用
      - 過去の選択に縛られず、その時点のベストを選択
      - 新技術が登場した場合は積極的に評価・採用
+   - **バイブコーディング（AIによるプロジェクト作成）に適した技術を優先**:
+     - **即座にビジュアルフィードバック**が得られる（HMR/ホットリロード必須）
+     - **エラーメッセージが明確**で、AIが問題を特定しやすい
+     - **型安全性**があり、コード補完が効く（TypeScript推奨）
+     - **設定より規約**で、決まり切った設定が少ない
+     - **統合開発環境**が充実している（Vite、Next.js等）
+     - **ドキュメントが充実**し、AIが参照しやすい
    - **例**: Webアプリ→その時点で最適なフレームワーク
    - **例**: モバイルアプリ→その時点で最適なクロスプラットフォーム技術
 
-3. **要件定義書とタスクファイル作成**
+3. **要件定義書とGitHub Issues作成**
    ```bash
-   # 必須: documentsディレクトリとtasksサブディレクトリを作成
-   # worktreesではなく、必ずdocuments/tasks/に作成すること
-   mkdir -p documents/tasks
+   # 必須: documentsディレクトリを作成
+   mkdir -p documents
    
    # documents/requirements.mdを作成（人間が確認する要件定義書）
    cat > documents/requirements.md << 'EOF'
@@ -121,112 +127,42 @@
    - スケーラビリティ: 水平スケーリング対応
    EOF
    
-   # タスクファイルを個別に作成（Masterが参照）
-   # 必ずdocuments/tasks/ディレクトリに作成すること
-   # Frontend Tasks
-   cat > documents/tasks/frontend_tasks.md << 'EOF'
-   # Frontend Tasks
+   # GitHub Issuesでタスクを作成（チーム別にラベルを付けて管理）
+   # Frontend Team Issues
+   gh issue create --title "認証システム: ログイン画面のデザイン作成" \
+     --body "Magic MCPを使用してログイン画面のデザインを作成する" \
+     --label "team:frontend,priority:high,feature:auth"
    
-   ## 認証システム
-   - [ ] ログイン画面のデザイン作成（Magic MCP使用）
-   - [ ] ログインフォームコンポーネント実装（Magic MCP使用）
-   - [ ] ログインフォームのE2Eテスト作成 (tests/e2e/login_test.spec.ts)
-   - [ ] バリデーション処理実装
-   - [ ] バリデーションのユニットテスト作成 (tests/unit/validation_test.ts)
-   - [ ] エラーメッセージ表示機能（Magic MCP使用）
-   - [ ] エラー表示のE2Eテスト作成 (tests/e2e/error_display_test.spec.ts)
-   - [ ] パスワードリセット画面実装（Magic MCP使用）
-   - [ ] 新規登録画面実装（Magic MCP使用）
-   - [ ] メールアドレス確認フロー実装
-   - [ ] ソーシャルログインボタン追加（Magic MCP使用）
-   - [ ] Remember Me機能実装
-   - [ ] 自動ログアウト機能実装
+   gh issue create --title "認証システム: ログインフォームコンポーネント実装" \
+     --body "Magic MCPを使用してログインフォームコンポーネントを実装する\n- バリデーション処理を含む\n- E2Eテスト作成 (tests/e2e/login_test.spec.ts)" \
+     --label "team:frontend,priority:high,feature:auth"
    
-   ## ダッシュボード
-   - [ ] ダッシュボードレイアウト設計（Magic MCP使用）
-   - [ ] ヘッダーコンポーネント作成（Magic MCP使用）
-   - [ ] サイドバーナビゲーション実装（Magic MCP使用）
-   - [ ] ウィジェットコンポーネント作成（Magic MCP使用）
-   - [ ] グラフ表示機能実装
-   - [ ] リアルタイムデータ更新機能
-   - [ ] フィルター機能実装
-   - [ ] エクスポート機能追加
+   # Backend Team Issues
+   gh issue create --title "API基盤: プロジェクト初期設定" \
+     --body "バックエンドプロジェクトの初期設定を行う\n- 依存関係のインストール\n- 基本構造の作成" \
+     --label "team:backend,priority:high,feature:setup"
    
-   ## レスポンシブ対応
-   - [ ] モバイル用レイアウト作成（Magic MCP使用）
-   - [ ] タブレット用レイアウト調整（Magic MCP使用）
-   - [ ] ハンバーガーメニュー実装（Magic MCP使用）
-   - [ ] タッチ操作対応
-   - [ ] 画面回転対応
-   EOF
+   gh issue create --title "認証API: JWT実装" \
+     --body "JWT認証の実装\n- トークン生成・検証\n- ユニットテスト作成 (tests/backend/jwt_test.{拡張子})" \
+     --label "team:backend,priority:high,feature:auth"
    
-   # Backend Tasks
-   cat > documents/tasks/backend_tasks.md << 'EOF'
-   # Backend Tasks
+   # Database Team Issues
+   gh issue create --title "スキーマ設計: ER図作成" \
+     --body "データベースのER図を作成する" \
+     --label "team:database,priority:high,feature:design"
    
-   ## API基盤
-   - [ ] プロジェクト初期設定
-   - [ ] ルーティング設定
-   - [ ] ミドルウェア設定
-   - [ ] エラーハンドリング実装
-   - [ ] ロギングシステム構築
-   - [ ] APIドキュメント自動生成設定
+   # DevOps Team Issues
+   gh issue create --title "環境構築: Dockerfile作成" \
+     --body "本番環境用のDockerfileを作成する" \
+     --label "team:devops,priority:high,feature:infrastructure"
    
-   ## 認証API
-   - [ ] ユーザーモデル定義
-   - [ ] JWT実装
-   - [ ] JWTユニットテスト作成 (tests/backend/jwt_test.{拡張子})
-   - [ ] ログインエンドポイント作成
-   - [ ] ログインAPIテスト作成 (tests/backend/login_api_test.{拡張子})
-   - [ ] ログアウトエンドポイント作成
-   - [ ] ログアウトAPIテスト作成 (tests/backend/logout_api_test.{拡張子})
-   - [ ] トークンリフレッシュ機能
-   - [ ] パスワードハッシュ化実装
-   - [ ] メール送信機能実装
-   - [ ] 2段階認証対応
-   
-   ## データ処理
-   - [ ] CRUD APIエンドポイント作成
-   - [ ] バリデーション処理実装
-   - [ ] ページネーション実装
-   - [ ] ソート機能実装
-   - [ ] 検索機能実装
-   - [ ] バッチ処理機能
-   EOF
-   
-   # Database Tasks
-   cat > documents/tasks/database_tasks.md << 'EOF'
-   # Database Tasks
-   
-   ## スキーマ設計
-   - [ ] ER図作成
-   - [ ] テーブル定義書作成
-   - [ ] インデックス設計
-   - [ ] 外部キー制約設定
-   
-   ## マイグレーション
-   - [ ] 初期マイグレーションファイル作成
-   - [ ] シードデータ作成
-   - [ ] マイグレーションスクリプト作成
-   EOF
-   
-   # DevOps Tasks
-   cat > documents/tasks/devops_tasks.md << 'EOF'
-   # DevOps Tasks
-   
-   ## 環境構築
-   - [ ] Dockerfile作成
-   - [ ] docker-compose.yml作成
-   - [ ] 環境変数設定
-   - [ ] 開発環境構築手順書作成
-   
-   ## CI/CD
-   - [ ] GitHub Actions設定
-   - [ ] 自動テスト設定
-   - [ ] 自動デプロイ設定
-   - [ ] コード品質チェック設定
-   EOF
-      ```
+   # すべてのIssueを確認
+   echo "作成されたIssue一覧:"
+   gh issue list --label "team:frontend"
+   gh issue list --label "team:backend"
+   gh issue list --label "team:database"
+   gh issue list --label "team:devops"
+   ```
 
 4. **Git初期化とリポジトリ作成**
    ```bash
@@ -257,10 +193,23 @@
    - 開発サーバーを起動（ポート番号を確認・記録）
    - git initとgit commitで初期状態を保存
 
-6. **タスク分割とチーム編成**
-   - documents/tasks/内のタスクファイルに基づいてタスクを詳細分割
-   - 必要なチーム数とメンバー数を決定
-   - **必須: teams.jsonをdocumentsディレクトリに作成**
+6. **チーム編成とGitHubラベル設定**
+   - GitHub Issuesのラベルでチーム別にタスクを管理
+   - **タスク量に基づいて各チームの人数を動的に決定**
+   - **必須: teams.jsonをdocumentsディレクトリに作成（GitHubラベル情報含む）**
+   
+   ```bash
+   # 各チームのタスク数をカウント
+   FRONTEND_TASKS=$(gh issue list --label "team:frontend" --state open | wc -l)
+   BACKEND_TASKS=$(gh issue list --label "team:backend" --state open | wc -l)
+   DATABASE_TASKS=$(gh issue list --label "team:database" --state open | wc -l)
+   DEVOPS_TASKS=$(gh issue list --label "team:devops" --state open | wc -l)
+   
+   echo "タスク数: Frontend=$FRONTEND_TASKS, Backend=$BACKEND_TASKS, Database=$DATABASE_TASKS, DevOps=$DEVOPS_TASKS"
+   
+   # タスク比率に基づいて15名（Master除く）を配分
+   # 最小1名、最大7名の制約付き
+   ```
    ```bash
    # documentsディレクトリに teams.json を作成
    cat > documents/teams.json << 'EOF'
@@ -299,77 +248,104 @@
    ```
 
 8. **🛑 ここで必ず停止！**
+   
+   **重要**: 上記の作業（要件定義、技術選定、タスク作成、teams.json作成など）はすべて完了させるが、
+   その後は必ず停止してmasterコマンドの起動を待つ。
+   Masterロールに切り替わったら、自分では実装せず、各チームのBossに指示を出すだけ。
 
 ### teams.json作成の具体例（厳守）
 
 **重要: プロジェクトタイプと規模に応じてチーム構成を調整**
 
 ```bash
-# teams.json作成コマンド
-# 注意: チーム構成とメンバー数は実際のプロジェクト要件に合わせて調整すること
-cat > documents/teams.json << 'EOF'
-{
-  "project_name": "実際のプロジェクト名",
-  "project_type": "プロジェクトタイプ（web-app/mobile-app/ai/blockchain等）",
-  "teams": [
-    # ここに実際のチーム構成を記載
-    # 例:
-    # - Webアプリ: frontend(4), backend(4), database(3), devops(3)
-    # - モバイルアプリ: mobile(4), backend(4), devops(3)
-    # - AIプロダクト: ai(4), backend(4), frontend(4), data(4)
-    # - シンプルなサイト: frontend(3), backend(2)
-    # 
-    # 各チームの形式:
-    # {
-    #   "id": "チームID（英小文字）",
-    #   "name": "チーム表示名",
-    #   "member_count": メンバー数（1-4）,
-    #   "branch": "team/チームID"
-    # }
-  ]
+# teams.json作成コマンド（タスク量に基づく動的配分）
+# タスク数に基づいてチーム人数を自動計算
+calculate_team_sizes() {
+  # 各チームのタスク数を取得
+  FRONTEND_TASKS=$(gh issue list --label "team:frontend" --state open | wc -l)
+  BACKEND_TASKS=$(gh issue list --label "team:backend" --state open | wc -l)
+  DATABASE_TASKS=$(gh issue list --label "team:database" --state open | wc -l)
+  DEVOPS_TASKS=$(gh issue list --label "team:devops" --state open | wc -l)
+  
+  TOTAL_TASKS=$((FRONTEND_TASKS + BACKEND_TASKS + DATABASE_TASKS + DEVOPS_TASKS))
+  
+  # タスクがない場合はプロジェクトタイプに応じたデフォルト配分
+  if [ $TOTAL_TASKS -eq 0 ]; then
+    # プロジェクトタイプを確認
+    PROJECT_TYPE=$(grep '"project_type"' documents/teams.json 2>/dev/null | cut -d'"' -f4)
+    
+    case "$PROJECT_TYPE" in
+      "mobile-app")
+        echo "6 5 2 2"  # Frontend(Mobile) Backend Database DevOps
+        ;;
+      "web-app"|*)
+        echo "5 5 3 2"  # Frontend Backend Database DevOps
+        ;;
+    esac
+    return
+  fi
+  
+  # 15名（Master除く）をタスク比率で配分
+  AVAILABLE_MEMBERS=15
+  
+  # 各チームの人数を計算（最小1名、最大7名）
+  calc_members() {
+    local tasks=$1
+    local members=$((tasks * AVAILABLE_MEMBERS / TOTAL_TASKS))
+    [ $members -lt 1 ] && members=1
+    [ $members -gt 7 ] && members=7
+    echo $members
+  }
+  
+  FRONTEND_MEMBERS=$(calc_members $FRONTEND_TASKS)
+  BACKEND_MEMBERS=$(calc_members $BACKEND_TASKS)
+  DATABASE_MEMBERS=$(calc_members $DATABASE_TASKS)
+  DEVOPS_MEMBERS=$(calc_members $DEVOPS_TASKS)
+  
+  # 合計が15名になるよう調整
+  TOTAL_MEMBERS=$((FRONTEND_MEMBERS + BACKEND_MEMBERS + DATABASE_MEMBERS + DEVOPS_MEMBERS))
+  if [ $TOTAL_MEMBERS -ne 15 ]; then
+    # タスク数が最も多いチームで調整
+    if [ $FRONTEND_TASKS -ge $BACKEND_TASKS ] && [ $FRONTEND_TASKS -ge $DATABASE_TASKS ] && [ $FRONTEND_TASKS -ge $DEVOPS_TASKS ]; then
+      FRONTEND_MEMBERS=$((FRONTEND_MEMBERS + 15 - TOTAL_MEMBERS))
+    elif [ $BACKEND_TASKS -ge $DATABASE_TASKS ] && [ $BACKEND_TASKS -ge $DEVOPS_TASKS ]; then
+      BACKEND_MEMBERS=$((BACKEND_MEMBERS + 15 - TOTAL_MEMBERS))
+    elif [ $DATABASE_TASKS -ge $DEVOPS_TASKS ]; then
+      DATABASE_MEMBERS=$((DATABASE_MEMBERS + 15 - TOTAL_MEMBERS))
+    else
+      DEVOPS_MEMBERS=$((DEVOPS_MEMBERS + 15 - TOTAL_MEMBERS))
+    fi
+  fi
+  
+  echo "$FRONTEND_MEMBERS $BACKEND_MEMBERS $DATABASE_MEMBERS $DEVOPS_MEMBERS"
 }
-EOF
 
-# よく使われる構成例:
+# チーム人数を計算
+read FRONTEND_COUNT BACKEND_COUNT DATABASE_COUNT DEVOPS_COUNT <<< $(calculate_team_sizes)
 
-# 【Webアプリケーション（フルスタック）】
-cat > documents/teams.json << 'EOF'
+echo "チーム編成（タスク数に基づく）:"
+echo "- Frontend: ${FRONTEND_COUNT}名"
+echo "- Backend: ${BACKEND_COUNT}名"
+echo "- Database: ${DATABASE_COUNT}名"
+echo "- DevOps: ${DEVOPS_COUNT}名"
+echo "- 合計: 16名（Master1名 + 開発15名）"
+
+# プロジェクトタイプを確認（デフォルトはweb-app）
+PROJECT_TYPE="${PROJECT_TYPE:-web-app}"
+
+# teams.jsonを生成（プロジェクトタイプに関わらず同じチーム名を使用）
+cat > documents/teams.json << EOF
 {
   "project_name": "プロジェクト名を入力",
-  "project_type": "web-app",
+  "project_type": "${PROJECT_TYPE}",
   "teams": [
-    {"id": "frontend", "name": "Frontend Team", "member_count": 4, "branch": "team/frontend"},
-    {"id": "backend", "name": "Backend Team", "member_count": 4, "branch": "team/backend"},
-    {"id": "database", "name": "Database Team", "member_count": 3, "branch": "team/database"},
-    {"id": "devops", "name": "DevOps Team", "member_count": 3, "branch": "team/devops"}
+    {"id": "frontend", "name": "Frontend Team", "member_count": ${FRONTEND_COUNT}, "branch": "team/frontend", "github_label": "team:frontend", "playwright_required": true},
+    {"id": "backend", "name": "Backend Team", "member_count": ${BACKEND_COUNT}, "branch": "team/backend", "github_label": "team:backend"},
+    {"id": "database", "name": "Database Team", "member_count": ${DATABASE_COUNT}, "branch": "team/database", "github_label": "team:database"},
+    {"id": "devops", "name": "DevOps Team", "member_count": ${DEVOPS_COUNT}, "branch": "team/devops", "github_label": "team:devops"}
   ]
 }
 EOF
-
-# 【シンプルなWebサイト】
-# cat > documents/teams.json << 'EOF'
-# {
-#   "project_name": "プロジェクト名を入力",
-#   "project_type": "website",
-#   "teams": [
-#     {"id": "frontend", "name": "Frontend Team", "member_count": 3, "branch": "team/frontend"},
-#     {"id": "backend", "name": "Backend Team", "member_count": 2, "branch": "team/backend"}
-#   ]
-# }
-# EOF
-
-# 【モバイルアプリ】
-# cat > documents/teams.json << 'EOF'
-# {
-#   "project_name": "プロジェクト名を入力",
-#   "project_type": "mobile-app",
-#   "teams": [
-#     {"id": "mobile", "name": "Mobile Team", "member_count": 4, "branch": "team/mobile"},
-#     {"id": "backend", "name": "Backend Team", "member_count": 4, "branch": "team/backend"},
-#     {"id": "devops", "name": "DevOps Team", "member_count": 3, "branch": "team/devops"}
-#   ]
-# }
-# EOF
 
 # 必ず実行: 作成確認
 ls -la documents/teams.json
@@ -386,48 +362,84 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
 
 ### teamsオブジェクトの必須フィールド（厳密なフォーマット）
 
-| フィールド   | 型     | 説明                 | 例              |
-| ------------ | ------ | -------------------- | --------------- |
-| id           | string | チームID（英小文字） | "frontend"      |
-| name         | string | チーム表示名         | "Frontend Team" |
-| member_count | number | メンバー数（1-4）    | 4               |
-| branch       | string | ブランチ名           | "team/frontend" |
+| フィールド   | 型     | 説明                 | 例              | 必須 |
+| ------------ | ------ | -------------------- | --------------- | ---- |
+| id           | string | チームID（英小文字） | "frontend"      | ✅   |
+| name         | string | チーム表示名         | "Frontend Team" | ✅   |
+| member_count | number | メンバー数（1-4）    | 4               | ✅   |
+| branch       | string | ブランチ名           | "team/frontend" | ✅   |
+| github_label | string | GitHubラベル名       | "team:frontend" | ✅   |
 
-**重要**: 上記4つのフィールドのみを含めること。他のフィールド（focus等）は追加しないこと。
+### teamsオブジェクトのオプションフィールド
+
+| フィールド         | 型      | 説明                           | 例                              | 必須 |
+| ------------------ | ------- | ------------------------------ | ------------------------------- | ---- |
+| playwright_required | boolean | Playwright MCPの要否           | true                            | ❌   |
+| description        | string  | チームの責務説明               | "UI/UX development and testing" | ❌   |
+
+**GitHubラベル設定のガイドライン**:
+- **チームラベル**: `team:frontend`, `team:backend`, `team:database`, `team:devops`
+- **優先度ラベル**: `priority:high`, `priority:medium`, `priority:low`
+- **機能ラベル**: `feature:auth`, `feature:dashboard`, `feature:api`
+- **ステータスラベル**: `status:in-progress`, `status:blocked`, `status:review`
+
+**Playwright MCP設定のガイドライン**:
+- **Frontend/QA Team**: `playwright_required: true` （UI/E2Eテスト用）
+- **Backend/Database/DevOps Team**: `playwright_required: false` または省略（不要）
+- 未設定の場合はデフォルトで `false`
+
+**重要**: 上記7つのフィールドのみを含めること。他のフィールド（focus等）は追加しないこと。
 
 
 
 ### Master Claudeの動作フロー（指示待ちゼロシステム）
 
 ```
-1. documents/teams.jsonを読み込んでtmuxセッションを起動
-   - 各チームのペインを作成（1人目がBoss）
-   - 全員でclaude --dangerously-skip-permissionsを起動
-
-2. git worktreeの確認と移動（重要）
-   各チームは必ず自分のworktreeで作業する：
-   - Frontend Team: worktrees/frontend
-   - Backend Team: worktrees/backend
-   - Database Team: worktrees/database
-   - DevOps Team: worktrees/devops
+1. Masterの初期設定（重要）
+   **Master（ペイン1）は実装作業を一切行わない。指示と管理のみ。**
    
-   # 各Bossが最初に実行
-   cd /workspace/worktrees/frontend  # 自分のチームのworktreeに移動
-   pwd  # 確認: /workspace/worktrees/frontend
+   初回メッセージ例：
+   「私はMaster Claudeです。GitHub Issuesから各チームのタスクを管理します。
+   5秒ごとに全Bossを監視し、タスク完了や問題を検知したら即座に対応します。
+   
+   チーム構成はGitHub Issuesのタスク数に基づいて動的に決定します。
+   合計16名（Master1名 + 開発15名）をタスク量に応じて配分します。」
 
-3. documents/tasks/を参照してタスク管理
-   ls documents/tasks/ でタスクファイル一覧を確認
-   cat documents/tasks/*.md で各チームのタスクを確認
+2. タスク管理の準備
+   - GitHub Issuesからチーム別のタスクを取得
+   - 各チームのBoss（ペイン番号）を確認
+   - 依存関係を考慮してタスク実行順序を決定
+   
+   ```bash
+   # チーム別のIssue取得
+   gh issue list --label "team:frontend" --state open --json number,title,labels
+   gh issue list --label "team:backend" --state open --json number,title,labels
+   gh issue list --label "team:database" --state open --json number,title,labels
+   gh issue list --label "team:devops" --state open --json number,title,labels
+   ```
 
-4. 未完了タスク（- [ ]）を抽出して優先順位付け
-   依存関係を考慮して実行可能なタスクを選定
+3. 各チームのBossに初期指示を出す
+   例：Frontend Boss（ペイン2）への初期指示
+   tmux send-keys -t claude-teams.2 "Frontend Boss、あなたはFrontend Teamのリーダーです。
+   worktrees/frontendに移動して、GitHub IssueのラベルがTeam:frontendのタスクから実装を開始してください。
+   gh issue list --label 'team:frontend' --state open でタスクを確認し、メンバーに割り振ってください。"
+   sleep 0.5
+   tmux send-keys -t claude-teams.2 Enter
 
-5. 各チームのBossに指示を出す（階層的指示システム）
-   Master → Boss → メンバーの流れで指示が伝達される
+4. 無限監視ループを開始
+   - 5秒ごとに全Bossの状態を確認
+   - タスク完了、質問、問題、アイドル状態を検知
+   - 即座に次のタスクを割り当て
    
    **重要な役割分担**：
-   - **Master（pane 1）**: 全体統括、タスク配分、メインブランチへのマージ作業、完了マークの追加とコミットIDの追加、Bossへの指示のみ
-   - **Boss（各チームの1人目）**: チーム内タスク管理、メインブランチをworktreeにマージ、レビュー及びMemberへの指示、コミットのみ
+   - **Master（pane 1）**: 
+     - 全体統括とBossへの指示のみ
+     - GitHub Issuesの更新（完了したらclose、新規タスクはcreate）
+     - メインブランチへのマージ作業
+     - **実装作業は一切行わない**
+     - **開発環境の構築も行わない**
+     - **技術調査や要件定義も直接行わない（Bossに指示）**
+   - **Boss（各チームの1人目）**: チーム内タスク管理、メインブランチをworktreeにマージ、レビュー及びMemberへの指示、コミットのみ、Issue番号の管理
    - **Member（各チームの2-4人目）**: 実装作業とBossへの報告のみ
 
    **ペイン番号（重要）**：
@@ -441,18 +453,42 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    - BossやMemberがMasterの役割（他チームへの指示、マージ等）を行うこと
    - MemberがBossの役割（レビュー、コミット等）を行うこと
    - 各チームは自分のworktree内でのみ作業すること
+   - **tmuxのペイン名を変更すること（絶対禁止）**
+   - **tmux select-pane -T コマンドの使用（絶対禁止）**
+   - **tmux rename-window コマンドの使用（絶対禁止）**
 
 ### 📊 Master-Boss-Member ワークフロー
 
-1. **Master**: documents/tasks/*.md から未完了タスクを抽出
-2. **Master → Boss**: tmuxコマンドでタスク指示
+1. **Master**: GitHub Issuesから未完了タスクを取得
+   ```bash
+   # 各チームの未完了タスクを確認
+   gh issue list --label "team:frontend" --state open
+   gh issue list --label "team:backend" --state open
+   ```
+2. **Master → Boss**: tmuxコマンドでタスク指示（Issue番号を含む）
+   ```bash
+   # MasterからFrontend Boss（ペイン2）への指示例
+   tmux send-keys -t claude-teams.2 "Frontend Boss、Issue #23の認証システムの実装を開始してください。詳細は gh issue view 23 で確認し、メンバーに割り振ってください。"
+   sleep 0.5
+   tmux send-keys -t claude-teams.2 Enter
+   ```
 3. **Boss → Members**: タスクを分配し、3秒ごとに監視
+   ```bash
+   # Frontend Boss（ペイン2）からMember 2（ペイン3）への指示例
+   tmux send-keys -t claude-teams.3 "Member 2、Issue #23のログインフォームコンポーネントを作成してください。src/components/auth/LoginForm.tsxに実装し、バリデーション処理も含めてください。完了したらテストを作成して報告してください。"
+   sleep 0.5
+   tmux send-keys -t claude-teams.3 Enter
+   ```
 4. **Members**: 実装作業（アイドル時は即報告）
 5. **Members → Boss**: 完了/質問/アイドル報告
-6. **Boss**: レビュー & テスト & コミット
-7. **Boss → Master**: チーム進捗報告
-8. **Master**: マージ & タスクファイル更新
-9. **ループ**: 全タスクが [x] になるまで継続
+6. **Boss**: レビュー & テスト & コミット（Issue番号をコミットメッセージに含める）
+7. **Boss → Master**: チーム進捗報告（Issue番号含む）
+8. **Master**: マージ & GitHub Issue更新
+   ```bash
+   # Issueを閉じる
+   gh issue close 23 --comment "実装完了しました。コミット: abc123"
+   ```
+9. **ループ**: 全Issueがcloseされるまで継続
 
 6. Masterは常にBossを監視（無限ループ処理）
    ```
@@ -547,7 +583,7 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    go test ./...     # Go
    cargo test        # Rust
    
-   # 全テスト通過後、活動ログを作成してからコミット
+   # 全テスト通過後、活動ログを作成してからコミット（Issue番号含む）
    # 1. 活動ログディレクトリを作成（プロジェクト内）
    mkdir -p /workspace/documents/activity_logs
    
@@ -591,10 +627,11 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
    - アクセシビリティ対応完了
    EOF
    
-   # 4. 活動ログを含めてコミット
+   # 4. 活動ログを含めてコミット（Issue番号を含める）
    git add .
-   git commit -m "feat: 認証システム実装
+   git commit -m "feat: 認証システム実装 (#23)
    
+   Closes #23
    📝 Activity log: documents/activity_logs/${TIMESTAMP}_${WORK_DESC}.md
    
    🤖 Generated with Claude Code
@@ -608,22 +645,35 @@ echo "teams.json created at: $(pwd)/documents/teams.json"
 
 11. MasterがBossからの報告を受けてマージ
     - テストの実行確認（テストなしのコミットは却下）
-    - documents/tasks/内の該当タスクファイルを更新（完了: - [ ] を - [x] に変更）
-    - 新規タスク発生: 適切な場所に追加
+    - GitHub Issueをクローズ
+      ```bash
+      gh issue close 23 --comment "実装完了: ${COMMIT_HASH}"
+      ```
+    - 新規タスク発生時: GitHub Issueを作成
+      ```bash
+      gh issue create --title "新規タスク名" --body "詳細説明" --label "team:frontend,priority:medium"
+      ```
     - ブランチをメインにマージ
     - 即座に次のタスクセットをBossに割り当て
 
 12. 全タスクが完了するまで4-10を繰り返す
-    目標: documents/tasks/内の全タスクファイルの全項目が [x] になること
+    目標: 全GitHub Issueがクローズされること
+    ```bash
+    # 完了確認
+    gh issue list --state open | wc -l  # 0になればすべて完了
+    ```
 
 13. 12まで完了した時に`git push`を行いobsidianにメモを作成し、lineに通知を行う
 ```
 
 
 #### タスク管理のベストプラクティス
+- **GitHub Issues中心**: すべてのタスクはGitHub Issuesで管理
+- **ラベル活用**: team:*, priority:*, feature:*, status:* ラベルで整理
+- **Issue番号追跡**: コミットメッセージに必ずIssue番号を含める
 - **実現可能性重視**: 既存技術で確実に実装できるもののみ
 - **完全実装主義**: MVP思考ではなく、完成品を一発で作る
-- **動的タスク追加**: 開発中に必要なタスクは即座に追加
+- **動的タスク追加**: 開発中に必要なタスクは即座にIssue作成
 - **並列実行**: 依存関係のないタスクは同時進行
 - **全員フル稼働**: 常に全メンバーがタスクを持つ状態を維持
 - **指示待ちゼロ**: Master/Bossは常に監視し、即座に次のタスクを投入
@@ -953,24 +1003,35 @@ function exampleFunction(param) {
    - その時点のベストプラクティスを採用
 
 
-## 📊 プロジェクトタイプ別チーム構成
+## 📊 動的チーム構成（タスク量ベース）
 
-### Webアプリケーション
-- Frontend Team（UI/UX）: 4名
-- Backend Team（API）: 4名
-- Database Team（データ）: 3名
-- DevOps Team（インフラ）: 3名
+### チーム人数の動的配分
+- **Master**: 1名（全体統括・指示のみ）
+- **開発チーム**: 15名（タスク量に応じて配分）
+  - Frontend Team: 1-7名
+  - Backend Team: 1-7名
+  - Database Team: 1-7名
+  - DevOps Team: 1-7名
 
-### モバイルアプリ
-- Mobile Team（アプリ）: 4名
-- Backend Team（API）: 4名
-- DevOps Team（配信）: 3名
+**合計**: 16名（Master1名 + 開発15名）
 
-### AIプロダクト
-- AI Team（モデル）: 4名
-- Backend Team（API）: 4名
-- Frontend Team（UI）: 4名
-- Data Team（データ）: 4名
+### 配分アルゴリズム
+1. **GitHub Issuesのタスク数をカウント**
+   - 各チームラベルごとのオープンIssue数を集計
+2. **タスク比率で人数を配分**
+   - タスク数の比率に応じて15名を配分
+   - 最小1名、最大7名の制約付き
+3. **自動調整**
+   - 合計が15名になるよう最もタスクが多いチームで調整
+4. **プロジェクトタイプ別デフォルト配分**（タスクがない場合）
+   - **Webアプリ**: Frontend5名、Backend5名、Database3名、DevOps2名
+   - **スマホアプリ**: Frontend(Mobile)6名、Backend5名、Database2名、DevOps2名
+   
+### スマホアプリ開発時の特徴
+- **Frontend Team = Mobile Team**: iOS/Android開発に特化
+- **人数を多めに配分**: UI/UX、端末対応、OS対応など作業量が多い
+- **Database**: モバイル向けに最適化されたAPIのため少人数
+- **DevOps**: アプリストア配信中心のため少人数
 
 ## ⚡ クイックリファレンス
 
@@ -1009,47 +1070,57 @@ claude mcp mcp__mcp-playwright__browser_take_screenshot --filename "dashboard-af
 2. ❌ 実装まで進める → ✅ チーム構成で停止
 3. ❌ プロセス放置 → ✅ 必ず終了処理
 
-## 📝 タスクリスト作成ガイドライン
+## 📝 GitHub Issue作成ガイドライン
 
-### タスクの粒度と構成
+### Issueの粒度と構成
 タスクは機能単位で分割し、各タスクは1-4時間で完了できる粒度にする
 
-### Frontend Tasks テンプレート
-```markdown
-#### 基本UI構築
-- [ ] ワイヤーフレーム/モックアップ作成
-- [ ] レイアウトコンポーネント作成（Magic MCP使用）
-- [ ] ナビゲーション実装（Magic MCP使用）
-- [ ] レスポンシブ対応
+### Issue作成例
 
-#### 機能実装
-- [ ] フォーム作成（Magic MCP使用）
-- [ ] バリデーション実装
-- [ ] APIとの連携
-- [ ] 状態管理実装
-- [ ] エラーハンドリング
+#### Frontend Team Issues
+```bash
+# 基本UI構築
+gh issue create --title "基本レイアウト: ワイヤーフレーム作成" \
+  --body "プロジェクト全体のワイヤーフレームを作成する" \
+  --label "team:frontend,priority:high,feature:ui"
 
-#### テスト
-- [ ] ユニットテスト作成（tests/unit/）
-- [ ] E2Eテスト作成（tests/e2e/）
+gh issue create --title "基本レイアウト: レイアウトコンポーネント実装" \
+  --body "Magic MCPを使用してレイアウトコンポーネントを作成する\n- ヘッダー\n- フッター\n- サイドバー" \
+  --label "team:frontend,priority:high,feature:ui"
+
+# 機能実装
+gh issue create --title "フォーム: ユーザー登録フォーム実装" \
+  --body "Magic MCPを使用してユーザー登録フォームを作成\n- バリデーション処理\n- エラーハンドリング\n- テスト作成" \
+  --label "team:frontend,priority:high,feature:auth"
 ```
 
-### Backend Tasks テンプレート
-```markdown
-#### API実装
-- [ ] エンドポイント設計
-- [ ] ルーティング実装
-- [ ] ミドルウェア作成
-- [ ] 認証・認可実装
+#### Backend Team Issues  
+```bash
+# API実装
+gh issue create --title "API: エンドポイント設計" \
+  --body "RESTful APIのエンドポイント設計\n- ルーティング構成\n- バージョニング戦略" \
+  --label "team:backend,priority:high,feature:api"
 
-#### ビジネスロジック
-- [ ] サービス層実装
-- [ ] バリデーション処理
-- [ ] エラーハンドリング
+gh issue create --title "API: 認証ミドルウェア実装" \
+  --body "JWT認証ミドルウェアの実装\n- トークン検証\n- エラーハンドリング\n- テスト作成" \
+  --label "team:backend,priority:high,feature:auth"
+```
 
-#### テスト
-- [ ] APIテスト作成（tests/backend/）
-- [ ] 統合テスト作成
+### ラベル管理
+```bash
+# 必須ラベルの作成
+gh label create "team:frontend" --color "0052CC" --description "Frontend team tasks"
+gh label create "team:backend" --color "5319E7" --description "Backend team tasks"
+gh label create "team:database" --color "006B75" --description "Database team tasks"
+gh label create "team:devops" --color "E99695" --description "DevOps team tasks"
+
+gh label create "priority:high" --color "D93F0B" --description "High priority"
+gh label create "priority:medium" --color "FBCA04" --description "Medium priority"
+gh label create "priority:low" --color "0E8A16" --description "Low priority"
+
+gh label create "status:in-progress" --color "1D76DB" --description "Work in progress"
+gh label create "status:blocked" --color "B60205" --description "Blocked by dependency"
+gh label create "status:review" --color "C2E0C6" --description "Ready for review"
 ```
 
 ## 📡 通信プロトコル（Master-Boss-Member）
@@ -1069,6 +1140,7 @@ Master ↔️ Boss ↔️ Member
 #### Member → Boss
 ```
 【タスク完了報告】
+Issue: #23
 タスク: [タスク名]
 状態: 完了
 テスト: 作成済み・実行済み
@@ -1076,13 +1148,14 @@ Master ↔️ Boss ↔️ Member
 次タスク待機中
 
 【質問・相談】
+Issue: #23
 タスク: [タスク名]
 内容: [具体的な質問]
 提案: [自分の案がある場合]
 
 【アイドル報告】※即座に報告
 状態: アイドル
-最終タスク: [直前のタスク名]
+最終Issue: #23
 次タスク要求
 ```
 
@@ -1090,17 +1163,18 @@ Master ↔️ Boss ↔️ Member
 ```
 【チーム進捗報告】
 チーム: [チーム名]
-完了タスク: 
-- [x] タスク1（テスト済み）
-- [x] タスク2（テスト済み）
+完了Issue: 
+- #23 認証システム実装（テスト済み）
+- #24 ダッシュボード実装（テスト済み）
 進行中: 
-- [ ] タスク3（Member1）
-- [ ] タスク4（Member2）
+- #25 API実装（Member1）
+- #26 DB設計（Member2）
 カバレッジ: 92%
 コミット準備: OK
 
 【問題エスカレーション】
 チーム: [チーム名]
+Issue: #23
 問題: [具体的な問題]
 影響: [影響範囲]
 提案: [解決案]
@@ -1110,23 +1184,35 @@ Master ↔️ Boss ↔️ Member
 
 #### タスク進捗の可視化
 ```bash
-# documents/tasks/[team]_tasks.mdファイルで管理
-- [x] 完了タスク
-- [ ] 未完了タスク
-- [~] 進行中タスク（オプション）
+# GitHub Issuesで管理
+# チーム別の進捗確認
+gh issue list --label "team:frontend" --json number,title,state,labels
+gh issue list --label "team:backend" --json number,title,state,labels
 
-# 定期的に更新
-cat documents/tasks/frontend_tasks.md | grep -E "^\- \["
+# ステータス別の確認
+gh issue list --label "status:in-progress" --json number,title,assignees
+gh issue list --label "status:blocked" --json number,title,body
+
+# 完了タスクの確認
+gh issue list --state closed --label "team:frontend" --limit 10
 ```
 
 #### 監視ループの実装
 ```
 # Master監視ループ（5秒間隔）
 while true; do
-  for boss in all_bosses; do
-    # 各Bossのステータス確認
-    # タスクファイルのチェックカウント
+  for team in frontend backend database devops; do
+    # 各チームの未完了Issue確認
+    OPEN_ISSUES=$(gh issue list --label "team:${team}" --state open --json number)
+    
+    # 進行中Issue確認
+    IN_PROGRESS=$(gh issue list --label "team:${team},status:in-progress" --state open --json number)
+    
     # アイドル検知と即座のタスク割り当て
+    if [ -z "$IN_PROGRESS" ] && [ -n "$OPEN_ISSUES" ]; then
+      # Bossに新しいタスクを割り当て
+      assign_new_task_to_boss $team
+    fi
   done
   sleep 5
 done
@@ -1142,6 +1228,45 @@ while true; do
   sleep 3
 done
 ```
+
+### tmux send-keys ベストプラクティス（重要）
+
+**指示送信時の必須ルール**：
+
+1. **テキスト入力とEnter実行を分離**
+   ```bash
+   # ◎ 正しい例
+   tmux send-keys -t claude-teams.2 "認証機能を実装してください"
+   sleep 0.5  # テキスト入力完了を待つ
+   tmux send-keys -t claude-teams.2 Enter
+   
+   # × 悪い例（改行や長いテキストで失敗する可能性）
+   tmux send-keys -t claude-teams.2 "認証機能を実装してください" && sleep 0.1 && tmux send-keys -t claude-teams.2 Enter
+   ```
+
+2. **送信確認を実施**
+   ```bash
+   # 指示送信後に確認
+   sleep 2
+   PANE_CONTENT=$(tmux capture-pane -t claude-teams.2 -p | tail -20)
+   if echo "$PANE_CONTENT" | grep -q "Human:"; then
+     echo "✓ 指示が正常に送信されました"
+   else
+     echo "✗ 指示送信に失敗。再度Enterを送信します"
+     tmux send-keys -t claude-teams.2 Enter
+   fi
+   ```
+
+3. **リトライ処理を実装**
+   - 最大3回まで自動リトライ
+   - 各リトライで2秒待機
+   - 失敗時はEnterのみ再送信
+
+4. **長いタスクの場合**
+   ```bash
+   # タスクの最初の20文字を保存（確認用）
+   TASK_PREFIX=$(echo "$TASK" | head -c 20)
+   ```
 
 ### エスカレーションルール
 
@@ -1166,11 +1291,15 @@ done
 
 ### 1. 全タスク完了確認
 ```bash
-# 全タスクファイルの完了確認
-for file in documents/tasks/*.md; do
-  echo "=== $file ==="
-  grep -E "^\- \[ \]" "$file" || echo "全タスク完了！"
-done
+# 全Issueの完了確認
+echo "=== 未完了Issue確認 ==="
+OPEN_ISSUES=$(gh issue list --state open | wc -l)
+if [ "$OPEN_ISSUES" -eq 0 ]; then
+  echo "全Issue完了！"
+else
+  echo "未完了Issue: $OPEN_ISSUES 件"
+  gh issue list --state open
+fi
 
 # カバレッジ確認
 npm run test:coverage  # または適切なコマンド
@@ -1208,11 +1337,16 @@ claude mcp mcp__line-bot__push_text_message \
 ### 4. tmuxセッション終了
 ```bash
 # Masterペインに終了通知（ペイン1は必ずMaster）
-tmux send-keys -t claude-teams.1 "echo '開発完了！セッションを終了します。'" && sleep 2 && tmux send-keys -t claude-teams.1 Enter
+tmux send-keys -t claude-teams.1 "echo '開発完了！セッションを終了します。'"
+sleep 0.5  # テキスト入力完了を待つ
+tmux send-keys -t claude-teams.1 Enter
 
 # 全ペインにexit送信（Claude Codeセッションを正常終了）
 for pane in $(tmux list-panes -t claude-teams -F '#{pane_index}'); do
-  tmux send-keys -t claude-teams.$pane "exit" && sleep 0.1 && tmux send-keys -t claude-teams.$pane Enter
+  tmux send-keys -t claude-teams.$pane "exit"
+  sleep 0.5  # テキスト入力完了を待つ
+  tmux send-keys -t claude-teams.$pane Enter
+  sleep 0.1  # 次のペインへ移る前の小休止
 done
 
 # セッション終了
@@ -1264,15 +1398,17 @@ rm -rf .tmp/ .cache/
    WORK_DESC="brief-description"
    LOG_FILE="documents/activity_logs/${TIMESTAMP}_${WORK_DESC}.md"
    
-   # ログ内容を記述
+   # ログ内容を記述（Issue番号含む）
    cat > "$LOG_FILE" << 'EOF'
    [活動ログテンプレートに従って記述]
+   関連Issue: #23, #24
    EOF
    
-   # コミット実行
+   # コミット実行（Issue番号を含める）
    git add .
-   git commit -m "feat: [説明]
+   git commit -m "feat: [説明] (#23, #24)
    
+   Closes #23, #24
    📝 Activity log: documents/activity_logs/${TIMESTAMP}_${WORK_DESC}.md
    
    🤖 Generated with Claude Code
@@ -1289,14 +1425,15 @@ rm -rf .tmp/ .cache/
 
 1. **新規プロジェクト = チーム構成のみ**
 2. **既存プロジェクト = 通常作業**
-3. **documents/requirements.mdは人間用要件定義、documents/tasks/は詳細タスクリスト**
+3. **documents/requirements.mdは人間用要件定義、GitHub Issuesで詳細タスク管理**
 4. **フェーズ分けせず一発で全機能実装**
-5. **開発中に必要なタスクは随時追加**
+5. **開発中に必要なタスクは随時GitHub Issue作成**
 6. **「今後の展開」「ロードマップ」等は作成しない（完成品を一発で作る）**
-7. **teams.jsonは必ずdocumentsディレクトリに保存（catコマンド使用）**
+7. **teams.jsonは必ずdocumentsディレクトリに保存（GitHubラベル情報含む）**
 8. **生成後は必ず停止（Masterがtmuxで指示を出す）**
 9. **UIデザイン作成時は必ずMagic MCPを使用**
 10. **通信は必ず階層構造を守る（Master ↔️ Boss ↔️ Member）**
 11. **アイドル状態は即座に報告・即座に対応**
 12. **テストカバレッジ90%以上、ハードコード禁止**
-13. **すべてのコミットに活動ログを作成（documents/activity_logs/）**
+13. **すべてのコミットに活動ログとIssue番号を含める**
+14. **タスク管理はすべてGitHub Issuesで行う**

@@ -16,8 +16,8 @@ fi
 
 # セッション名とペインインデックスを取得
 SESSION_NAME=$(tmux display-message -p '#S')
-PANE_INDEX=$(tmux display-message -p '#P')
-WINDOW_INDEX=$(tmux display-message -p '#I')
+PANE_INDEX=$(tmux display-message -p '#{pane_index}')
+WINDOW_INDEX=$(tmux display-message -p '#{window_index}')
 
 # 環境変数からポート範囲を取得（デフォルトは30000-30999）
 PLAYWRIGHT_PORT_RANGE=${PLAYWRIGHT_PORT_RANGE:-"30000-30999"}
@@ -29,16 +29,19 @@ PORT_RANGE_SIZE=$((PORT_MAX - PORT_BASE + 1))
 PORT_BASE=${PORT_BASE:-30000}
 PORT_BASE=$((PORT_BASE + 1))  # 30001から開始
 
-# ユニークなポートを生成
-# ウィンドウとペインの組み合わせでユニークにする
-PORT_OFFSET=$((WINDOW_INDEX * 100 + PANE_INDEX))
-PLAYWRIGHT_MCP_PORT=$((PORT_BASE + PORT_OFFSET))
-
-# ポートが範囲内か確認
-if [ $PLAYWRIGHT_MCP_PORT -gt $PORT_MAX ]; then
-    # 範囲を超えた場合はハッシュを使用
-    PORT_HASH=$(echo -n "${SESSION_NAME}${WINDOW_INDEX}${PANE_INDEX}" | cksum | cut -d' ' -f1)
-    PLAYWRIGHT_MCP_PORT=$((PORT_BASE + (PORT_HASH % (PORT_RANGE_SIZE - 1))))
+# 環境変数が既に設定されている場合はそれを使用
+if [ -z "$PLAYWRIGHT_MCP_PORT" ]; then
+    # ユニークなポートを生成
+    # ウィンドウとペインの組み合わせでユニークにする
+    PORT_OFFSET=$((WINDOW_INDEX * 100 + PANE_INDEX))
+    PLAYWRIGHT_MCP_PORT=$((PORT_BASE + PORT_OFFSET))
+    
+    # ポートが範囲内か確認
+    if [ $PLAYWRIGHT_MCP_PORT -gt $PORT_MAX ]; then
+        # 範囲を超えた場合はハッシュを使用
+        PORT_HASH=$(echo -n "${SESSION_NAME}${WINDOW_INDEX}${PANE_INDEX}" | cksum | cut -d' ' -f1)
+        PLAYWRIGHT_MCP_PORT=$((PORT_BASE + (PORT_HASH % (PORT_RANGE_SIZE - 1))))
+    fi
 fi
 
 echo -e "${GREEN}[INFO]${NC} Playwright MCP設定:"
@@ -64,13 +67,12 @@ if [ $? -eq 0 ]; then
     # 既存のmcp-playwrightを削除
     claude mcp remove -s user mcp-playwright >/dev/null 2>&1
     
-    # 新しいポートで追加（コンテナ名を使用してDockerネットワーク経由でアクセス）
-    claude mcp add -s user mcp-playwright -t sse "http://${CONTAINER_NAME}:8931/sse"
+    # ホストネットワークモードでは直接ポートでアクセス
+    claude mcp add -s user mcp-playwright -t sse "http://localhost:${PLAYWRIGHT_MCP_PORT}/sse"
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}[SUCCESS]${NC} MCP設定が完了しました"
-        echo "  内部URL: http://${CONTAINER_NAME}:8931/sse"
-        echo "  外部URL: http://host.docker.internal:${PLAYWRIGHT_MCP_PORT}/sse"
+        echo "  URL: http://localhost:${PLAYWRIGHT_MCP_PORT}/sse"
     else
         echo -e "${RED}[ERROR]${NC} MCP設定に失敗しました"
     fi

@@ -1,10 +1,6 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
-version: "3.8"
-
+version: '3.8'
 name: claude-code-${PROJECT_NAME}
-
 services:
-  # Claude Code Company 環境
   claude-code:
     image: claude-code-base:latest
     build:
@@ -13,80 +9,87 @@ services:
       args:
         - CLAUDE_AUTH_DIR=${HOME}
     container_name: claude-code-${PROJECT_NAME}
-    # ENTRYPOINTはrootで実行、その後developerに切り替え
-    # user: "${USER_UID:-1000}:${USER_GID:-1000}"
     env_file:
       - .env
+    environment:
+      - HOST_CLAUDE_PROJECT_DIR=${CLAUDE_PROJECT_DIR}
+      - MCP_GATEWAY_URL=http://mcp-gateway-server:3003
     volumes:
-      # プロジェクトディレクトリを/workspaceにマウント
       - .:/workspace:delegated
-
-      # docker-baseディレクトリを別の場所にマウント
       - ${CLAUDE_PROJECT_DIR}/docker-base:/opt/claude-system:ro
-
-      # Git設定をホストから引き継ぎ
       - ~/.gitconfig:/home/developer/.gitconfig:ro
       - ~/.ssh:/home/developer/.ssh:ro
-
-      # Claude設定を直接マウント（読み書き可能）
       - ~/.claude:/home/developer/.claude
-
-      # bash履歴は名前付きボリュームとしてマウント
       - bash_history:/home/developer/.bash_history
-      # zデータはファイルではなくディレクトリとしてマウント
       - z_data:/home/developer/.z_data
-
-      # GitHub CLI設定を引き継ぎ
       - ~/.config/gh:/home/developer/.config/gh:ro
-
-      # Dockerソケットマウント（Docker内Docker実行用）
       - /var/run/docker.sock:/var/run/docker.sock
-
+      - ${CLAUDE_PROJECT_DIR}/mcp-gateway/claude-project-integration/mcp-servers-gateway.json:/home/developer/.config/claude/mcp-servers.json:ro
     working_dir: /workspace
     stdin_open: true
     tty: true
     restart: unless-stopped
-
     deploy:
       resources:
         limits:
           memory: 8G
-          cpus: "4.0"
+          cpus: '4.0'
         reservations:
           memory: 4G
-          cpus: "2.0"
-
-    # カスタムネットワーク使用（コンテナ間通信用）
-    networks:
-      - claude-network
-    # ホストのMCPサーバーにアクセスするため
+          cpus: '2.0'
+    network_mode: host
     extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-    # ポート範囲を開放（動的に割り当て）
+      - host.docker.internal:host-gateway
+    depends_on:
+      - mcp-gateway-server
+  mcp-proxy-check:
+    image: busybox
+    container_name: mcp-proxy-check-${PROJECT_NAME}
+    command: |-
+      sh -c "
+          if ! nc -z host.docker.internal 9999 2>/dev/null; then
+            echo '❌ エラー: MCPプロキシサーバーが起動していません！'
+            echo '👉 cd mcp-gateway && bun run proxy'
+            exit 1
+          fi
+        "
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  mcp-gateway-server:
+    build:
+      context: ${CLAUDE_PROJECT_DIR}/mcp-gateway
+      dockerfile: Dockerfile.server
+    image: mcp-gateway-server:latest
+    container_name: mcp-gateway-server
+    volumes:
+      - ${CLAUDE_PROJECT_DIR}/mcp-gateway/mcp-config.json:/app/mcp-config.json:ro
+    environment:
+      - MCP_PROXY_PORT=${MCP_PROXY_PORT:-9999}
+      - DOCKER_ENV=true
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    network_mode: host
+  mcp-gateway-client:
+    build:
+      context: ${CLAUDE_PROJECT_DIR}/mcp-gateway
+      dockerfile: Dockerfile.client
+    image: mcp-gateway-client:latest
+    container_name: mcp-gateway-client
+    environment:
+      - API_URL=http://host.docker.internal:${MCP_API_PORT:-3003}
+      - MCP_API_PORT=${MCP_API_PORT:-3003}
+    depends_on:
+      - mcp-gateway-server
     ports:
-      - "${PLAYWRIGHT_PORT_RANGE:-30000-30999}:30000-30999"  # Playwright MCPサーバー用
-      - "${VNC_PORT_RANGE:-40000-40999}:40000-40999"  # Playwright VNC用（オプション）
-      - "${WEBVNC_PORT_RANGE:-50000-50999}:50000-50999"  # Playwright Web VNC用（オプション）
-      # 開発サーバーのポートは公開不要（コンテナ内でのみアクセス）
-      # 必要な場合は個別にdocker-compose.override.ymlで追加
-
-    # ホストのネットワークモードを使用（MCPサーバー接続用）
-    # network_mode: "host"  # 必要に応じてコメントアウトを外す
-
-  # Playwright MCP Server は master コマンド実行時に動的に起動
-
+      - ${MCP_WEB_PORT:-3002}:3002
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
 volumes:
-  # bash履歴ファイル用ボリューム
   bash_history:
     name: ${PROJECT_NAME}_bash_history
     external: true
-  # zディレクトリジャンプ用ボリューム
   z_data:
     name: ${PROJECT_NAME}_z
     external: true
-
-networks:
-  claude-network:
-    driver: bridge
-    name: ${PROJECT_NAME}_network

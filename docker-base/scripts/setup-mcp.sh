@@ -36,17 +36,18 @@ if [ ! -f "$template_file" ]; then
     exit 1
 fi
 
-# 既存のMCPサーバーを削除（mcp-playwrightは除外）
-echo -e "${BLUE}[INFO]${NC} 既存のMCPサーバーを削除中..."
-for server in $(claude mcp list 2>/dev/null | grep -E '^[a-zA-Z0-9-]+:' | cut -d':' -f1); do
-    # mcp-playwrightはmaster/setup-playwright-autoで管理されるため削除しない
-    if [ "$server" = "mcp-playwright" ]; then
-        echo "  - $server はスキップ（Masterコマンドで管理）"
-        continue
+# 既存のMCPサーバーをチェック
+existing_servers=$(claude mcp list 2>/dev/null | grep -E '^[a-zA-Z0-9-]+:' | cut -d':' -f1)
+if [ -n "$existing_servers" ]; then
+    echo -e "${BLUE}[INFO]${NC} 既存のMCPサーバーを確認中..."
+    # mcp-playwrightのみ削除（他は残す）
+    if echo "$existing_servers" | grep -q "^mcp-playwright$"; then
+        echo "  - mcp-playwright を削除中（再設定のため）..."
+        claude mcp remove -s user "mcp-playwright" >/dev/null 2>&1
     fi
-    echo "  - $server を削除中..."
-    claude mcp remove -s user "$server" >/dev/null 2>&1
-done
+else
+    echo -e "${BLUE}[INFO]${NC} 既存のMCPサーバーはありません"
+fi
 
 # MCPサーバーを追加
 echo -e "${BLUE}[INFO]${NC} MCPサーバーを追加中..."
@@ -56,15 +57,10 @@ echo ""
 servers=$(jq -r '.mcpServers | to_entries[] | .key' "$template_file")
 
 for server in $servers; do
-    # mcp-playwrightは共有サーバーを使用
-    if [ "$server" = "mcp-playwright" ]; then
-        # 既に設定されているかチェック
-        if claude mcp list 2>/dev/null | grep -q "^mcp-playwright:"; then
-            echo -e "${YELLOW}[INFO]${NC} mcp-playwright は既に設定されています（Masterコマンドで管理）"
-            continue
-        else
-            echo -e "${YELLOW}[INFO]${NC} mcp-playwright は共有サーバー (playwright-mcp:8931) を使用します"
-        fi
+    # 既に設定されているサーバーはスキップ（mcp-playwright以外）
+    if [ "$server" != "mcp-playwright" ] && echo "$existing_servers" | grep -q "^$server$"; then
+        echo -e "${YELLOW}[INFO]${NC} $server は既に設定されています（スキップ）"
+        continue
     fi
     
     echo -e "${YELLOW}[INFO]${NC} $server を追加中..."

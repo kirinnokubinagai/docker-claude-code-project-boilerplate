@@ -126,9 +126,9 @@ validate_teams_config() {
 # デバッグ用: ペインマッピングを表示
 show_pane_mapping() {
     log_info "=== ペインマッピング ==="
-    echo "ペイン 0: Master"
+    echo "ペイン 1: Master"
     
-    local pane_idx=1
+    local pane_idx=2
     local teams=$(jq -r '.teams[].id' "$TEAMS_CONFIG_FILE" 2>/dev/null)
     
     for team in $teams; do
@@ -173,32 +173,99 @@ get_pane_index_for_team() {
     echo $pane_idx
 }
 
+# タスク送信の確認関数
+check_task_sent() {
+    local pane_idx=$1
+    local task_prefix=$2
+    
+    # ペインの内容を取得（最後の20行）
+    local pane_content=$(tmux capture-pane -t "$SESSION_NAME.$pane_idx" -p | tail -20)
+    
+    # 指示が送信されているかチェック
+    # Claudeのプロンプトパターンまたはタスク内容の一部を検索
+    if echo "$pane_content" | grep -qF "Human:" || echo "$pane_content" | grep -qF "$task_prefix"; then
+        return 0  # 送信成功
+    else
+        return 1  # 送信失敗
+    fi
+}
+
 # タスクをペインに送信（改善版）
 send_task_to_pane() {
     local pane_idx=$1
     local task=$2
     
+    # デバッグ: セッション名を確認
+    log_debug "SESSION_NAME: $SESSION_NAME, pane_idx: $pane_idx"
+    
     # ペインの存在確認
-    if ! tmux list-panes -t "$SESSION_NAME" -F "#{pane_index}" | grep -q "^${pane_idx}$"; then
+    if ! tmux list-panes -t "$SESSION_NAME" -F "#{pane_index}" 2>/dev/null | grep -q "^${pane_idx}$"; then
         log_error "ペイン $pane_idx が存在しません"
+        # デバッグ: 利用可能なペインを表示
+        log_debug "利用可能なペイン: $(tmux list-panes -t "$SESSION_NAME" -F "#{pane_index}" 2>/dev/null | tr '\n' ' ')"
         return 1
     fi
     
-    # タスクを送信（長いタスクに対応するため待機時間を調整）
-    local task_length=${#task}
-    local wait_time=0.5
-    if [ $task_length -gt 100 ]; then
-        wait_time=1.0
+    # タスクの最初の20文字を取得（確認用）
+    local task_prefix=$(echo "$task" | head -c 20)
+    
+    # タスクを送信（テキスト入力とEnter実行を分離）
+    # まずテキストを送信
+    tmux send-keys -t "$SESSION_NAME.$pane_idx" "$task"
+    
+    # 0.5秒待機（テキストが完全に入力されるのを待つ）
+    sleep 0.5
+    
+    # Enterキーを送信して実行
+    tmux send-keys -t "$SESSION_NAME.$pane_idx" Enter
+    
+    # 最大3回までリトライ
+    local retry_count=0
+    local max_retries=3
+    
+    while [ $retry_count -lt $max_retries ]; do
+        # 2秒待機してから確認
+        sleep 2
+        
+        # 指示が送信されているかチェック
+        if check_task_sent "$pane_idx" "$task_prefix"; then
+            log_debug "ペイン $pane_idx: 指示が正常に送信されました"
+            return 0
+        fi
+        
+        retry_count=$((retry_count + 1))
+        
+        if [ $retry_count -lt $max_retries ]; then
+            log_warning "ペイン $pane_idx: 指示が送信されていない可能性があります。再度Enterを送信します。 ($retry_count/$max_retries)"
+            
+            # 再度Enterを送信
+            tmux send-keys -t "$SESSION_NAME.$pane_idx" Enter
+        fi
+    done
+    
+    # 最終確認
+    if check_task_sent "$pane_idx" "$task_prefix"; then
+        log_success "ペイン $pane_idx: 指示が正常に送信されました"
+        return 0
+    else
+        log_error "ペイン $pane_idx: 指示の送信に失敗しました ($max_retries 回リトライ後)"
+        return 1
     fi
-    
-    tmux send-keys -t "$SESSION_NAME.$pane_idx" "$task" && sleep $wait_time && tmux send-keys -t "$SESSION_NAME.$pane_idx" Enter
-    
-    return 0
 }
 
 # Masterの初期設定（改善版）
 setup_master() {
+    echo ""
+    echo -e "${CYAN}=========================================${NC}"
+    echo -e "${CYAN}🎯 Master Claudeの初期設定を開始${NC}"
+    echo -e "${CYAN}=========================================${NC}"
+    echo ""
+    
     log_info "Master Claudeを設定中..."
+    
+    # デバッグ: セッション状態を確認
+    log_debug "セッション確認: $(tmux has-session -t "$SESSION_NAME" 2>&1 && echo "存在する" || echo "存在しない")"
+    log_debug "ペイン一覧: $(tmux list-panes -t "$SESSION_NAME" -F "#{pane_index}" 2>&1 | tr '\n' ' ')"
     
     # タスクディレクトリの確認
     local master_prompt
@@ -208,9 +275,13 @@ setup_master() {
         master_prompt="私はMaster Claudeです。まず ccd でアプリの要件定義を行い、documents/requirements.md と teams.json を作成します。その後、各チームBossに詳細な要件定義を指示し、最後に環境構築を行います。プロジェクト全体の進行を統括します。"
     fi
     
-    # Master Claudeに初期プロンプトを送信
+    # Master Claudeに初期プロンプトを送信（最初のペインは1）
+    log_info "📨 Masterへ初期プロンプトを送信中..."
     if send_task_to_pane 1 "$master_prompt"; then
         log_success "Master: 初期設定完了"
+        echo ""
+        echo -e "${GREEN}✔ Master Claudeが動作を開始しました${NC}"
+        echo ""
     fi
     
     # チーム情報は画面に既に表示されているので、ここでは送信しない
@@ -264,9 +335,11 @@ create_team_panes() {
                 pane_title="$team_name #$member"
             fi
             
-            # タイトル設定
+            # タイトル設定（-Tオプションで固定）
             sleep 0.1
             tmux select-pane -t "$SESSION_NAME.$current_pane_index" -T "$pane_title" 2>/dev/null
+            # ペインごとの自動リネーム無効化
+            tmux set-option -t "$SESSION_NAME.$current_pane_index" allow-rename off 2>/dev/null
             
             log_success "  → $pane_title のペイン作成"
             
@@ -292,9 +365,35 @@ main() {
     echo -e "${CYAN}${BOLD}======================================${NC}"
     echo ""
     
+    # Playwrightイメージの事前チェック
+    log_info "Playwright MCPイメージを確認中..."
+    if ! docker image inspect playwright-mcp:latest >/dev/null 2>&1; then
+        log_error "Playwright MCPイメージが見つかりません"
+        echo ""
+        echo -e "${RED}===============================================${NC}"
+        echo -e "${RED}Playwright MCPイメージのビルドが必要です${NC}"
+        echo -e "${RED}===============================================${NC}"
+        echo ""
+        echo "ホストマシンで以下のコマンドを実行してください："
+        echo ""
+        echo -e "  ${GREEN}cd /Users/kirinnokubinagaiyo/Claude-Project${NC}"
+        echo -e "  ${GREEN}docker build -t playwright-mcp:latest -f DockerfilePlaywright .${NC}"
+        echo -e "  ${GREEN}docker build -t playwright-mcp-vnc:latest -f DockerfilePlaywrightVNC .${NC}"
+        echo ""
+        echo "ビルド完了後、再度 master コマンドを実行してください"
+        echo ""
+        exit 1
+    fi
+    
+    # .bashrcから環境変数を読み込む
+    log_info "環境変数を読み込み中..."
+    source /home/developer/.bashrc
+    
     # MCPサーバーを設定
     log_info "MCPサーバーを設定中..."
     /opt/claude-system/scripts/setup-mcp.sh
+    
+    # 共有Playwright MCPは実験的機能のため削除（個別モードのみ使用）
     
     # 設定ファイルのチェック
     if ! check_config_files; then
@@ -383,9 +482,16 @@ main() {
     log_info "tmuxセッションを作成中..."
     tmux -u new-session -d -s "$SESSION_NAME" -n "All-Teams" -c "$WORKSPACE"
     
+    # セッションが終了しないように設定
+    tmux set-option -t "$SESSION_NAME" remain-on-exit on
+    
     # ペインボーダーの設定
     tmux set-option -g pane-border-status top
     tmux set-option -g pane-border-format " #{pane_title} "
+    
+    # ペインタイトルの自動更新を無効化（重要）
+    tmux set-option -g allow-rename off
+    tmux set-option -g automatic-rename off
     
     # セッション作成確認
     if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
@@ -393,13 +499,18 @@ main() {
         exit 1
     fi
     
+    # デバッグ: 最初のペインのインデックスを確認
+    local first_pane=$(tmux list-panes -t "$SESSION_NAME" -F "#{pane_index}" | head -1)
+    log_debug "最初のペインのインデックス: $first_pane"
+    
     # Masterペインの設定
     # ウィンドウリストを確認（デバッグ用）
     log_debug "現在のウィンドウ: $(tmux list-windows -t "$SESSION_NAME" 2>/dev/null || echo 'なし')"
     
     # ウィンドウインデックスを明示的に1に設定
     tmux select-window -t "$SESSION_NAME:1" 2>/dev/null || tmux select-window -t "$SESSION_NAME:0" 2>/dev/null
-    tmux select-pane -t "$SESSION_NAME.1" -T "Master" 2>/dev/null || log_error "Masterペインの設定に失敗"
+    # Masterペインのタイトル設定（最初のペインは1）
+    tmux select-pane -t "$SESSION_NAME.1" 2>/dev/null || log_debug "ペイン1の選択に失敗"
     log_success "Master用ペイン作成完了"
     
     # worktreeディレクトリを作成
@@ -433,23 +544,88 @@ main() {
     local final_panes=$(tmux list-panes -t "$SESSION_NAME" 2>/dev/null | wc -l | tr -d ' ')
     log_success "合計 $final_panes ペインを作成しました"
     
-    # 各ペインでClaude Codeを起動
+    # デバッグ: 実際のペインを確認
+    log_debug "作成されたペイン:"
+    tmux list-panes -t "$SESSION_NAME" -F "#{pane_index} #{pane_title}" 2>/dev/null | while read line; do
+        log_debug "  $line"
+    done
+    
+    # 各ペインでClaude Codeを起動（Masterペイン以外）
     log_info "各ペインでClaude Codeを起動中..."
     
-    # 通常の起動（並列実行）
-    for i in $(seq 1 "$final_panes"); do
-        tmux send-keys -t "$SESSION_NAME.$i" 'claude --dangerously-skip-permissions' && sleep 0.1 && tmux send-keys -t "$SESSION_NAME.$i" Enter &
+    # 通常の起動（並列実行） - Playwright MCPを設定してからClaude Codeを起動
+    # 実際のペインインデックスを取得して使用
+    local pane_indices=$(tmux list-panes -t "$SESSION_NAME" -F "#{pane_index}")
+    # チーム情報を事前に収集
+    local team_pane_mapping=()
+    local current_pane=2  # Masterが1なので2から開始
+    
+    for team in $teams; do
+        local member_count=$(jq -r ".teams[] | select(.id == \"$team\") | .member_count // 1" "$TEAMS_CONFIG_FILE" 2>/dev/null)
+        local playwright_required=$(jq -r ".teams[] | select(.id == \"$team\") | .playwright_required // false" "$TEAMS_CONFIG_FILE" 2>/dev/null)
+        
+        for member in $(seq 1 "$member_count"); do
+            team_pane_mapping+=("$current_pane:$team:$playwright_required")
+            current_pane=$((current_pane + 1))
+        done
+    done
+    
+    for pane_idx in $pane_indices; do
+        if [ "$pane_idx" -ne 1 ]; then  # Masterペイン（1）はスキップ
+            # チーム情報を取得
+            local team_info=""
+            for mapping in "${team_pane_mapping[@]}"; do
+                if [[ "$mapping" == "$pane_idx:"* ]]; then
+                    team_info="$mapping"
+                    break
+                fi
+            done
+            
+            if [ -n "$team_info" ]; then
+                local team_id=$(echo "$team_info" | cut -d: -f2)
+                local playwright_required=$(echo "$team_info" | cut -d: -f3)
+                
+                if [ "$playwright_required" = "true" ]; then
+                    # Playwrightが必要なチームのみ個別に起動
+                    local port_offset=$((pane_idx - 1))
+                    local playwright_port=$((31000 + port_offset * 100))
+                    log_debug "チーム $team_id (ペイン $pane_idx): Playwright MCPを起動"
+                    tmux send-keys -t "$SESSION_NAME.$pane_idx" "export PLAYWRIGHT_MCP_PORT=$playwright_port && source /opt/claude-system/scripts/setup-playwright-auto.sh && ccd" Enter &
+                else
+                    # Playwrightが不要なチーム
+                    log_debug "チーム $team_id (ペイン $pane_idx): 通常起動"
+                    tmux send-keys -t "$SESSION_NAME.$pane_idx" "ccd" Enter &
+                fi
+            else
+                # デフォルト（通常起動）
+                tmux send-keys -t "$SESSION_NAME.$pane_idx" "ccd" Enter &
+            fi
+        fi
     done
     wait  # 全ての並列処理が完了するまで待機
     
-    log_success "全てのClaude Codeを起動しました"
+    log_success "チームメンバーのClaude Codeを起動しました"
     
-    # Claude Codeの起動を待つ（エラーチェック付き）
-    log_info "ペイン名の表示を確認中..."
-    sleep 12  # Claude Codeが完全に起動するまで十分な時間を待つ
-
-    # ペイン名設定が完了してからMasterプロンプトを送信
-    setup_master & wait
+    # Claude Codeの起動待機（シンプルに固定時間待機）
+    log_info "Claude Codeの起動を待機中..."
+    sleep 10
+    
+    # Masterペインで最初にClaude Codeを起動
+    log_info "Master Claude Codeを起動中..."
+    # MasterにはPlaywright MCPは不要（プロジェクト全体の管理のみ）
+    tmux send-keys -t "$SESSION_NAME.1" "ccd" Enter
+    
+    # Claude Codeの起動を待機
+    log_info "Master Claude Codeの起動を待機中..."
+    sleep 5  # Masterはccd起動のみ
+    
+    # セッションの存在を確認
+    if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+        # MasterにプロンプトをMasterプロンプトを送信
+        setup_master
+    else
+        log_error "セッション $SESSION_NAME が見つかりません"
+    fi
     
     # デバッグ: ペインマッピングを表示
     show_pane_mapping
@@ -466,6 +642,21 @@ main() {
     echo "  - 総ペイン数: $final_panes"
     echo "  - セッション名: $SESSION_NAME"
     echo "  - 作業ディレクトリ: $WORKSPACE"
+    
+    # Playwright MCPコンテナの状況を表示
+    local playwright_teams=""
+    for team in $teams; do
+        local playwright_required=$(jq -r ".teams[] | select(.id == \"$team\") | .playwright_required // false" "$TEAMS_CONFIG_FILE" 2>/dev/null)
+        if [ "$playwright_required" = "true" ]; then
+            playwright_teams="$playwright_teams $team"
+        fi
+    done
+    
+    if [ -n "$playwright_teams" ]; then
+        echo "  - Playwright MCP: $playwright_teams チームで使用"
+    else
+        echo "  - Playwright MCP: 未使用"
+    fi
     echo ""
     
     echo "📍 接続方法："
@@ -481,17 +672,23 @@ main() {
     if [ -n "$MASTER_INSTRUCTION" ]; then
         log_info "Masterに指示を送信中..."
         sleep 2
-        # 指示を送信
-        tmux send-keys -t "$SESSION_NAME.1" "$MASTER_INSTRUCTION" && sleep 0.5 && tmux send-keys -t "$SESSION_NAME.1" Enter
+        # 指示を送信（テキスト入力とEnter実行を分離）
+        tmux send-keys -t "$SESSION_NAME.1" "$MASTER_INSTRUCTION"
+        sleep 0.5
+        tmux send-keys -t "$SESSION_NAME.1" Enter
     else
         # 指示がない場合は、既存の初期指示を送信
         sleep 2
         if [ -d "$TASKS_DIR" ] && [ "$(find "$TASKS_DIR" -name "*.md" -type f 2>/dev/null | wc -l)" -gt 0 ]; then
             # 既存タスクがある場合
-            tmux send-keys -t "$SESSION_NAME.1" "documents/tasks/内のタスクファイルを確認して、各チームのBossにタスクを割り当ててください。" && sleep 5 && tmux send-keys -t "$SESSION_NAME.1" Enter
+            tmux send-keys -t "$SESSION_NAME.1" "documents/tasks/内のタスクファイルを確認して、各チームのBossにタスクを割り当ててください。"
+            sleep 0.5
+            tmux send-keys -t "$SESSION_NAME.1" Enter
         else
             # 新規プロジェクトの場合
-            tmux send-keys -t "$SESSION_NAME.1" "新規プロジェクトです。プロジェクトの要件定義を行い、各チームのBossに詳細設計と実装タスクを割り当ててください。" && sleep 5 && tmux send-keys -t "$SESSION_NAME.1" Enter
+            tmux send-keys -t "$SESSION_NAME.1" "新規プロジェクトです。プロジェクトの要件定義を行い、各チームのBossに詳細設計と実装タスクを割り当ててください。"
+            sleep 0.5
+            tmux send-keys -t "$SESSION_NAME.1" Enter
         fi
     fi
     
@@ -503,8 +700,8 @@ main() {
     fi
 }
 
-# エラーハンドリング
-trap 'log_error "予期しないエラーが発生しました"; exit 1' ERR
+# エラーハンドリング（一時的に無効化）
+# trap 'log_error "予期しないエラーが発生しました"; exit 1' ERR
 
 # 引数処理
 ATTACH_SESSION=true

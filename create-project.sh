@@ -57,7 +57,12 @@ create_project() {
                     2)
                         echo "既存のコンテナを再起動中..."
                         cd "$PROJECT_DIR"
-                        docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
+                        # MCP Gateway統合が有効な場合は統合ファイルも含める
+            if [ -f "$CLAUDE_PROJECT_DIR/.mcp-gateway-integrated" ] && [ -f "$CLAUDE_PROJECT_DIR/mcp-gateway/claude-project-integration/docker-compose.yml" ]; then
+                docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" -f "$CLAUDE_PROJECT_DIR/mcp-gateway/claude-project-integration/docker-compose.yml" --project-directory "$PROJECT_DIR" up -d
+            else
+                docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
+            fi
                         
                         # コンテナが起動するまで待機
                         echo "コンテナの起動を待機中..."
@@ -83,6 +88,22 @@ create_project() {
             echo "コンテナが起動していません。起動します..."
             cd "$PROJECT_DIR"
             
+            # MCP Gateway統合チェックとプロキシ起動
+            if [ -f "$CLAUDE_PROJECT_DIR/.mcp-gateway-integrated" ] && [ -d "$CLAUDE_PROJECT_DIR/mcp-gateway" ]; then
+                echo "MCP Gateway統合を検出..."
+                
+                # プロキシサーバーが起動していない場合は起動
+                if ! nc -z localhost 9999 2>/dev/null; then
+                    echo "MCPプロキシサーバーを起動中..."
+                    cd "$CLAUDE_PROJECT_DIR/mcp-gateway"
+                    nohup bun run proxy > /dev/null 2>&1 &
+                    PROXY_PID=$!
+                    cd "$PROJECT_DIR"
+                    sleep 3
+                    echo "プロキシサーバー起動完了 (PID: $PROXY_PID)"
+                fi
+            fi
+            
             # 必要なボリュームが存在するか確認し、なければ作成
             if ! docker volume ls -q | grep -q "^${PROJECT_NAME}_bash_history$"; then
                 echo "ボリュームを作成中: ${PROJECT_NAME}_bash_history"
@@ -93,7 +114,12 @@ create_project() {
                 docker volume create "${PROJECT_NAME}_z"
             fi
             
-            docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
+            # MCP Gateway統合が有効な場合は統合ファイルも含める
+            if [ -f "$CLAUDE_PROJECT_DIR/.mcp-gateway-integrated" ] && [ -f "$CLAUDE_PROJECT_DIR/mcp-gateway/claude-project-integration/docker-compose.yml" ]; then
+                docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" -f "$CLAUDE_PROJECT_DIR/mcp-gateway/claude-project-integration/docker-compose.yml" --project-directory "$PROJECT_DIR" up -d
+            else
+                docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
+            fi
             
             # エラーチェック
             if [ $? -ne 0 ]; then
@@ -150,37 +176,17 @@ create_project() {
     echo "5. 環境変数ファイルを作成中..."
     cat > .env << EOF
 # ==============================================
-# Project Configuration
+# Project Configuration (Required)
 # ==============================================
 PROJECT_NAME=$PROJECT_NAME
 CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR
 
 # ==============================================
-# Playwright MCP Port Configuration
+# Claude Authentication (Optional)
 # ==============================================
-EOF
-    
-    # 空いているポート範囲を自動検出
-    echo "利用可能なポート範囲を検索中..."
-    PORT_RANGES=$("$CLAUDE_PROJECT_DIR/docker-base/scripts/find-free-port-range.sh")
-    eval "$PORT_RANGES"
-    
-    echo "  → 以下のポート範囲を使用します："
-    echo "    Playwright MCP: $PLAYWRIGHT_PORT_RANGE"
-    echo "    VNC: $VNC_PORT_RANGE"
-    echo "    Web VNC: $WEBVNC_PORT_RANGE"
-    
-    # ポート範囲を.envに保存
-    cat >> .env << EOF
-
-# Dynamic port ranges (auto-detected)
-PLAYWRIGHT_PORT_RANGE=$PLAYWRIGHT_PORT_RANGE
-VNC_PORT_RANGE=$VNC_PORT_RANGE
-WEBVNC_PORT_RANGE=$WEBVNC_PORT_RANGE
-EOF
-    
-    # プロジェクト固有の環境変数用のセクションを追加
-    cat >> .env << 'EOF'
+# ANTHROPIC_API_KEYが設定されていない場合は、
+# Claudeの認証が必要な際に手動でログインしてください
+# ANTHROPIC_API_KEY=your-api-key-here
 
 # ==============================================
 # Project-specific Environment Variables
@@ -192,22 +198,14 @@ EOF
 # NEXT_PUBLIC_API_URL=
 EOF
     
-    # .env.mcpファイルをコピー（MCPサービスの認証情報）
+    # ANTHROPIC_API_KEYがメインの.envにある場合はコピー
     if [ -f "$CLAUDE_PROJECT_DIR/.env" ]; then
-        echo "MCPサービスの認証情報をコピー中..."
-        cp "$CLAUDE_PROJECT_DIR/.env" .env.mcp
-        
-        # コピーが成功したか確認
-        if [ -f ".env.mcp" ]; then
-            echo "  → .env.mcpファイルが正常にコピーされました"
-            # ファイルサイズを確認
-            ls -la .env.mcp
-        else
-            echo "  → 警告: .env.mcpファイルのコピーに失敗しました"
+        ANTHROPIC_KEY=$(grep "^ANTHROPIC_API_KEY=" "$CLAUDE_PROJECT_DIR/.env" | cut -d'=' -f2-)
+        if [ -n "$ANTHROPIC_KEY" ]; then
+            echo "Claude API Keyを検出しました。プロジェクトの.envに追加します..."
+            sed -i.bak "s|# ANTHROPIC_API_KEY=your-api-key-here|ANTHROPIC_API_KEY=$ANTHROPIC_KEY|" .env
+            rm -f .env.bak
         fi
-    else
-        echo "警告: $CLAUDE_PROJECT_DIR/.env が見つかりません"
-        echo "MCPサービスを利用する場合は、後で手動で設定してください"
     fi
     
     # .dockerignoreファイルは不要（docker-compose-base.ymlはCLAUDE_PROJECT_DIRから読み込むため）
@@ -240,8 +238,8 @@ EOF
     echo "🚀 コンテナを起動中..."
     echo "==============================================="
     
-    # claude-codeコンテナを先に起動
-    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d claude-code
+    # コンテナを起動（claude-codeとMCPゲートウェイ）
+    docker compose -f "$CLAUDE_PROJECT_DIR/docker-compose-base.yml" --project-directory "$PROJECT_DIR" up -d
     
     echo ""
     echo "==============================================="

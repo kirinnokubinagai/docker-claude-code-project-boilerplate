@@ -11,7 +11,8 @@ NC='\033[0m' # No Color
 # プロジェクト名とネットワーク名を取得
 PROJECT_NAME=${PROJECT_NAME:-$(basename $(pwd))}
 NETWORK_NAME="${PROJECT_NAME}_network"
-CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-/opt/claude-system}"
+# Docker-in-Dockerなので、ホスト側のパスを使用
+CLAUDE_PROJECT_DIR="/Users/kirinnokubinagaiyo/Claude-Project"
 
 # Playwright コンテナを起動
 start_playwright_container() {
@@ -28,11 +29,8 @@ start_playwright_container() {
     echo "  コンテナ名: $container_name"
     echo "  ポート: $port"
     
-    # Dockerfileが存在するか確認
-    if [ ! -f "${CLAUDE_PROJECT_DIR}/DockerfilePlaywright" ]; then
-        echo -e "${RED}[ERROR]${NC} DockerfilePlaywright が見つかりません"
-        return 1
-    fi
+    # Dockerfileの存在確認をスキップ（Docker-in-Dockerでは直接アクセスできないため）
+    # ビルド時にエラーが出る場合はその時点で処理
     
     # VNCサポートの有無を確認
     local use_vnc="${PLAYWRIGHT_VNC_ENABLED:-false}"
@@ -45,15 +43,37 @@ start_playwright_container() {
         echo -e "${BLUE}[INFO]${NC} VNCサポートを有効化"
     fi
     
-    # イメージをビルド（キャッシュを使用）
-    echo -e "${BLUE}[INFO]${NC} Dockerイメージをビルド中..."
-    if ! docker build -t "$image_name" -f "$dockerfile" "${CLAUDE_PROJECT_DIR}" >/dev/null 2>&1; then
-        echo -e "${RED}[ERROR]${NC} Dockerイメージのビルドに失敗しました"
+    # イメージが存在するか確認
+    echo -e "${BLUE}[INFO]${NC} Dockerイメージを確認中..."
+    if ! docker image inspect "$image_name" >/dev/null 2>&1; then
+        echo -e "${YELLOW}[WARN]${NC} Dockerイメージが見つかりません"
+        echo -e "${RED}===============================================${NC}"
+        echo -e "${RED}[ERROR] Playwright MCPイメージのビルドが必要です${NC}"
+        echo -e "${RED}===============================================${NC}"
+        echo ""
+        echo "以下の手順でイメージをビルドしてください："
+        echo ""
+        echo "1. ${BOLD}ホストマシン${NC}で新しいターミナルを開く"
+        echo ""
+        echo "2. 以下のコマンドを実行："
+        echo ""
+        echo -e "   ${GREEN}cd ${CLAUDE_PROJECT_DIR}${NC}"
+        echo -e "   ${GREEN}docker build -t playwright-mcp:latest -f DockerfilePlaywright .${NC}"
+        if [ "$use_vnc" = "true" ]; then
+            echo -e "   ${GREEN}docker build -t playwright-mcp-vnc:latest -f DockerfilePlaywrightVNC .${NC}"
+        fi
+        echo ""
+        echo "3. ビルドが完了したら、再度 master コマンドを実行"
+        echo ""
+        echo -e "${YELLOW}注意: これらのコマンドはホストマシンで実行する必要があります${NC}"
+        echo -e "${YELLOW}      コンテナ内からは実行できません${NC}"
+        echo ""
+        echo -e "${RED}===============================================${NC}"
         return 1
     fi
     
-    # VNCポートの計算
-    local docker_run_cmd="docker run -d --name $container_name --network $NETWORK_NAME -p ${port}:8931"
+    # ホストネットワークモードで起動
+    local docker_run_cmd="docker run -d --name $container_name --network host"
     
     if [ "$use_vnc" = "true" ]; then
         # 環境変数からベースポートを取得（デフォルトは元の値）
@@ -73,7 +93,8 @@ start_playwright_container() {
         docker_run_cmd="$docker_run_cmd -p ${vnc_port}:5900 -p ${webvnc_port}:6080"
     fi
     
-    docker_run_cmd="$docker_run_cmd --restart unless-stopped $image_name"
+    # ホストネットワークモードではポートを環境変数で指定
+    docker_run_cmd="$docker_run_cmd --restart unless-stopped -e MCP_PORT=$port $image_name"
     
     # コンテナを起動
     if eval "$docker_run_cmd" >/dev/null 2>&1; then
@@ -83,8 +104,7 @@ start_playwright_container() {
         for i in {1..10}; do
             if docker ps --format "{{.Names}}" | grep -q "^${container_name}$"; then
                 echo -e "${GREEN}[SUCCESS]${NC} Playwright MCPコンテナが起動しました"
-                echo "  内部URL: http://${container_name}:8931/sse"
-                echo "  外部URL: http://host.docker.internal:${port}/sse"
+                echo "  URL: http://localhost:${port}/sse"
                 
                 if [ "$use_vnc" = "true" ]; then
                     # 環境変数からベースポートを取得（デフォルトは元の値）

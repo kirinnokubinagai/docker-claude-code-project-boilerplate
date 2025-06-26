@@ -95,6 +95,7 @@ find /home/developer -type f -writable ! -path "/home/developer/.claude*" ! -pat
 # 環境変数を設定
 export HOME=/home/developer
 export USER=developer
+# HOST_CLAUDE_PROJECT_DIRはdocker-compose.ymlから渡される
 
 # pnpmのグローバルディレクトリをPATHに追加（claudeコマンド用）
 export PNPM_HOME=/usr/local/share/pnpm
@@ -113,19 +114,8 @@ export CI=true
 # ヘッドレスモードを強制
 export PLAYWRIGHT_BROWSERS_PATH=/home/developer/.cache/ms-playwright
 
-# Playwright MCPのポート設定
-# tmuxセッション毎に異なるポートを割り当て
-if [ -z "$PLAYWRIGHT_MCP_PORT" ]; then
-    # デフォルトは30000
-    export PLAYWRIGHT_MCP_PORT=30000
-    
-    # .envファイルに保存（存在する場合）
-    if [ -f /workspace/.env ]; then
-        # 既存のPLAYWRIGHT_MCP_PORT設定を削除
-        sed -i '/^PLAYWRIGHT_MCP_PORT=/d' /workspace/.env
-        echo "PLAYWRIGHT_MCP_PORT=$PLAYWRIGHT_MCP_PORT" >> /workspace/.env
-    fi
-fi
+# Playwright MCPのポートはmasterコマンドが動的に割り当てるため
+# ここでは設定しない
 
 # MCP設定の自動実行
 echo "MCPサーバーを設定中..."
@@ -164,29 +154,11 @@ su - developer -c "cd /workspace && /opt/claude-system/scripts/setup-mcp.sh" || 
 # 最終段階でエラーハンドリングを再有効化
 set -e
 
-# Playwright環境変数とロケール設定、PATHをdeveloperユーザーに渡す
-PLAYWRIGHT_ENV="PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD CI=$CI PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH PLAYWRIGHT_MCP_PORT=$PLAYWRIGHT_MCP_PORT LANG=$LANG LC_ALL=$LC_ALL PNPM_HOME=$PNPM_HOME PATH=$PATH"
-
-# Claude認証チェックスクリプトを作成
-cat > /tmp/check_claude_auth.sh << 'EOF'
-#!/bin/bash
-# Claude Codeの認証状態をチェック
-if ! claude --version >/dev/null 2>&1; then
-    echo ""
-    echo "========================================="
-    echo "Claude Codeの初回認証が必要です"
-    echo "========================================="
-    echo ""
-    claude login
-fi
-EOF
-chmod +x /tmp/check_claude_auth.sh
-
 # 引数があればそのコマンドを、なければbashシェルを起動
 if [ $# -eq 0 ]; then
-    # デフォルト: bashシェル起動時にClaude認証チェック
-    exec su developer -c "cd /workspace && $PLAYWRIGHT_ENV /tmp/check_claude_auth.sh && exec bash"
+    # デフォルト: bashシェル起動（-lオプションでログインシェルとして起動）
+    exec su - developer -c "cd /workspace && exec bash"
 else
     # 引数がある場合: そのコマンドを実行
-    exec su developer -c "cd /workspace && $PLAYWRIGHT_ENV exec $*"
+    exec su - developer -c "cd /workspace && exec $*"
 fi
