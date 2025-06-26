@@ -2,7 +2,7 @@
   "mcpServers": {
     "mcp-gateway": {
       "command": "sh",
-      "args": ["-c", "cd /Users/kirinnokubinagaiyo/Project/mcp-gateway && bun server/index.ts"],
+      "args": ["-c", "cd /Users/kirinnokubinagaiyo/Claude-Project/mcp-gateway && bun server/index.ts"],
       "env": {
         "MCP_PROXY_PORT": "9999"
       }
