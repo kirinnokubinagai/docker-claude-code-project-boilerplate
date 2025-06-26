@@ -62,7 +62,7 @@ services:
     image: mcp-gateway-server:latest
     container_name: mcp-gateway-server
     volumes:
-      - ${CLAUDE_PROJECT_DIR}/mcp-gateway/mcp-config.json:/app/mcp-config.json:ro
+      - ${MCP_CONFIG_PATH:-${CLAUDE_PROJECT_DIR}/mcp-gateway/mcp-config.json}:/app/mcp-config.json:ro
     environment:
       - MCP_PROXY_PORT=${MCP_PROXY_PORT:-9999}
       - DOCKER_ENV=true
