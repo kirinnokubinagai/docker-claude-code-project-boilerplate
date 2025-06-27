@@ -68,6 +68,7 @@ mkdir -p /workspace/.claude
 chown -R developer:developer /workspace/.claude
 
 # プロジェクト用CLAUDE.mdをworkspaceにコピー（ホストのCLAUDE.mdとは独立）
+# docker-base/claude/CLAUDE.mdをソースとして使用
 if [ -f "/opt/claude-system/claude/CLAUDE.md" ]; then
     cp /opt/claude-system/claude/CLAUDE.md /workspace/CLAUDE.md 2>/dev/null || true
     chown developer:developer /workspace/CLAUDE.md 2>/dev/null || true

@@ -47,12 +47,12 @@ services:
     container_name: mcp-proxy-check-${PROJECT_NAME}
     command: |-
       sh -c "
-          if ! nc -z host.docker.internal 9999 2>/dev/null; then
-            echo '❌ エラー: MCPプロキシサーバーが起動していません！'
-            echo '👉 cd mcp-gateway && bun run proxy'
-            exit 1
-          fi
-        "
+            if ! nc -z host.docker.internal 9999 2>/dev/null; then
+              echo '❌ エラー: MCPプロキシサーバーが起動していません！'
+              echo '👉 cd mcp-gateway && bun run proxy'
+              exit 1
+            fi
+          "
     extra_hosts:
       - host.docker.internal:host-gateway
   mcp-gateway-server:
@@ -62,20 +62,27 @@ services:
     image: mcp-gateway-server:latest
     container_name: mcp-gateway-server-${PROJECT_NAME}
     volumes:
-      - ./mcp-config.json:/app/mcp-config.json:rw
+      - ${CLAUDE_PROJECT_DIR}/mcp-gateway/mcp-config.json:/app/mcp-config.json
     environment:
       - MCP_PROXY_PORT=${MCP_PROXY_PORT:-9999}
       - DOCKER_ENV=true
       - PORT=${MCP_API_PORT:-3003}
+      - CONFIG_FILE=/app/mcp-config.json
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
-    network_mode: host
-    entrypoint: ["/bin/sh", "-c", "cd /app && bun server/web-server.ts"]
+    ports:
+      - ${MCP_API_PORT:-3003}:3003
+    entrypoint:
+      - /bin/sh
+      - '-c'
+      - cd /app && bun server/index.ts
   mcp-gateway-client:
     build:
       context: ${CLAUDE_PROJECT_DIR}/mcp-gateway
       dockerfile: Dockerfile.client
+      args:
+        - MCP_API_PORT=${MCP_API_PORT:-3003}
     image: mcp-gateway-client:latest
     container_name: mcp-gateway-client-${PROJECT_NAME}
     environment:
