@@ -178,13 +178,6 @@ CLAUDE_PROJECT_DIR=$CLAUDE_PROJECT_DIR
 # ANTHROPIC_API_KEY=your-api-key-here
 
 # ==============================================
-# MCP Gateway環境変数
-# ==============================================
-MCP_PROXY_PORT=9999
-MCP_API_PORT=3003
-MCP_WEB_PORT=3002
-
-# ==============================================
 # Project-specific Environment Variables
 # ==============================================
 # Add your project-specific environment variables below
@@ -217,32 +210,21 @@ EOF
     fi
     
     # .dockerignoreファイルは不要（docker-compose-base.ymlはCLAUDE_PROJECT_DIRから読み込むため）
-    echo "6. mcp-configディレクトリと設定ファイルを作成中..."
     
-    # mcp-configディレクトリを作成
-    mkdir -p mcp-config
-    
-    # mcp-config.jsonを作成（空の設定）
-    cat > mcp-config/mcp-config.json << 'EOF'
-{
-  "mcpServers": {}
-}
-EOF
-
-    echo "7. Gitリポジトリ初期化の準備中..."
+    echo "6. Gitリポジトリ初期化の準備中..."
 
     # .gitの初期化と初回コミット
-    echo "8. Gitリポジトリを初期化中..."
+    echo "7. Gitリポジトリを初期化中..."
     git init
     git commit --allow-empty -m "Initial commit"
     
     # 必要なDockerボリュームを作成
-    echo "9. Dockerボリュームを作成中..."
+    echo "8. Dockerボリュームを作成中..."
     docker volume create "${PROJECT_NAME}_bash_history" || true
     docker volume create "${PROJECT_NAME}_z" || true
     
     # Docker Composeを起動（ビルドログを表示）
-    echo "10. Docker Composeを起動中..."
+    echo "9. Docker Composeを起動中..."
     echo "==============================================="
     echo "📦 Dockerイメージをビルド中..."
     echo "（初回は時間がかかる場合があります）"
@@ -265,7 +247,7 @@ EOF
     echo "==============================================="
     
     # コンテナが起動するまで待機
-    echo "11. コンテナの起動を待機中..."
+    echo "10. コンテナの起動を待機中..."
     CONTAINER_NAME="claude-code-${PROJECT_NAME}"
     
     local dot_count=0
@@ -305,7 +287,7 @@ EOF
     done
     
     # developerユーザーでコンテナに入る
-    echo "12. コンテナに接続中..."
+    echo "11. コンテナに接続中..."
     echo ""
     echo "==============================================="
     echo "プロジェクト '$PROJECT_NAME' の作成が完了しました！"
